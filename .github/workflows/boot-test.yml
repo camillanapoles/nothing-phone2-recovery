@@ -55,8 +55,8 @@ jobs:
             || echo "❌ Shamiko should be DISABLED"
 
           echo "Checking LSPosed variant..."
-          grep -q "Zygisk.*ONLY\|Only Zygisk" zeroharcoderd/knowledge/modules/lsposed.md \
-            && echo "✓ LSPosed Zygisk-only constraint documented"
+          grep -q "Zygisk.*variant required\|Zygisk.*NOT Riru" zeroharcoderd/knowledge/modules/lsposed.md \
+            && echo "✓ LSPosed Zygisk variant constraint documented"
 
       - name: Validate version table consistency
         run: |
