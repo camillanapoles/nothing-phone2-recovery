@@ -1,0 +1,12 @@
+# CODEOWNERS — governance (S9)
+# Every PR requires review from the maintainer before merge.
+# Branch protection rules (see .github/workflows/governance.yml) enforce this.
+
+# Default owner for the entire repository
+* @cnmfs
+
+# Safety-critical areas — every change here must be reviewed carefully
+/audit-fsm/src/audit_fsm/safety.py @cnmfs
+/audit-fsm/src/audit_fsm/fsm/ @cnmfs
+/audit-fsm/src/audit_fsm/probes/ @cnmfs
+/.github/workflows/ @cnmfs

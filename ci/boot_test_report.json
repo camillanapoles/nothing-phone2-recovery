@@ -1,0 +1,54 @@
+{
+  "simulation": "QEMU (mocked)",
+  "device": "Nothing Phone 2 (Pong)",
+  "android_version": 16,
+  "root_framework": "APatch v11219",
+  "boot_partition": "boot.img (NOT init_boot)",
+  "checks": [
+    {
+      "name": "boot.img extracted",
+      "status": "pass",
+      "detail": "boot.img present (mock)"
+    },
+    {
+      "name": "kernel_version_match",
+      "status": "pass",
+      "detail": "Kernel 5.10.246-gki-g4ec5491f6b5f matches GKI requirement"
+    },
+    {
+      "name": "kmi_compatibility",
+      "status": "pass",
+      "detail": "APatch kallsyms bypass KMI mismatch"
+    },
+    {
+      "name": "partition_layout",
+      "status": "pass",
+      "detail": "Using boot.img (no init_boot on Pong)"
+    },
+    {
+      "name": "selinux_enforcing",
+      "status": "fail",
+      "detail": "Currently Permissive \u2014 must set to Enforcing"
+    },
+    {
+      "name": "zygisk_loaded",
+      "status": "pass",
+      "detail": "ZygiskNext v1.4.5 (836) loaded"
+    },
+    {
+      "name": "apatch_version",
+      "status": "pass",
+      "detail": "APatch 11219 active"
+    },
+    {
+      "name": "tricky_store",
+      "status": "pass",
+      "detail": "Tricky Store v1.4.1 fake=true"
+    },
+    {
+      "name": "play_integrity",
+      "status": "warn",
+      "detail": "BASIC passing, DEVICE_INTEGRITY pending"
+    }
+  ]
+}
