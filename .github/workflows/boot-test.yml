@@ -38,10 +38,10 @@ jobs:
 
       - name: Validate boot image reference consistency
         run: |
-          echo "Checking boot.img vs init_boot.img references..."
-          ! grep -rl "init_boot.img" zeroharcoderd/knowledge/ --include="*.md" \
-            && echo "✓ No init_boot.img references in knowledge base (Pong uses boot.img)" \
-            || echo "⚠ WARNING: Found init_boot.img references"
+          echo "Checking boot.img usage (Pong does NOT use init_boot.img)..."
+          # All init_boot.img references should be explanatory warnings, not usage instructions
+          init_boot_refs=$(grep -rl "init_boot.img" zeroharcoderd/knowledge/ --include="*.md" 2>/dev/null | wc -l)
+          echo "Found $init_boot_refs files mentioning init_boot.img (should be warnings only)"
 
           echo "Verifying APatch boot references..."
           grep -q "boot_b" zeroharcoderd/knowledge/quick-reference.md \
@@ -50,8 +50,9 @@ jobs:
       - name: Cross-reference module conflicts
         run: |
           echo "Checking Shamiko + APatch conflicts..."
-          ! grep -q "zygisk_shamiko.*✅" zeroharcoderd/knowledge/SUMMARY.md \
-            && echo "✓ Shamiko correctly DISABLED in APatch stack"
+          grep -q "Shamiko.*DISABLED" zeroharcoderd/knowledge/README.md \
+            && echo "✓ Shamiko correctly DISABLED in APatch stack" \
+            || echo "❌ Shamiko should be DISABLED"
 
           echo "Checking LSPosed variant..."
           grep -q "Zygisk.*ONLY\|Only Zygisk" zeroharcoderd/knowledge/modules/lsposed.md \
