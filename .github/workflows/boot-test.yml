@@ -28,17 +28,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          submodules: false
+        with:
           fetch-depth: 0
+          submodules: false
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          pip install --quiet jsonschema pydantic
 
       - name: Validate boot image reference consistency
         run: |
@@ -97,6 +95,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -107,7 +107,14 @@ jobs:
           build-tools: 36.0.0
           emulator: google_apis
           arch: x86_64
-          script: ./zeroharcoderd/ci/setup_android_sdk.sh
+          script: |
+            echo "Setting up Android SDK..."
+            sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" 2>&1 | tail -5
+            # Install payload-dumper-go
+            curl -sL "https://github.com/ssut/payload-dumper-go/releases/latest/download/payload-dumper-go-linux-amd64.zip" -o /tmp/payload-dumper-go.zip
+            unzip -o /tmp/payload-dumper-go.zip -d /tmp/
+            chmod +x /tmp/payload-dumper-go
+            sudo cp /tmp/payload-dumper-go /usr/local/bin/
 
       - name: Download Evolution X ROM
         run: |
@@ -192,6 +199,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false
 
       - name: Check framework/ROM compatibility
         run: |
