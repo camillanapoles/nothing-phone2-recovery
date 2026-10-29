@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-test:
+    name: Lint + Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: audit-fsm
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: audit-fsm/pyproject.toml
+
+      - name: Install package (dev deps)
+        run: pip install -e ".[dev]"
+
+      - name: Ruff check
+        run: ruff check src tests
+
+      - name: Ruff format check
+        run: ruff format --check src tests
+
+      - name: Pytest (unit + integration)
+        run: pytest tests/unit tests/integration -v --tb=short
+
+      - name: Safety guard smoke (S1)
+        # If the safety guard ever lets a mutating command through, CI fails.
+        run: python -c "from audit_fsm.safety import assert_safe; assert_safe()"

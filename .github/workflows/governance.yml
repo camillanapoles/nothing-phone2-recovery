@@ -1,0 +1,50 @@
+name: Governance
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  conventional-commits:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check commit messages
+        uses: cocogitto/cocogitto-action@v0.3.3  # zizmor:ok — version-pinned
+        with:
+          check: true
+
+  pip-audit:
+    name: Dependency Audit (CVE scan)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: audit-fsm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pip-audit
+      - name: Scan dependencies for known CVEs
+        run: pip-audit --strict --disable-pip --desc
+
+  branch-protection-doc:
+    name: Branch protection rules (documented)
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Branch protection requirements (enforced in GitHub settings):"
+          echo "- Require 1 review before merge"
+          echo "- Require CI (lint-test) to pass"
+          echo "- Require pip-audit to pass"
+          echo "- Require conventional-commits check to pass"
+          echo "- Block direct push to main (PRs only)"
+          echo "- Require branches up to date before merge"
+          echo "See .github/CODEOWNERS for review ownership."

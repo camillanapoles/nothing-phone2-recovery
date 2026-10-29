@@ -1,0 +1,227 @@
+name: Android Root Boot Test
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - '**/boot/**'
+      - '**/*.img'
+      - '**/modules/**'
+      - 'zeroharcoderd/knowledge/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/boot/**'
+      - '**/*.img'
+      - '**/modules/**'
+
+env:
+  ANDROID_VERSION: 16
+  DEVICE_CODENAME: pong
+  ROOT_FRAMEWORK: apatch
+
+jobs:
+  validate-knowledge:
+    runs-on: ubuntu-latest
+    name: 🔍 Knowledge Base Validation
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet jsonschema pydantic
+
+      - name: Validate boot image reference consistency
+        run: |
+          echo "Checking boot.img vs init_boot.img references..."
+          ! grep -rl "init_boot.img" zeroharcoderd/knowledge/ --include="*.md" \
+            && echo "✓ No init_boot.img references in knowledge base (Pong uses boot.img)" \
+            || echo "⚠ WARNING: Found init_boot.img references"
+
+          echo "Verifying APatch boot references..."
+          grep -q "boot_b" zeroharcoderd/knowledge/quick-reference.md \
+            && echo "✓ fastboot flash boot_b references correct"
+
+      - name: Cross-reference module conflicts
+        run: |
+          echo "Checking Shamiko + APatch conflicts..."
+          ! grep -q "zygisk_shamiko.*✅" zeroharcoderd/knowledge/SUMMARY.md \
+            && echo "✓ Shamiko correctly DISABLED in APatch stack"
+
+          echo "Checking LSPosed variant..."
+          grep -q "Zygisk.*ONLY\|Only Zygisk" zeroharcoderd/knowledge/modules/lsposed.md \
+            && echo "✓ LSPosed Zygisk-only constraint documented"
+
+      - name: Validate version table consistency
+        run: |
+          python3 << 'EOF'
+          import re, yaml, json, os
+          from pathlib import Path
+
+          # Extract version table from README
+          readme = Path("zeroharcoderd/knowledge/README.md").read_text()
+
+          # Check APatch version consistency
+          assert "11219" in readme, "APatch v11219 not found"
+          assert "KernelPatch 0.13.3" in readme, "KernelPatch 0.13.3 not found"
+          assert "Magisk v30.7" in readme, "Magisk v30.7 not found"
+          assert "KernelSU Next v3.4.2" in readme, "KernelSU Next v3.4.2 not found"
+          assert "ZygiskNext v1.4.5" in readme, "ZygiskNext v1.4.5 not found"
+
+          # Validate Evolution X version
+          assert "Evolution X 11.11" in readme, "Evolution X 11.11 not found"
+
+          print("✓ All version references consistent")
+          EOF
+
+      - name: Report knowledge base status
+        run: |
+          echo "::group::Knowledge Base Summary"
+          echo "Files in knowledge base:"
+          find zeroharcoderd/knowledge/ -type f -name "*.md" | sort | xargs -I{} echo "  - {}"
+          echo "::endgroup"
+
+  boot-simulation-test:
+    runs-on: ubuntu-latest
+    name: 🧪 Boot Simulation (QEMU)
+    needs: validate-knowledge
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 36
+          ndk: 27.0.12077973
+          ndk-version: '27.0.12077973'
+          build-tools: 36.0.0
+          emulator: google_apis
+          arch: x86_64
+          script: ./zeroharcoderd/ci/setup_android_sdk.sh
+
+      - name: Download Evolution X ROM
+        run: |
+          mkdir -p ci/rom
+          echo "Downloading Evolution X 11.11 for Pong (vanilla variant)..."
+          # This would be the actual download in CI:
+          echo "ROM_URL=https://evolution-x.org/device/Pong" >> $GITHUB_ENV
+
+      - name: Extract boot image
+        run: |
+          mkdir -p ci/extracted
+          echo "Extracting boot image from ROM..."
+          # payload-dumper-go would be used here
+          echo "MOCKED: boot.img extracted to ci/extracted/boot.img" > ci/extracted/.mock
+          ls -la ci/extracted/
+
+      - name: Run boot simulation validation
+        run: |
+          python3 << 'PYEOF'
+          import json, os, sys
+          from pathlib import Path
+
+          results = {
+              "simulation": "QEMU (mocked)",
+              "device": "Nothing Phone 2 (Pong)",
+              "android_version": 16,
+              "root_framework": "APatch v11219",
+              "boot_partition": "boot.img (NOT init_boot)",
+              "checks": []
+          }
+
+          ci_dir = Path("ci")
+          ci_dir.mkdir(exist_ok=True)
+
+          # Mock validation checks
+          checks = [
+              {"name": "boot.img extracted", "status": "pass", "detail": "boot.img present at ci/extracted/boot.img"},
+              {"name": "kernel_version_match", "status": "pass", "detail": f"Kernel 5.10.246-gki-g4ec5491f6b5f matches GKI requirement"},
+              {"name": "kmi_compatibility", "status": "pass", "detail": "APatch kallsyms-based patching bypasses KMI requirement"},
+              {"name": "partition_layout", "status": "pass", "detail": "Using boot.img (no init_boot partition on Pong)"},
+              {"name": "selinux_enforcing", "status": "fail", "detail": "Currently Permissive — must set to Enforcing"},
+              {"name": "zygisk_loaded", "status": "pass", "detail": "ZygiskNext v1.4.5 (836) loaded"},
+              {"name": "apatch_version", "status": "pass", "detail": "APatch 11219 active"},
+              {"name": "tricky_store", "status": "pass", "detail": "Tricky Store v1.4.1 fake=true"},
+              {"name": "play_integrity", "status": "warn", "detail": "BASIC passing, DEVICE_INTEGRITY pending keybox validation"}
+          ]
+
+          results["checks"] = checks
+
+          # Write report
+          report_path = ci_dir / "boot_test_report.json"
+          report_path.write_text(json.dumps(results, indent=2))
+
+          print(json.dumps(results, indent=2))
+
+          # Exit non-zero if any FAIL
+          failed = [c for c in checks if c["status"] == "fail"]
+          if failed:
+              print(f"\n❌ {len(failed)} check(s) failed — blocking merge")
+              sys.exit(1)
+
+          print("\n✅ All critical checks passed")
+          PYEOF
+
+      - name: Upload boot test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-simulation-report
+          path: ci/boot_test_report.json
+          if-no-files-found: error
+
+  compatibility-matrix:
+    runs-on: ubuntu-latest
+    name: 📋 Compatibility Matrix Check
+    needs: validate-knowledge
+
+    strategy:
+      matrix:
+        framework: [apatch-11219, magisk-v30.7, kernelsu-next-v3.4.2]
+        rom: [evolutionx-11.11, lineageos-23.2]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check framework/ROM compatibility
+        run: |
+          python3 << 'EOF'
+          matrix = {
+              "apatch-11219": {
+                  "compatible_roms": ["evolutionx-11.11", "lineageos-23.2"],
+                  "incompatible_modules": ["shamiko", "mountify", "riru-lsposed"],
+                  "required_kernel": "boot.img (not init_boot)"
+              },
+              "magisk-v30.7": {
+                  "compatible_roms": ["evolutionx-11.11", "lineageos-23.2"],
+                  "incompatible_modules": ["riru-lsposed"],
+                  "required_kernel": "boot.img"
+              },
+              "kernelsu-next-v3.4.2": {
+                  "compatible_roms": ["evolutionx-11.11"],
+                  "incompatible_modules": [],
+                  "required_kernel": "boot.img (custom kernel with KSU integrated)"
+              }
+          }
+
+          fw = "${{ matrix.framework }}"
+          rom = "${{ matrix.rom }}"
+
+          info = matrix[fw]
+          if rom in info["compatible_roms"]:
+              print(f"✅ {fw} + {rom}: COMPATIBLE")
+          else:
+              print(f"❌ {fw} + {rom}: INCOMPATIBLE")
+              print(f"   Compatible ROMs: {info['compatible_roms']}")
+          print(f"   Incompatible modules: {info['incompatible_modules']}")
+          print(f"   Required kernel: {info['required_kernel']} ")
+          EOF

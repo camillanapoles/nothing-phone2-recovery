@@ -1,0 +1,53 @@
+name: Release CD
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write  # needed to create GitHub Release
+
+jobs:
+  build-release:
+    name: Build wheel + GitHub Release
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: audit-fsm
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build deps
+        run: pip install build twine
+
+      - name: Build wheel + sdist
+        run: python -m build
+
+      - name: Run full test suite
+        run: |
+          pip install -e ".[dev]"
+          pip-audit --strict --disable-pip --desc
+          pytest tests/unit tests/integration -v --tb=short
+
+      - name: Safety guard smoke (S1)
+        run: python -c "from audit_fsm.safety import assert_safe; assert_safe()"
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF##*/}"
+          gh release create "$TAG" dist/*.whl dist/*.tar.gz \
+            --title "$TAG" \
+            --notes "audit-fsm $TAG — see CHANGELOG for details." \
+            --verify-tags
+
+  # No auto-publish to PyPI — manual gate.
+  # To publish to PyPI, add a separate job with PYPI_API_TOKEN secret,
+  # gated behind an environment with required reviewers.
