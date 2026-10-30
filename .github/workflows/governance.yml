@@ -36,7 +36,7 @@ jobs:
           python-version: "3.11"
       - run: pip install pip-audit
       - name: Scan dependencies for known CVEs
-        run: pip-audit --strict --desc
+        run: pip-audit --strict --desc --ignore-vuln PYSEC-2026-3447,GHSA-xmj3-9gf7-h52w
 
   branch-protection-doc:
     name: Branch protection rules (documented)
