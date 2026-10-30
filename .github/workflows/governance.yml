@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Check commit messages
-        uses: cocogitto/cocogitto-action@v0.3.3  # zizmor:ok — version-pinned
+        uses: cocogitto/cocogitto-action@v4.1.0  # zizmor:ok — version-pinned
         with:
           check: true
 
