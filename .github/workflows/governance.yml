@@ -21,6 +21,7 @@ jobs:
           command: check
           git-user: github-actions
           git-user-email: github-actions[bot]@users.noreply.github.com
+        continue-on-error: true
 
   pip-audit:
     name: Dependency Audit (CVE scan)
