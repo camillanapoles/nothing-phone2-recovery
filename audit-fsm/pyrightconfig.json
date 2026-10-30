@@ -1,0 +1,13 @@
+{
+    "pythonVersion": "3.12",
+    "pythonPath": ".venv/bin/python",
+    "extraPaths": [
+        ".venv/lib/python3.12/site-packages",
+        "src"
+    ],
+    "typeCheckingMode": "basic",
+    "reportGeneralTypeIssues": "none",
+    "reportMissingImports": "warning",
+    "reportOptionalMemberAccess": "none",
+    "reportAttributeAccessIssue": "none"
+}
