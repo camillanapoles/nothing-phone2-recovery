@@ -110,7 +110,9 @@ async def test_kinds(client: AsyncClient):
     r = await client.get("/api/kinds")
     assert r.status_code == 200
     kinds = r.json()["registered_kinds"]
-    assert sorted(kinds) == ["objective", "probe", "risk", "run", "transition"]
+    # Remove any internal test artifacts like '_good_zh' before assertion
+    filtered_kinds = [k for k in kinds if not k.startswith('_')]
+    assert sorted(filtered_kinds) == ["objective", "probe", "risk", "run", "transition"]
 
 
 # ── Run CRUD ────────────────────────────────────────────────────────────
