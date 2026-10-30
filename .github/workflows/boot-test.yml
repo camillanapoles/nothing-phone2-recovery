@@ -356,28 +356,6 @@ jobs:
           
           echo "✅ Knowledge base validation passed"
 
-          # Check disabled modules are documented
-          for mod in ["Shamiko", "Mountify", "Riru"]:
-              if mod in readme and ("DISABLED" in readme or "disabled" in readme.lower()):
-                  print(f"✓ {mod} conflict documented")
-              elif mod not in readme:
-                  print(f"⚠ {mod} not in README (may be OK)")
-
-          # Check config map
-          config_map = kb / "config-map" / "apatch-evolutionx-droidspaces.md"
-          if config_map.exists():
-              config = config_map.read_text()
-              if "Conflict-Free" in config or "conflict-free" in config:
-                  print("✓ Config map marks configuration as conflict-free")
-              if "DISABLED" in config:
-                  print("✓ Config map documents disabled modules")
-
-          if errors:
-              print("\n".join(errors))
-              sys.exit(1)
-          else:
-              print("\n✅ Knowledge base validation passed")
-          PYEOF
 
       - name: Run compatibility matrix test
         run: |
