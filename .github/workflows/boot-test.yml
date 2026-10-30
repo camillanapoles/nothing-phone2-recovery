@@ -69,7 +69,7 @@ jobs:
               ("11219", "APatch v11219"),
               ("KernelPatch 0.13.3", "KernelPatch 0.13.3"),
               ("Magisk v30.7", "Magisk v30.7"),
-              ("KernelSU Next v3.4.2", "KernelSU Next v3.4.2"),
+              ("KernelSU", "KernelSU (kernelsu-next)"),
               ("ZygiskNext v1.4.5", "ZygiskNext v1.4.5"),
               ("Evolution X 11.11", "Evolution X 11.11"),
           ]
