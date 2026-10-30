@@ -185,8 +185,6 @@ jobs:
 
       - name: Generate installation instructions
         run: |
-      - name: Generate installation instructions
-        run: |
           python3 << 'PYEOF'
           from pathlib import Path
 
@@ -338,6 +336,19 @@ jobs:
           print(f"OK Installation guide written ({len(instructions)} chars)")
           PYEOF
           echo "Generated: ci/build/instructions/install-guide.md"
+
+      - name: Validate knowledge base documentation
+        run: |
+          python3 << 'PYEOF'
+          from pathlib import Path
+          import sys
+
+          kb = Path("zeroharcoderd/knowledge")
+          readme_path = kb / "README.md"
+          readme = readme_path.read_text() if readme_path.exists() else ""
+          errors = []
+
+          required = {
               "KernelPatch 0.13.3": "KernelPatch version",
               "v30.7": "Magisk version",
               "KernelSU": "KernelSU framework",
