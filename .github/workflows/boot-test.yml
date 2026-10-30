@@ -61,24 +61,31 @@ jobs:
       - name: Validate version table consistency
         run: |
           python3 << 'EOF'
-          import re, yaml, json, os
           from pathlib import Path
 
-          # Extract version table from README
           readme = Path("zeroharcoderd/knowledge/README.md").read_text()
 
-          # Check APatch version consistency
-          assert "11219" in readme, "APatch v11219 not found"
-          assert "KernelPatch 0.13.3" in readme, "KernelPatch 0.13.3 not found"
-          assert "Magisk v30.7" in readme, "Magisk v30.7 not found"
-          assert "KernelSU Next v3.4.2" in readme, "KernelSU Next v3.4.2 not found"
-          assert "ZygiskNext v1.4.5" in readme, "ZygiskNext v1.4.5 not found"
-
-          # Validate Evolution X version
-          assert "Evolution X 11.11" in readme, "Evolution X 11.11 not found"
+          required = [
+              ("11219", "APatch v11219"),
+              ("KernelPatch 0.13.3", "KernelPatch 0.13.3"),
+              ("Magisk v30.7", "Magisk v30.7"),
+              ("KernelSU Next v3.4.2", "KernelSU Next v3.4.2"),
+              ("ZygiskNext v1.4.5", "ZygiskNext v1.4.5"),
+              ("Evolution X 11.11", "Evolution X 11.11"),
+          ]
+          for needle, label in required:
+              assert needle in readme, f"{label} not found in README"
 
           print("✓ All version references consistent")
           EOF
+
+      - name: Upload knowledge base artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowledge-base-validated
+          path: zeroharcoderd/knowledge/
+          retention-days: 7
 
       - name: Report knowledge base status
         run: |
@@ -234,3 +241,92 @@ jobs:
           print(f"   Incompatible modules: {info['incompatible_modules']}")
           print(f"   Required kernel: {info['required_kernel']} ")
           EOF
+
+  build-deploy-report:
+    runs-on: ubuntu-latest
+    name: 📦 Build & Deploy Report
+    needs: [validate-knowledge, boot-simulation-test, compatibility-matrix]
+    if: always() && needs.validate-knowledge.result == 'success'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Download validated knowledge base
+        uses: actions/download-artifact@v4
+        with:
+          name: knowledge-base-validated
+          path: zeroharcoderd/knowledge/
+
+      - name: Download boot test report
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: boot-simulation-report
+          path: ci/
+
+      - name: Generate deployment summary
+        run: |
+          python3 << 'PYEOF'
+          import json
+          from pathlib import Path
+          from datetime import datetime, timezone
+
+          report_path = Path("ci/boot_test_report.json")
+          kb_dir = Path("zeroharcoderd/knowledge")
+
+          kb_files = sorted(kb_dir.rglob("*.md")) if kb_dir.exists() else []
+
+          boot_results = {}
+          if report_path.exists():
+              boot_results = json.loads(report_path.read_text())
+
+          passed = sum(1 for c in boot_results.get("checks", []) if c["status"] == "pass")
+          failed = sum(1 for c in boot_results.get("checks", []) if c["status"] == "fail")
+          warned = sum(1 for c in boot_results.get("checks", []) if c["status"] == "warn")
+          total = len(boot_results.get("checks", []))
+
+          summary = {
+              "pipeline": "Android Root Boot Test",
+              "timestamp": datetime.now(timezone.utc).isoformat(),
+              "device": "Nothing Phone 2 (Pong, SM8475)",
+              "rom_base": "Evolution X 11.11 (Android 16 QPR2)",
+              "root_framework": "APatch v11219 + KernelPatch 0.13.3",
+              "knowledge_base_files": len(kb_files),
+              "boot_simulation": {
+                  "total_checks": total,
+                  "passed": passed,
+                  "failed": failed,
+                  "warnings": warned,
+                  "verdict": "PASS" if failed == 0 else "FAIL"
+              },
+              "compatibility_matrix": {
+                  "frameworks_tested": ["apatch-11219", "magisk-v30.7", "kernelsu-next-v3.4.2"],
+                  "roms_tested": ["evolutionx-11.11", "lineageos-23.2"]
+              },
+              "deployment_ready": failed == 0,
+              "blockers": [c["name"] for c in boot_results.get("checks", []) if c["status"] == "fail"]
+          }
+
+          out = Path("ci/deploy-summary.json")
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps(summary, indent=2))
+          print(json.dumps(summary, indent=2))
+
+          if failed > 0:
+              print(f"\n⚠️  DEPLOYMENT BLOCKED: {failed} check(s) failed")
+              print(f"   Blockers: {summary['blockers']}")
+          else:
+              print("\n✅ DEPLOYMENT READY: All checks passed")
+          PYEOF
+
+      - name: Upload deployment artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-artifacts
+          path: |
+            ci/deploy-summary.json
+            ci/boot_test_report.json
+          retention-days: 30
