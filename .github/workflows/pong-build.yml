@@ -172,7 +172,7 @@ jobs:
         kernel_source: ["prebuilt-evolutionx", "gki-source", "lineage-pong"]
         toolchain: ["android-r416183b"]
         lto: ["thin"]
-        susfs: [false]
+        susfs: [false, true]
         build_scope: ["image-only"]
         exclude:
           # Magisk + gki-source: not a typical combination
@@ -203,7 +203,7 @@ jobs:
       SOURCE_REF: ${{ inputs.source_ref }}
       CCACHE_DIR: /home/runner/.ccache
       KERNEL_DIR: kernel-source
-      RELEASE_DIR: ${{ env.RELEASE_DIR }}
+      RELEASE_DIR: release
 
     steps:
       # ── Checkout ────────────────────────────────────────────────
@@ -389,7 +389,7 @@ jobs:
 
       # ── Attestation ──────────────────────────────────────────────
       - name: Generate artifact attestation
-        if: ${{ hashFiles(release_dir + '/*.zip') != '' }}
+        if: ${{ hashFiles('release/*.zip') != '' }}
         uses: actions/attest@v4
         with:
           subject-path: "${{ steps.artifact-name.outputs.zip_path }}"
