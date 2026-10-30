@@ -1,0 +1,56 @@
+.dmux/
+
+# AI assistant artifacts
+context-snapshot.json
+
+# Kernel build artifacts (untrusted build products; not application code)
+kernel-build/
+tools/
+session-log.md
+
+# ---- Environment / tooling cleanup ----
+
+# Local harness & plugin state (per-machine, not repo content)
+.claude/
+.cto-toolkit/
+.gitnexus/
+.harnesskit/
+.omp/
+.paseo.json
+.understand-anything/
+.zcode/
+
+# Audit & analysis scratch
+audit-20260925/
+audit-fsm/
+graphify-out/
+logs/
+
+# Untrusted downloads & extracted archives (not source)
+downloads/
+extracted/
+extracted_11_9/
+extracted_vanilla/
+modules-downloads/
+odd/
+backups/
+checksums/
+pictures/
+evolotionx-16.00-nothing_phone2/
+
+# Ad-hoc notes & scratch
+awesome-android-root/
+recovery_scripts/
+termux-continuity.sh
+magisk_vs_kernelsu.md
+HANDOFF.2026-10-30.md
+LASTEST.md
+STATE.md
+WIKI.md
+ROOT_INSTRUCTION.md
+COMMUNITY_GUIDE.md
+AGENT.md
+CLAUDE.md
+"O advisory tinha raz\343\200\244 usar o boot.md"
+docs/ssot/session-log/
+docs/wiki/.pending/
