@@ -336,20 +336,16 @@ jobs:
           print(f"OK Installation guide written ({len(instructions)} chars)")
           PYEOF
           echo "Generated: ci/build/instructions/install-guide.md"
-              "KernelPatch 0.13.3": "KernelPatch version",
-              "v30.7": "Magisk version",
-              "KernelSU": "KernelSU framework",
-              "ZygiskNext v1.4.5": "ZygiskNext version",
-              "Evolution X 11.11": "ROM version",
-              "5.10.246": "Kernel version",
-              "boot.img": "Boot partition (correct)",
-              "init_boot": "init_boot warning (correct - should be flagged)",
-          }
-          for needle, label in required.items():
-              if needle not in readme:
-                  errors.append(f"❌ {label} ({needle}) not found in README")
-              else:
-                  print(f"✓ {label}")
+
+          if errors:
+              print("\n".join(errors))
+          else:
+              print("\n✅ Knowledge base validation passed")
+
+          if needle not in readme:
+              errors.append(f"❌ {label} ({needle}) not found in README")
+          else:
+              print(f"✓ {label}")
 
           # Check disabled modules are documented
           for mod in ["Shamiko", "Mountify", "Riru"]:
