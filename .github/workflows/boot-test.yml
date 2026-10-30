@@ -185,8 +185,6 @@ jobs:
 
       - name: Generate installation instructions
         run: |
-      - name: Generate installation instructions
-        run: |
           python3 << 'PYEOF'
           from pathlib import Path
 
