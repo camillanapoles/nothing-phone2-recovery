@@ -1,9 +1,9 @@
 name: Release CD
 
 on:
+  workflow_dispatch:
   push:
-    tags:
-      - "v*"
+    branches: [main]
 
 permissions:
   contents: write  # needed to create GitHub Release
@@ -45,6 +45,7 @@ jobs:
           TAG="${GITHUB_REF##*/}"
           gh release create "$TAG" dist/*.whl dist/*.tar.gz \
             --title "$TAG" \
+            --draft \
             --notes "audit-fsm $TAG — see CHANGELOG for details." \
             --verify-tags
 
