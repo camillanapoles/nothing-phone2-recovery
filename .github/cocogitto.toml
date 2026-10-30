@@ -1,0 +1,6 @@
+# cocogitto configuration
+# Allow merge and plan commit types for multi-agent workflow coordination
+
+[conventional_commits]
+allow_merge_commits = true
+allow_plan_commits = true
