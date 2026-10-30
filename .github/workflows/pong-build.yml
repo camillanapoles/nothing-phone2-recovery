@@ -339,21 +339,19 @@ jobs:
 
           if [[ "${KERNEL_SOURCE}" == "prebuilt-evolutionx" ]]; then
             echo "  [BUILD] Prebuilt path: generating validated mock boot image"
-            # Generate realistic boot image metadata for CI validation
             DIST_DIR="ci/dist/${MANAGER}"
             mkdir -p "${DIST_DIR}"
-            cat > "${DIST_DIR}/boot.img" << 'BOOTIMG'
-#!/bin/bash
-# Mock boot.img for CI validation — NOT a real kernel binary
-# Real build requires: kernel source + toolchain + proper defconfig
-echo "Nothing Phone 2 (Pong) — ${MANAGER} variant"
-echo "Kernel: 5.10.246-gki-g4ec5491f6b5f"
-echo "Architecture: arm64"
-echo "Manager: ${MANAGER}"
-echo "Toolchain: ${TOOLCHAIN}"
-echo "LTO: ${LTO}"
-echo "Build date: $(date -u '+%Y.%m.%d')"
-BOOTIMG
+            # Generate boot image metadata file (mock for CI validation)
+            {
+              echo "# Nothing Phone 2 (Pong) Boot Image Metadata"
+              echo "# Manager: ${MANAGER}"
+              echo "# Kernel: 5.10.246-gki-g4ec5491f6b5f"
+              echo "# Architecture: arm64"
+              echo "# Toolchain: ${TOOLCHAIN}"
+              echo "# LTO: ${LTO}"
+              echo "# Build date: $(date -u '+%Y.%m.%d')"
+              echo "# NOTE: Real boot.img requires kernel source + toolchain build"
+            } > "${DIST_DIR}/boot.img"
             echo "boot_img=${DIST_DIR}/boot.img" >> "$GITHUB_OUTPUT"
             echo "dist_dir=${DIST_DIR}" >> "$GITHUB_OUTPUT"
           else
