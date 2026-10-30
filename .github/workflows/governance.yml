@@ -18,7 +18,9 @@ jobs:
       - name: Check commit messages
         uses: cocogitto/cocogitto-action@v4.1.0  # zizmor:ok — version-pinned
         with:
-          check: true
+          command: check
+          git-user: github-actions
+          git-user-email: github-actions[bot]@users.noreply.github.com
 
   pip-audit:
     name: Dependency Audit (CVE scan)
@@ -33,7 +35,7 @@ jobs:
           python-version: "3.11"
       - run: pip install pip-audit
       - name: Scan dependencies for known CVEs
-        run: pip-audit --strict --disable-pip --desc
+        run: pip-audit --strict --desc
 
   branch-protection-doc:
     name: Branch protection rules (documented)
