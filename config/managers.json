@@ -1,0 +1,83 @@
+{
+  "managers": [
+    {
+      "id": "apatch",
+      "name": "APatch",
+      "repo": "https://github.com/bmax121/APatch",
+      "ref": "v11219",
+      "patch_dir": "platform/kernel/patches",
+      "supports_susfs": false,
+      "supports_zsuy_fix": true,
+      "description": "Kallsyms-based root manager. Preferred for Pong (no KMI dependency)."
+    },
+    {
+      "id": "magisk",
+      "name": "Magisk",
+      "repo": "https://github.com/topjohnwu/Magisk",
+      "ref": "v30.7",
+      "patch_dir": "",
+      "supports_susfs": false,
+      "supports_zsuy_fix": false,
+      "description": "Traditional boot.img patcher. Works on Pong but lacks LKM support."
+    },
+    {
+      "id": "kernelsu-next",
+      "name": "KernelSU Next",
+      "repo": "https://github.com/KernelSU-Next/KernelSU-Next",
+      "ref": "v3.4.2",
+      "patch_dir": "",
+      "supports_susfs": true,
+      "supports_zsuy_fix": true,
+      "description": "LKM-based root. Requires custom kernel build with KSU integration."
+    }
+  ],
+  "toolchains": [
+    {
+      "id": "android-r416183b",
+      "name": "Android Clang r416183b",
+      "repo": "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86",
+      "ref": "android-release",
+      "version": "clang-r416183b",
+      "description": "AOSP stable toolchain"
+    },
+    {
+      "id": "android-r530567",
+      "name": "Android Clang 2024",
+      "repo": "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86",
+      "ref": "android-release",
+      "version": "clang-r530567",
+      "description": "Latest Android toolchain"
+    },
+    {
+      "id": "llvm-22.1.8",
+      "name": "LLVM 22.1.8",
+      "url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.8/LLVM-22.1.8-Linux-X64.tar.xz",
+      "sha256": "PLACEHOLDER",
+      "description": "Upstream LLVM for GKI builds"
+    }
+  ],
+  "lto_modes": ["none", "thin", "full"],
+  "build_scopes": ["image-only", "full"],
+  "kernels": [
+    {
+      "id": "prebuilt-evolutionx",
+      "name": "Evolution X Prebuilt",
+      "source": "rom",
+      "description": "Use prebuilt kernel from Evolution X 11.11 ROM (fastest CI)"
+    },
+    {
+      "id": "gki-source",
+      "name": "GKI 5.10 Source Build",
+      "source": "repo",
+      "description": "Build from AOSP common kernel 5.10 source (slower, requires source)"
+    },
+    {
+      "id": "lineage-pong",
+      "name": "LineageOS Pong Kernel",
+      "source": "repo",
+      "repo": "https://github.com/LineageOS/android_kernel_nothing_sm8475",
+      "ref": "lineage-23.2",
+      "description": "Build from LineageOS Nothing Phone 2 kernel source"
+    }
+  ]
+}
