@@ -479,13 +479,14 @@ jobs:
               print(f"\n✅ Verification passed ({passed}/{total} checks)")
           PYEOF
 
-      - name: Upload verification report
+      - name: Upload build package
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: verification-report
-          path: ci/boot_verification_report.json
+          name: build-package
+          path: ${{ env.WORK_DIR }}/
           retention-days: 30
+          if-no-files-found: warn
 
   # ─────────────────────────────────────────────────────────────────────────────
   # PHASE 2: VERIFY — Run validation tests against extracted boot image
