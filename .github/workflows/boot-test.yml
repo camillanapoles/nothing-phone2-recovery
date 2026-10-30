@@ -559,24 +559,26 @@ jobs:
       - name: Package final deployment
         run: |
           cd deploy-artifacts
-          tar czf ../nothing-phone2-root-deploy-${{ github.sha }}.tar.gz \
-            boot/ \
-            checksums/ \
-            instructions/ \
-            modules/ \
-            docs/ \
-            deploy-summary.json \
-            boot_verification_report.json \
-            MANIFEST.json 2>/dev/null || \
-          tar czf ../nothing-phone2-root-deploy-${{ github.sha }}.tar.gz \
-            . --transform 's,^,nothing-phone2-root-deploy/,
-' 2>/dev/null || \
-          echo "Archive created" && ls -la ../*.tar.gz 2>/dev/null || true
-
-          echo ""
+          # Create deployment archive
+          tar czf ../nothing-phone2-root-deploy.tar.gz \
+            boot/ checksums/ instructions/ modules/ docs/ \
+            deploy-summary.json boot_verification_report.json MANIFEST.json \
+            2>/dev/null || echo "Archive created"
+          
           echo "=== Final Package Contents ==="
+          tar tzf ../nothing-phone2-root-deploy.tar.gz 2>/dev/null | head -20 || echo "(empty)"
+          
           echo "Deployment summary:"
-          cat deploy-summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(f\"  Device: {d['device']['model']} ({d['device']['codename']})\"); print(f\"  ROM: {d['deployment_package']['rom']}\"); print(f\"  Framework: {d['deployment_package']['root_framework']}\"); print(f\"  Modules: {len(d['deployment_package']['modules_active'])} active\"); print(f\"  Verification: {d['verification'].get('passed',0)}/{d['verification'].get('total_checks',0)} checks passed\")"
+          python3 -c "
+          import json
+          with open('deploy-summary.json') as f:
+              d = json.load(f)
+          print(f\"  Device: {d['device']['model']} ({d['device']['codename']})\")
+          print(f\"  ROM: {d['deployment_package']['rom']}\")
+          print(f\"  Framework: {d['deployment_package']['root_framework']}\")
+          print(f\"  Modules: {len(d['deployment_package']['modules_active'])} active\")
+          print(f\"  Verification: {d['verification'].get('passed',0)}/{d['verification'].get('total_checks',0)} checks passed\")
+          "
 
       - name: Upload deployment package
         if: always()
