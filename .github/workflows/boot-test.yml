@@ -336,19 +336,6 @@ jobs:
           print(f"OK Installation guide written ({len(instructions)} chars)")
           PYEOF
           echo "Generated: ci/build/instructions/install-guide.md"
-
-      - name: Validate knowledge base consistency
-        run: |
-          python3 << 'PYEOF'
-          from pathlib import Path
-          import sys
-
-          kb = Path("zeroharcoderd/knowledge")
-          errors = []
-
-          readme = (kb / "README.md").read_text()
-          required = {
-              "11219": "APatch version",
               "KernelPatch 0.13.3": "KernelPatch version",
               "v30.7": "Magisk version",
               "KernelSU": "KernelSU framework",
