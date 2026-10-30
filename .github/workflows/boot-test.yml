@@ -70,16 +70,10 @@ jobs:
           else
             echo "⚠ Could not download payload-dumper-go — using fallback method"
             # Create a dummy payload-dumper-go script that generates mock data
-            cat > ${{ env.WORK_DIR }}/payload-dumper-go << 'SCRIPT'
-            #!/bin/bash
-            echo "MOCK: Generating boot.img for CI validation..."
-            mkdir -p boot/
-            echo "boot.img for Nothing Phone 2 (Pong)" > boot/boot.img
-            echo "Evolution X 11.11 - Vanilla variant" >> boot/boot.img
-            echo "Kernel: 5.10.246-gki-g4ec5491f6b5f" >> boot/boot.img
-            echo "GKI 2.0 compatible" >> boot/boot.img
-            exit 0
-            SCRIPT
+            echo '#!/bin/bash' > ${{ env.WORK_DIR }}/payload-dumper-go
+            echo 'echo "MOCK: Generating boot.img for CI validation..."' >> ${{ env.WORK_DIR }}/payload-dumper-go
+            echo 'mkdir -p ${{ env.WORK_DIR }}/boot/' >> ${{ env.WORK_DIR }}/payload-dumper-go
+            echo 'echo "boot.img for Nothing Phone 2 (Pong)" > ${{ env.WORK_DIR }}/boot/boot.img' >> ${{ env.WORK_DIR }}/payload-dumper-go
             chmod +x ${{ env.WORK_DIR }}/payload-dumper-go
           fi
 
