@@ -237,7 +237,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             bc bison build-essential ccache cpio curl flex git jq kmod libelf-dev \
             libncurses-dev libssl-dev lld llvm clang file python3 python-is-python3 \
-            rsync unzip zip zstd uuid-dev ib-util
+            rsync unzip zip zstd uuid-dev libibutil-dev
 
       # ── Checkout kernel source (if building from source) ─────────
       - name: Checkout kernel source
