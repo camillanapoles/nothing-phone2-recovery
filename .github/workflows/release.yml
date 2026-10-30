@@ -24,7 +24,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install build deps
-        run: pip install build twine
+        run: pip install build twine pip-audit
 
       - name: Build wheel + sdist
         run: python -m build
