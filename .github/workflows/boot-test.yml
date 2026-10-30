@@ -337,15 +337,32 @@ jobs:
           PYEOF
           echo "Generated: ci/build/instructions/install-guide.md"
 
-          if errors:
-              print("\n".join(errors))
-          else:
-              print("\n✅ Knowledge base validation passed")
+      - name: Validate knowledge base consistency
+        run: |
+          python3 << 'PYEOF'
+          from pathlib import Path
+          import sys
 
-          if needle not in readme:
-              errors.append(f"❌ {label} ({needle}) not found in README")
-          else:
-              print(f"✓ {label}")
+          kb = Path("zeroharcoderd/knowledge")
+          errors = []
+
+          readme = (kb / "README.md").read_text()
+          required = {
+              "11219": "APatch version",
+              "KernelPatch 0.13.3": "KernelPatch version",
+              "v30.7": "Magisk version",
+              "KernelSU": "KernelSU framework",
+              "ZygiskNext v1.4.5": "ZygiskNext version",
+              "Evolution X 11.11": "ROM version",
+              "5.10.246": "Kernel version",
+              "boot.img": "Boot partition (correct)",
+              "init_boot": "init_boot warning (correct - should be flagged)",
+          }
+          for needle, label in required.items():
+              if needle not in readme:
+                  errors.append(f"❌ {label} ({needle}) not found in README")
+              else:
+                  print(f"✓ {label}")
 
           # Check disabled modules are documented
           for mod in ["Shamiko", "Mountify", "Riru"]:
