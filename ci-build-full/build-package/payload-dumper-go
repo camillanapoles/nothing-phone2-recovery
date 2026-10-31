@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "MOCK: Generating boot.img for CI validation..."
+mkdir -p ci/build/boot/
+echo "boot.img for Nothing Phone 2 (Pong)" > ci/build/boot/boot.img

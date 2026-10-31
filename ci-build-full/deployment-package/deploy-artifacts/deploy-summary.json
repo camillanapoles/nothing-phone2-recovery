@@ -1,0 +1,57 @@
+{
+  "pipeline": "Android Root Boot Test \u2014 CI/CD Pipeline",
+  "timestamp": "2026-10-30T22:39:13.959881+00:00",
+  "git_commit": "bfc838ae103a0d8c4c90d287966137052b855bb7",
+  "workflow_run": "41139492368",
+  "device": {
+    "model": "Nothing Phone 2",
+    "codename": "Pong",
+    "soc": "SM8475",
+    "android_version": 16
+  },
+  "deployment_package": {
+    "rom": "Evolution X 11.11 (Android 16 QPR2, Vanilla, 2.54 GB)",
+    "root_framework": "APatch v11219 + KernelPatch 0.13.3",
+    "boot_image": "boot.img (GKI 2.0, 5.10.246-gki-g4ec5491f6b5f)",
+    "kernel": "Stock GKI 2.0 (no custom kernel required)",
+    "modules_active": [
+      "ZygiskNext v1.4.5",
+      "TrickyStore v1.4.1",
+      "PlayIntegrityFork v17",
+      "LSPosed v1.9.2-Zygisk",
+      "Droidspaces Kernel"
+    ],
+    "modules_disabled": [
+      "Shamiko v3.6 (conflict)",
+      "Mountify (conflict)",
+      "Riru (conflict)"
+    ],
+    "selinux_note": "Setenforce 1 required before flashing"
+  },
+  "verification": {
+    "total_checks": 10,
+    "passed": 9,
+    "failed": 0,
+    "warnings": 1,
+    "verdict": "PASS"
+  },
+  "artifacts": {
+    "total_files": 7,
+    "directories": [
+      "boot",
+      "instructions",
+      "modules",
+      "checksums"
+    ]
+  },
+  "deployment_ready": true,
+  "next_steps": [
+    "1. Ensure device bootloader is unlocked",
+    "2. Run 'adb shell su -c setenforce 1' (SELinux Enforcing required)",
+    "3. Extract boot.img from Evolution X 11.11 ROM using payload-dumper-go",
+    "4. Patch boot.img with APatch Manager app on device",
+    "5. Flash patched boot image to active slot",
+    "6. Install modules in order: ZygiskNext \u2192 TrickyStore \u2192 PIFork \u2192 LSPosed \u2192 Droidspaces",
+    "7. Verify: adb shell su -c 'id' \u2192 uid=0(root)"
+  ]
+}

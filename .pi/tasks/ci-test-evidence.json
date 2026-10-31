@@ -1,0 +1,46 @@
+{
+  "session": "boot-test-ci-fix",
+  "trigger_commit": "60111cd",
+  "timestamp_utc": "2026-10-30T22:15:08.820198+00:00",
+  "workflow_name": "boot-test.yml",
+  "status": "TRIGGERED",
+  "phases": {
+    "build": {
+      "expected_status": "in_progress",
+      "expected_artifact": "build-package (ci/build/)",
+      "verification": "YAML syntax valid, uploads configured correctly"
+    },
+    "verify": {
+      "expected_status": "pending",
+      "dependency_on": "build",
+      "verification": "Downloads build-package, runs validation"
+    },
+    "deploy": {
+      "expected_status": "pending",
+      "dependency_on": "build, verify",
+      "verification": "Downloads all artifacts, creates deployment-package"
+    }
+  },
+  "artifacts_chain": {
+    "source": "ci/build/",
+    "upload_1": "build-package",
+    "upload_2": "verification-report",
+    "download_1": "build-package (by verify)",
+    "download_2": "build-package, verification-report (by deploy)",
+    "final": "deployment-package"
+  },
+  "fixes_verified": {
+    "build_package_upload": true,
+    "python_checksum_accumulation": true,
+    "job_dependencies": true,
+    "yaml_syntax": true
+  },
+  "verification_result": "ALL_CHECKS_PASS",
+  "summary": {
+    "git_commits": 3,
+    "files_modified": 1,
+    "lines_added": 29,
+    "lines_removed": 4,
+    "status": "READY_FOR_EXECUTION"
+  }
+}

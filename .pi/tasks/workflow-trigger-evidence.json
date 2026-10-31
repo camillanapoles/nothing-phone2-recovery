@@ -1,0 +1,93 @@
+{
+  "analysis_timestamp": "2026-10-30T22:20:00Z",
+  "workflow_name": "boot-test.yml",
+  "auto_trigger_status": "NOT_TRIGGERED",
+  "reason": "Trigger file not in monitored push paths",
+  "monitored_push_paths": [
+    "**/boot/**",
+    "**/*.img",
+    "**/modules/**",
+    "zeroharcoderd/knowledge/**",
+    ".github/workflows/boot-test.yml"
+  ],
+  "actual_push_paths": [
+    "docs/wiki/.pending/changes.jsonl"
+  ],
+  "path_match": false,
+  "available_triggers": {
+    "push": "Path mismatch",
+    "pull_request": "Not a PR",
+    "workflow_dispatch": "Not configured with inputs"
+  },
+  "fixes_applied": [
+    {
+      "file": ".github/workflows/boot-test.yml",
+      "commit": "fb22ee1",
+      "changes": [
+        "Added step: Upload build package (line 476-483)",
+        "Fixed Python write_text accumulation (line 137-147)"
+      ]
+    }
+  ],
+  "verification_results": {
+    "yaml_syntax": true,
+    "build_exports_build_package": true,
+    "verify_downloads_build_package": true,
+    "deploy_downloads_all": true,
+    "job_dependencies": true,
+    "overall": "ALL_CHECKS_PASS"
+  },
+  "required_manual_trigger": true,
+  "manual_trigger_options": [
+    "1. GitHub UI: Actions -> boot-test.yml -> Run workflow (select rom_url)",
+    "2. Push to .github/workflows/boot-test.yml",
+    "3. Push to a monitored path (boot/, modules/, knowledge/)"
+  ],
+  "workflow_readiness": "READY_FOR_EXECUTION",
+  "harness_validation": {
+    "validation_timestamp": "2026-10-30T22:25:00Z",
+    "validation_method": "HARNESS_VALIDATION",
+    "checks": {
+      "yaml_syntax": {
+        "status": "PASS",
+        "function": "yaml.safe_load(content) is not None",
+        "result": true
+      },
+      "build_package_flow": {
+        "status": "PASS",
+        "function": "\"build-package\" in upload_names(\"build\")",
+        "result": true
+      },
+      "verify_download_flow": {
+        "status": "PASS",
+        "function": "\"build-package\" in download_names(\"verify\")",
+        "result": true
+      },
+      "deploy_download_flow": {
+        "status": "PASS",
+        "function": "build-package and verification-report in download_names(\"deploy\")",
+        "result": true
+      },
+      "job_dependencies": {
+        "status": "PASS",
+        "function": "verify.needs == \"build\" and deploy.needs includes [build, verify]",
+        "result": true
+      },
+      "python_fix": {
+        "status": "PASS",
+        "function": "lines.append pattern in checksum generation",
+        "result": true
+      }
+    },
+    "deterministic_result": "SUCCESS",
+    "zero_masking": true,
+    "all_checks_pass": true,
+    "final_status": "HARNESS_VALIDATED"
+  },
+  "workflow_state": {
+    "triggered": false,
+    "reason": "Not in monitored paths",
+    "validation": "HARNESS_VALIDATED",
+    "ready_for_execution": true
+  }
+}

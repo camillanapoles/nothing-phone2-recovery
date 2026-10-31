@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-10-30T22:31:20.474002+00:00",
+  "workflow_file": ".github/workflows/boot-test.yml",
+  "git_status": {
+    "modified_files": [],
+    "staged_changes": 32,
+    "unstaged_changes": 0
+  },
+  "backticks_check": {
+    "found": true,
+    "severity": "WARNING"
+  },
+  "yaml_validation": {
+    "valid": true,
+    "result": "VALID"
+  },
+  "run_analysis": {
+    "run_41132549329": "SUCCESS",
+    "run_41135442167": "FAILURE (Python escape errors - lines 307-331)",
+    "run_41138031311": "FAILURE"
+  },
+  "issues_identified": [
+    "Backticks in YAML heredoc strings cause shell command not found errors",
+    "Run 41132549329 had SUCCESS (the fixes worked)",
+    "Subsequent runs had failures (possibly due to cached issues)"
+  ],
+  "deterministic_result": true,
+  "zero_masking": true,
+  "status": "NEEDS_FIX"
+}

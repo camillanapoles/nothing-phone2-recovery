@@ -1,0 +1,49 @@
+{
+  "session_id": "harness-comprehensive-validation",
+  "timestamp": "2026-10-30T22:26:52.756635+00:00",
+  "run_id": "41132549329",
+  "run_status": "success",
+  "run_url": "https://github.com/camillanapoles/nothing-phone2-recovery/actions/runs/41132549329",
+  "commit": "Fix boot-test workflow",
+  "phase_results": {
+    "build": "success",
+    "verify": "success",
+    "deploy": "success"
+  },
+  "artifacts": {
+    "build-package": "uploaded",
+    "verification-report": "uploaded",
+    "deployment-package": "uploaded"
+  },
+  "deterministic_result": true,
+  "checks": [
+    {
+      "name": "overall_workflow_status",
+      "pass": true
+    },
+    {
+      "name": "build_job_status",
+      "pass": true
+    },
+    {
+      "name": "verify_job_status",
+      "pass": true
+    },
+    {
+      "name": "deploy_job_status",
+      "pass": true
+    },
+    {
+      "name": "artifacts_all_uploaded",
+      "pass": true
+    },
+    {
+      "name": "zero_masking",
+      "pass": true
+    },
+    {
+      "name": "deterministic_result",
+      "pass": true
+    }
+  ]
+}

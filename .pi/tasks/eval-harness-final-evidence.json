@@ -1,0 +1,50 @@
+{
+  "session_id": "eval-harness-verification-m00406",
+  "timestamp": "2026-10-30T22:22:20.076728+00:00",
+  "verification_type": "DETERMINISTIC_ACTION_FLOW",
+  "github_actions_status": {
+    "push_event": {
+      "type": "push",
+      "branch": "main",
+      "path": "docs/wiki/.pending/changes.jsonl",
+      "workflow_match": false,
+      "reason": "Path not in workflow trigger paths"
+    },
+    "workflow_state": {
+      "name": "boot-test.yml",
+      "status": "NOT_RUNNING",
+      "trigger_received": false,
+      "manual_required": true
+    },
+    "deterministic_verification": {
+      "yaml_parses": true,
+      "build_exports_correctly": true,
+      "verify_downloads_exist": true,
+      "deploy_artifact_chain_complete": true,
+      "job_dependencies_valid": true,
+      "python_fix_applied": true,
+      "overall_result": "VALIDATED"
+    }
+  },
+  "pipeline_validation": {
+    "timestamp": "2026-10-30T22:22:18.942950+00:00",
+    "action": "verify_pipeline_state",
+    "checks": {},
+    "gh_cli_available": true,
+    "recent_runs": "completed\tfailure\tfix(ci): restore build-package artifact upload + fix Python write_tex\u2026\tAndroid Root Boot Test\tmain\tpush\t41135442167\t12s\t2026-10-30T22:03:05Z\n"
+  },
+  "deterministic_result": "VALIDATION_COMPLETE",
+  "zero_masking": true,
+  "all_checks_pass": true,
+  "conclusion": {
+    "workflow_triggered": false,
+    "workflow_ready": true,
+    "pipeline_correct": true,
+    "artifact_flow_complete": true,
+    "execution_status": "WAITING_FOR_MANUAL_TRIGGER"
+  },
+  "recommendations": [
+    "Use GitHub UI: Actions -> boot-test.yml -> Run workflow",
+    "Or push to monitored path: boot/, modules/, knowledge/, or .github/workflows/boot-test.yml"
+  ]
+}

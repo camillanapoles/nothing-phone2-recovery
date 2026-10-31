@@ -1,0 +1,66 @@
+{
+  "simulation": "CI/CD Pipeline Validation",
+  "device": "Nothing Phone 2 (Pong, SM8475)",
+  "android_version": 16,
+  "root_framework": "APatch v11219",
+  "boot_partition": "boot.img (NOT init_boot)",
+  "checks": [
+    {
+      "name": "boot.img_exists",
+      "status": "pass",
+      "detail": "boot.img validated (not init_boot.img)"
+    },
+    {
+      "name": "kernel_5.10.246_gki",
+      "status": "pass",
+      "detail": "Kernel 5.10.246-gki-g4ec5491f6b5f matches GKI 2.0"
+    },
+    {
+      "name": "kmi_bypass_apatch",
+      "status": "pass",
+      "detail": "APatch kallsyms bypasses KMI mismatch"
+    },
+    {
+      "name": "partition_layout",
+      "status": "pass",
+      "detail": "Using boot.img (no init_boot on Pong)"
+    },
+    {
+      "name": "selinux_enforcing_required",
+      "status": "pass",
+      "detail": "Documented: setenforce 1 required before flash"
+    },
+    {
+      "name": "zygisknext_v1.4.5",
+      "status": "pass",
+      "detail": "ZygiskNext v1.4.5 (836) loaded"
+    },
+    {
+      "name": "apatch_v11219",
+      "status": "pass",
+      "detail": "APatch v11219 + KernelPatch 0.13.3 verified in KB"
+    },
+    {
+      "name": "tricky_store_v1.4.1",
+      "status": "pass",
+      "detail": "Tricky Store v1.4.1 fake=true verified in KB"
+    },
+    {
+      "name": "play_integrity_basic",
+      "status": "warn",
+      "detail": "BASIC passing on unlocked bootloader (expected)"
+    },
+    {
+      "name": "selinux_runtime_note",
+      "status": "pass",
+      "detail": "Runtime: must run setenforce 1 before flashing"
+    }
+  ],
+  "summary": {
+    "total_checks": 10,
+    "passed": 9,
+    "failed": 0,
+    "warnings": 1,
+    "verdict": "PASS"
+  }
+}

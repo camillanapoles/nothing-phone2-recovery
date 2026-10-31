@@ -1,0 +1,14 @@
+# Module Installation List
+# Order is critical — install in sequence
+
+## ACTIVE MODULES (install in order)
+1. ZygiskNext v1.4.5 (build 836)  ← Required base layer for Zygisk modules
+2. TrickyStore v1.4.1 (build 245)  ← Keybox attestation for Play Integrity
+3. PlayIntegrityFork v17  ← Play Integrity bypass
+4. LSPosed_Zygisk v1.9.2 (7024)  ← Zygisk variant ONLY — Riru fails
+5. Droidspaces_Kernel custom  ← SYSVIPC + POSIX_MQ + Glyph driver
+
+## DISABLED MODULES (DO NOT INSTALL)
+✗ Shamiko v3.6  — DISABLED — conflicts with APatch kallsyms
+✗ Mountify latest  — DISABLED — metamodule conflict
+✗ Riru_LSPosed legacy  — DISABLED — searches for Magisk binary
