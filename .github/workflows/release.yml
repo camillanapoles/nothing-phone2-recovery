@@ -30,7 +30,10 @@ jobs:
         run: python -m build
 
       - name: Security audit (dependencies)
-        run: pip-audit --strict --desc --ignore-vuln PYSEC-2026-3447 --ignore-vuln GHSA-xmj3-9gf7-h52w
+        run: |
+          pip-audit --strict --desc \
+            --ignore-vuln PYSEC-2026-3447 \
+            --ignore-vuln GHSA-xmj3-9gf7-h52w
 
       - name: Run full test suite
         run: |
