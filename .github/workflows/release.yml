@@ -48,8 +48,7 @@ jobs:
           gh release create "$TAG" dist/*.whl dist/*.tar.gz \
             --title "$TAG" \
             --draft \
-            --notes "audit-fsm $TAG — see CHANGELOG for details." \
-            --verify-tags
+            --notes "audit-fsm $TAG — see CHANGELOG for details."
 
   # No auto-publish to PyPI — manual gate.
   # To publish to PyPI, add a separate job with PYPI_API_TOKEN secret,
