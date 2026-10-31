@@ -33,7 +33,7 @@ jobs:
         run: |
           pip install -e ".[dev]"
           pip install pip-audit
-          pip-audit --strict --disable-pip --desc
+          pip-audit --strict --skip-editable --desc
           pytest tests/unit tests/integration -v --tb=short
 
       - name: Safety guard smoke (S1)
