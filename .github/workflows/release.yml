@@ -32,6 +32,7 @@ jobs:
       - name: Run full test suite
         run: |
           pip install -e ".[dev]"
+          pip install pip-audit
           pip-audit --strict --disable-pip --desc
           pytest tests/unit tests/integration -v --tb=short
 
