@@ -1,0 +1,94 @@
+# Installation List — Nothing Phone 2 (Pong) EvolutionX 11.11
+# Generated: 2026-10-31
+# WARNING: Reboot after each module installation. Do NOT skip reboots.
+
+## Module Installation Order
+
+1. ZygiskNext v1.4.5 (build 836)
+   adb shell su -c "apd module install /sdcard/modules/ZygiskNext.zip"
+   adb reboot
+
+2. TrickyStore v1.4.1 (build 245)
+   adb shell su -c "apd module install /sdcard/modules/TrickyStore.zip"
+   adb reboot
+
+3. PIFork v17
+   adb shell su -c "apd module install /sdcard/modules/PIFork-v17.zip"
+   adb reboot
+
+4. DroidSpaces v6.4.5
+   adb shell su -c "apd module install /sdcard/modules/DroidSpaces.apk"
+   adb reboot
+   # Wait for glyph lighting to confirm boot success
+
+5. Permafrost v1.7.1
+   adb shell su -c "apd module install /sdcard/modules/Permafrost-v1.7.1.apk"
+   adb reboot
+
+6. LSPatch v0.6 (build 398)
+   adb shell su -c "apd module install /sdcard/modules/LSPatch-v0.6.apk"
+   adb reboot
+
+7. EdgeX v2.1.2
+   adb shell su -c "apd module install /sdcard/modules/EdgeX-latest.apk"
+   # Final reboot - do NOT modify modules after this
+
+## Total: 7 modules, 7 reboots required
+
+## Validation Commands
+
+After all modules installed:
+```bash
+# Verify root
+adb shell su -c 'id'
+# Expected: uid=0(root)
+
+# Verify SELinux
+adb shell getenforce
+# Expected: Enforcing
+
+# Verify modules installed
+adb shell su -c 'ls /data/adb/apatch/modules/'
+# Expected: ZygiskNext, TrickyStore, PIFork, DroidSpaces, Permafrost, LSPatch, EdgeX
+
+# Verify TrickyStore
+adb shell su -c 'getprop ro.tricky.store.fake'
+# Expected: true
+
+# Verify ZygiskNext
+adb shell su -c 'getprop sys.zygisk.next'
+# Expected: true
+
+# Verify Permafrost (app freezer)
+adb shell su -c 'getprop ro.permafrost.freezer'
+# Expected: true (if available)
+
+# Verify LSPatch (signature spoofing)
+adb shell su -c 'getprop ro.lspatch.enabled'
+# Expected: true (if available)
+
+# Verify EdgeX (gesture injection)
+adb shell su -c 'getprop ro.edgex.gesture'
+# Expected: true (if available)
+```
+
+## Rollback (if needed)
+
+```bash
+# Remove new modules in reverse order
+adb shell su -c "apd module uninstall /sdcard/modules/EdgeX-latest.apk"
+adb shell su -c "apd module uninstall /sdcard/modules/LSPatch-v0.6.apk"
+adb shell su -c "apd module uninstall /sdcard/modules/Permafrost-v1.7.1.apk"
+adb reboot
+
+# To remove ALL modules and return to clean state
+adb shell su -c "apd module uninstall /sdcard/modules/ZygiskNext.zip"
+adb shell su -c "apd module uninstall /sdcard/modules/TrickyStore.zip"
+adb shell su -c "apd module uninstall /sdcard/modules/PIFork-v17.zip"
+adb shell su -c "apd module uninstall /sdcard/modules/DroidSpaces.apk"
+adb reboot
+
+# Verify clean state
+adb shell su -c 'ls /data/adb/apatch/modules/'
+# Expected: (empty or only system modules)
+```

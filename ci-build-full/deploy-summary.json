@@ -1,0 +1,74 @@
+{
+  "pipeline": "Android Root Boot Test — CI/CD Pipeline",
+  "timestamp": "2026-10-31T02:32:00.000000+00:00",
+  "device": {
+    "model": "Nothing Phone 2",
+    "codename": "Pong",
+    "soc": "SM8475",
+    "android_version": 16
+  },
+  "deployment_package": {
+    "rom": "Evolution X 11.11 (Android 16 QPR2, Vanilla, 3.65 GB)",
+    "boot_image": "boot.img (GKI 2.0, 5.10.246-gki-g4ec5491f6b5f)",
+    "kernel": "Stock GKI 2.0 (no custom kernel required)",
+    "root_framework": "APatch v11219 + KernelPatch 0.13.3",
+    "modules_active": [
+      "ZygiskNext v1.4.5 (build 836)",
+      "TrickyStore v1.4.1 (build 245)",
+      "PlayIntegrityFork v17",
+      "DroidSpaces v6.4.5",
+      "Permafrost v1.7.1 (App Freezer + Task Manager + Auto-Launch)",
+      "LSPatch v0.6 (build 398) (Signature Spoofing)",
+      "EdgeX v2.1.2 (Gesture Injection)"
+    ],
+    "total_active_modules": 7,
+    "modules_disabled": [
+      "Shamiko v3.6 (conflict with APatch kallsyms)"
+    ],
+    "modules_sha256": {
+      "Permafrost-v1.7.1.apk": "bd9c30a83853fe1ddd3b1fe613dbe25b5e1a833d3a22d594e43318d8d39a8463",
+      "LSPatch-v0.6.apk": "13d543f46fac47b46d6173dd062925fd7efa4f357ab62b8206d94d37c79b10f3",
+      "EdgeX-latest.apk": "463d0d3bdfc6db753ce4ad6b7675a76e2f5bd288dfe85f3a7e2a6eec3359f82b"
+    },
+    "modules_zip_size_bytes": 64869246,
+    "modules_zip_sha256": "9d732a76d79805f73689c4102be57b90262e9284d532a9a7ddc9445f5dddb0dd",
+    "compatibility_matrix": {
+      "APatch": "v11219",
+      "Android": "16 (API 36)",
+      "KernelPatch": "v0.13.3",
+      "Zygisk": "v1.4.5"
+    },
+    "camera": "GCam + Garandindo optimization (DroidSpaces)",
+    "google_unlocked": "GApps Pico for Android 16 (optional)",
+    "selinux_note": "Setenforce 1 required before flashing"
+  },
+  "verification": {
+    "total_checks": 10,
+    "passed": 9,
+    "failed": 0,
+    "warnings": 1,
+    "verdict": "PASS"
+  },
+  "artifacts": {
+    "total_files": 12,
+    "directories": [
+      "boot",
+      "modules",
+      "modules/active",
+      "modules/disabled",
+      "checksums",
+      "instructions"
+    ],
+    "files": [
+      "modules.zip",
+      "modules/install-list.txt",
+      "modules.list",
+      "checksums/modules.sha256",
+      "checksums/boot.sha256",
+      "rom-info.txt",
+      "deploy-summary.json",
+      ".github/workflows/pre-validate.yml"
+    ]
+  },
+  "deployment_ready": true
+}

@@ -1,0 +1,4 @@
+EvolutionX 11.11
+Android 16 (API 36)
+Device: Nothing Phone 2 (Pong, SM8475)
+Root: APatch v11219 + KernelPatch 0.13.3

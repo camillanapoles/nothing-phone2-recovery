@@ -67,17 +67,23 @@ fastboot reboot
 # Copy modules to device
 adb push modules/ /sdcard/modules/
 
-# Install in exact order:
+# Install in exact order (reboot after each):
 adb shell su -c "apd module install /sdcard/modules/ZygiskNext.zip"
 adb reboot
 adb shell su -c "apd module install /sdcard/modules/TrickyStore.zip"
 adb reboot
-adb shell su -c "apd module install /sdcard/modules/PIFork.zip"
+adb shell su -c "apd module install /sdcard/modules/PIFork-v17.zip"
 adb reboot
-adb shell su -c "apd module install /sdcard/modules/LSPosed-zygisk.zip"
+adb shell su -c "apd module install /sdcard/modules/DroidSpaces.apk"
 adb reboot
-adb shell su -c "apd module install /sdcard/modules/Droidspaces.zip"
-# DO NOT reboot until Droidspaces boots safely
+# Verify glyph lighting works before proceeding
+adb shell su -c "apd module install /sdcard/modules/Permafrost-v1.7.1.apk"
+adb reboot
+adb shell su -c "apd module install /sdcard/modules/LSPatch-v0.6.apk"
+adb reboot
+adb shell su -c "apd module install /sdcard/modules/EdgeX-latest.apk"
+adb reboot
+# Final reboot - do NOT modify modules after this
 ```
 
 ## Step 7: Final Validation
@@ -113,6 +119,10 @@ adb shell su -c 'getprop ro.tricky.store.fake'
 | cat /data/adb/apatch/version | 11219 |
 | getprop sys.zygisk.next | true |
 | getprop ro.tricky.store.fake | true |
+| ls /data/adb/apatch/modules/ | Permafrost, LSPatch, EdgeX |
+| getprop ro.permafrost.freezer | true |
+| getprop ro.lspatch.enabled | true |
+| getprop ro.edgex.gesture | true |
 
 ## Rollback
 
@@ -120,6 +130,15 @@ adb shell su -c 'getprop ro.tricky.store.fake'
 # Rollback to slot _a
 fastboot --set-active=a
 fastboot reboot
+
+# To remove new modules (reinstall in reverse order):
+adb shell su -c "apd module uninstall /sdcard/modules/EdgeX-latest.apk"
+adb shell su -c "apd module uninstall /sdcard/modules/LSPatch-v0.6.apk"
+adb shell su -c "apd module uninstall /sdcard/modules/Permafrost-v1.7.1.apk"
+adb reboot
+
+# Verify clean state:
+adb shell su -c 'ls /data/adb/apatch/modules/'
 ```
 
 ## Sources

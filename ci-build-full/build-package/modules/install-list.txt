@@ -1,14 +1,42 @@
 # Module Installation List
-# Order is critical — install in sequence
+# Nothing Phone 2 (Pong, SM8475) - Evolution X 11.11
+# Android 16 (API 36)
+# Root Framework: APatch v11219
+# Generated: 2026-10-31
 
-## ACTIVE MODULES (install in order)
-1. ZygiskNext v1.4.5 (build 836)  ← Required base layer for Zygisk modules
-2. TrickyStore v1.4.1 (build 245)  ← Keybox attestation for Play Integrity
-3. PlayIntegrityFork v17  ← Play Integrity bypass
-4. LSPosed_Zygisk v1.9.2 (7024)  ← Zygisk variant ONLY — Riru fails
-5. Droidspaces_Kernel custom  ← SYSVIPC + POSIX_MQ + Glyph driver
+# ACTIVE MODULES (install in order with reboots)
+# Install each module, then reboot before proceeding to next
+# EXCEPT DroidSpaces - must boot safely before next module
 
-## DISABLED MODULES (DO NOT INSTALL)
-✗ Shamiko v3.6  — DISABLED — conflicts with APatch kallsyms
-✗ Mountify latest  — DISABLED — metamodule conflict
-✗ Riru_LSPosed legacy  — DISABLED — searches for Magisk binary
+1. ZygiskNext v1.4.5 (build 836)
+   adb shell su -c "apd module install /sdcard/modules/ZygiskNext.zip"
+   adb reboot
+
+2. TrickyStore v1.4.1 (build 245)
+   adb shell su -c "apd module install /sdcard/modules/TrickyStore.zip"
+   adb reboot
+
+3. PlayIntegrityFork v17
+   adb shell su -c "apd module install /sdcard/modules/PIFork-v17.zip"
+   adb reboot
+
+4. DroidSpaces Kernel v6.4.5
+   adb shell su -c "apd module install /sdcard/modules/DroidSpaces.apk"
+   adb reboot
+   # Verify glyph lighting works before proceeding!
+
+5. Permafrost v1.7.1 (App Freezer)
+   adb shell su -c "apd module install /sdcard/modules/Permafrost-v1.7.1.apk"
+   adb reboot
+
+6. LSPatch v0.6 (build 398)
+   adb shell su -c "apd module install /sdcard/modules/LSPatch-v0.6.apk"
+   adb reboot
+
+7. EdgeX v2.1.2 (Gesture Injection)
+   adb shell su -c "apd module install /sdcard/modules/EdgeX-latest.apk"
+   adb reboot
+   # Final reboot - do NOT modify modules after this
+
+# DISABLED MODULES (DO NOT INSTALL)
+✗ Shamiko v3.6 — DISABLED — conflicts with APatch kallsyms

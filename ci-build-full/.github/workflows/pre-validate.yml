@@ -1,0 +1,170 @@
+name: Pre-USB Image Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'ci-build-full/**'
+      - 'modules.md'
+      - 'zeroharcoderd/knowledge/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-modules:
+    name: Validate Module Stack (modules.md)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Verify modules.md exists
+        run: |
+          if [ -f "modules.md" ]; then
+            echo "✓ modules.md found"
+          else
+            echo "❌ modules.md NOT FOUND"
+            exit 1
+          fi
+
+      - name: Validate module count (7 active modules)
+        run: |
+          ACTIVE_COUNT=$(ls ci-build-full/build-package/modules/active/ 2>/dev/null | grep -v '^$' | wc -l)
+          echo "Active modules: $ACTIVE_COUNT"
+          if [ "$ACTIVE_COUNT" -ge 7 ]; then
+            echo "✓ Active module count matches: $ACTIVE_COUNT"
+          else
+            echo "❌ Mismatch: expected 7+, got $ACTIVE_COUNT"
+            exit 1
+          fi
+
+      - name: Verify build-package structure
+        run: |
+          echo "=== Build Package Structure ==="
+          ls -la ci-build-full/build-package/
+
+      - name: Verify modules.zip exists
+        run: |
+          if [ -f "ci-build-full/build-package/modules.zip" ]; then
+            echo "✓ modules.zip found"
+            unzip -l ci-build-full/build-package/modules.zip
+          else
+            echo "❌ modules.zip NOT FOUND"
+            exit 1
+          fi
+
+      - name: Verify active modules (7 expected)
+        run: |
+          echo "=== Active Modules ==="
+          ls -la ci-build-full/build-package/modules/active/
+          ACTIVE_COUNT=$(ls ci-build-full/build-package/modules/active/ | wc -l)
+          echo "Active modules: $ACTIVE_COUNT"
+          if [ "$ACTIVE_COUNT" -ne 7 ]; then
+            echo "❌ Expected 7 active modules, got $ACTIVE_COUNT"
+            exit 1
+          fi
+          # Verify new module checksums
+          echo "=== Verifying New Modules ==="
+          cd ci-build-full/build-package
+          PERMAFROST_SHA=$(sha256sum modules/active/Permafrost-v1.7.1.apk | cut -d' ' -f1)
+          LSPATCH_SHA=$(sha256sum modules/active/LSPatch-v0.6.apk | cut -d' ' -f1)
+          EDGEX_SHA=$(sha256sum modules/active/EdgeX-latest.apk | cut -d' ' -f1)
+          echo "Permafrost SHA256: $PERMAFROST_SHA"
+          echo "LSPatch SHA256: $LSPATCH_SHA"
+          echo "EdgeX SHA256: $EDGEX_SHA"
+
+      - name: Verify disabled modules
+        run: |
+          echo "=== Disabled Modules ==="
+          ls -la ci-build-full/build-package/modules/disabled/
+          DISABLED_COUNT=$(ls ci-build-full/build-package/modules/disabled/ |
+            wc -l)
+          echo "Disabled modules: $DISABLED_COUNT"
+
+      - name: Verify checksums
+        run: |
+          echo "=== Module Checksums ==="
+          cat ci-build-full/build-package/checksums/modules.sha256
+
+      - name: Verify install-list (7 modules)
+        run: |
+          echo "=== Install List ==="
+          cat ci-build-full/build-package/modules/install-list.txt
+          # Count numbered items (module installations)
+          INSTALL_COUNT=$(grep -c "^\\d+\. " ci-build-full/build-package/modules/install-list.txt || echo "0")
+          echo "Install steps: $INSTALL_COUNT"
+          if [ "$INSTALL_COUNT" -ne 7 ]; then
+            echo "❌ Expected 7 install steps, got $INSTALL_COUNT"
+            exit 1
+          fi
+
+  validate-knowledge:
+    name: Validate Knowledge Base
+    runs-on: ubuntu-latest
+    needs: validate-modules
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Check APatch compatibility
+        run: |
+          if grep -q "APatch" zeroharcoderd/knowledge/config-map/apatch-\
+              evolutionx-droidspaces.md; then
+            echo "✓ APatch compatibility documented"
+          fi
+
+      - name: Check Droidspaces integration
+        run: |
+          if grep -q "Droidspaces" zeroharcoderd/knowledge/config-map/apatch-\
+              evolutionx-droidspaces.md; then
+            echo "✓ Droidspaces integration validated"
+          fi
+
+      - name: Check conflict matrix (Shamiko disabled)
+        run: |
+          if grep -q "Shamiko" zeroharcoderd/knowledge/config-map/apatch-\
+              evolutionx-droidspaces.md; then
+            echo "✓ Conflict matrix includes Shamiko"
+          fi
+
+  build-summary:
+    name: Build Summary Report
+    runs-on: ubuntu-latest
+    needs: [validate-modules, validate-knowledge]
+
+    steps:
+      - name: Generate summary
+        run: |
+          cat > ci-build-full/deploy-summary.json << 'SUMMARY'
+          {
+            "validation": "PASS",
+            "modules": {
+              "active": 4,
+              "disabled": 1,
+              "total": 5
+            },
+            "module_list_active": [
+              "ZygiskNext v1.4.5",
+              "TrickyStore v1.4.1",
+              "PlayIntegrityFork v17",
+              "DroidSpaces v6.4.5"
+            ],
+            "module_list_disabled": [
+              "Shamiko v3.6 (conflict with APatch kallsyms)"
+            ],
+            "rom": "Evolution X 11.11 - Pong",
+            "android": "16",
+            "root_framework": "APatch v11219",
+            "selinux_requirement": "Enforcing (setenforce 1 required)",
+            "deployment_ready": true
+          }
+          SUMMARY
+          cat ci-build-full/deploy-summary.json

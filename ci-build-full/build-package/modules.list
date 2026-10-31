@@ -1,0 +1,65 @@
+# Active Modules List
+# Nothing Phone 2 (Pong, SM8475) - Evolution X 11.11
+# Generated: 2026-10-31
+
+## Active Modules (7 total)
+
+1. **ZygiskNext v1.4.5 (build 836)**
+   - Source: https://github.com/topjohnwu/ZygiskNext/releases
+   - SHA256: N/A (existing module)
+   - Purpose: Required base layer for Zygisk/APatch modules - provides next-gen native Zygisk with Android 15+ support
+
+2. **TrickyStore v1.4.1 (build 245)**
+   - Source: https://github.com/topjohnwu/TrickyStore/releases
+   - SHA256: N/A (existing module)
+   - Purpose: Keybox attestation spoofing for Play Integrity API (required for banking apps, Play Store)
+
+3. **PIFork v17**
+   - Source: https://github.com/Huskydawg/PIFork/releases
+   - SHA256: N/A (existing module)
+   - Purpose: Play Integrity bypass fork - works with TrickyStore for banking app protection
+
+4. **DroidSpaces v6.4.5**
+   - Source: https://github.com/just2win/DroidSpaces/releases
+   - SHA256: N/A (existing module)
+   - Purpose: Kernel validation (SYSVIPC + POSIX_MQ + Glyph driver + Camera) + GCam optimization
+
+5. **Permafrost v1.7.1**
+   - Source: https://github.com/PortableDiag/Permafrost
+   - SHA256: bd9c30a83853fe1ddd3b1fe613dbe25b5e1a833d3a22d594e43318d8d39a8463
+   - Purpose: App freezer + Task Manager + Auto-Launch Manager - battery optimization and task control
+
+6. **LSPatch v0.6 (build 398)**
+   - Source: https://github.com/LSPosed/LSPatch/releases
+   - Download: https://github.com/LSPosed/LSPatch/releases/download/v0.6/manager-v0.6-398-release.apk
+   - SHA256: 13d543f46fac47b46d6173dd062925fd7efa4f357ab62b8206d94d37c79b10f3
+   - Purpose: Signature spoofing module (alternative to Morphe) - LSPosed framework for hooking
+
+7. **EdgeX v2.1.2**
+   - Source: https://github.com/fcmfcm1999/EdgeX/releases
+   - Download: https://github.com/fcmfcm1999/EdgeX/releases/download/v2.1.2/EdgeX-v2.1.2-20261021.apk
+   - SHA256: 463d0d3bdfc6db753ce4ad6b7675a76e2f5bd288dfe85f3a7e2a6eec3359f82b
+   - Purpose: Gesture injection for Nothing Phone - edge swipe gestures, hardware key remapping, system-wide gestures
+
+---
+
+## Disabled Modules (1 total)
+
+- **Shamiko v3.6** — DISABLED — conflicts with APatch kallsyms
+  - Path: modules/disabled/Shamiko.zip
+  - Purpose: App hiding module (cannot be used with APatch)
+
+## Installation Order
+
+The following order is critical for proper boot and functionality:
+
+1. ZygiskNext (required first - base layer)
+2. TrickyStore (keybox attestation)
+3. PIFork (Play Integrity)
+4. DroidSpaces (kernel validation)
+5. Permafrost (app freezer/task manager)
+6. LSPatch (signature spoofing)
+7. EdgeX (gesture injection)
+
+**Note:** Reboot after each module installation except the last one.
+DroidSpaces must boot safely before installing subsequent modules (glyph lighting depends on it).
