@@ -394,8 +394,18 @@ jobs:
           python3 << 'PYEOF'
           import json, sys
           from pathlib import Path
+          from datetime import datetime, timezone
+
+          run_id = "${{ github.run_id }}"
+          run_attempt = "${{ github.run_attempt }}"
+          timestamp = datetime.now(timezone.utc).isoformat()
+          date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
           results = {
+              "run_id": run_id,
+              "run_attempt": run_attempt,
+              "timestamp": timestamp,
+              "date": date,
               "simulation": "CI/CD Pipeline Validation",
               "device": "Nothing Phone 2 (Pong, SM8475)",
               "android_version": 16,
@@ -591,8 +601,18 @@ jobs:
           python3 << 'PYEOF'
           import json, sys
           from pathlib import Path
+          from datetime import datetime, timezone
+
+          run_id = "${{ github.run_id }}"
+          run_attempt = "${{ github.run_attempt }}"
+          timestamp = datetime.now(timezone.utc).isoformat()
+          date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
           results = {
+              "run_id": run_id,
+              "run_attempt": run_attempt,
+              "timestamp": timestamp,
+              "date": date,
               "simulation": "CI/CD Pipeline Validation",
               "device": "Nothing Phone 2 (Pong, SM8475)",
               "android_version": 16,
