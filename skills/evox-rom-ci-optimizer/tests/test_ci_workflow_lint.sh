@@ -45,6 +45,16 @@ s = open(p, encoding="utf-8").read().replace("permissions:", f"env_token: {tok}\
 open(p, "w", encoding="utf-8").write(s)
 PY2
 ck "segredo literal é violado" "exit" "$(run "$T/segredo")" "3"
+LOCAL="$HERE/../../../workflows-local/pong-ab-hil.yml"
+ck "workflow local (act+device) passa" "exit" "$(run "$LOCAL")" "0"
+cp "$LOCAL" "$T/local_sem_rollback"
+python3 - "$T/local_sem_rollback" <<'PY2'
+import sys
+p = sys.argv[1]; s = open(p, encoding="utf-8").read()
+open(p, "w", encoding="utf-8").write(s.replace("set-active", "set_active_disabled", 1).replace("--set-active", "--set_active_disabled"))
+PY2
+ck "local sem rollback é violado (R12)" "exit" "$(run "$T/local_sem_rollback")" "3"
+ck "cloud com fastboot continua proibido" "exit" "$(run "$T/flash")" "3"
 ck "JSON lista as violações" "0" "$(python3 "$L" "$T/flash" --json | python3 -c 'import json,sys;d=json.load(sys.stdin)[0];print(0 if d["violations"] else 1)')" "0"
 echo "-----------------------------------------------------------------------"
 echo "TOTAL: $P PASS / $F FAIL"; [ "$F" -eq 0 ] || exit 1

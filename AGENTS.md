@@ -99,7 +99,12 @@ Regras de carga: ler **só** a skill que casa com a tarefa (economia de contexto
     (job ≤ 30, emulador ≤ 15), cache por sha256 da ROM, retenção curta e watchdog de boot —
     `ci_workflow_lint.py` reprova o que faltar.
 18. **Ordem de módulo é contrato.** F0→F5 com um módulo por vez; fora de ordem = `rollout_gate` bloqueia.
-19. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
+19. **`/data` é único entre os slots.** Módulo experimental quebra também o slot estável no fallback.
+    Antes de qualquer troca de slot: `00_slot_router.sh quarantine` **no host**. Nunca `mount --bind`
+    sobre `/data/adb/modules` — o gerenciador de root já leu a pasta antes do hook.
+20. **Primeiro root é fastboot-only.** Sem `su` antes de M01: flash de `boot_<slot>` + `init_boot_<slot>`;
+    o roteador só é instalado depois do primeiro boot com root.
+21. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
 
 Sempre que uma regra R01–R09 for tocada, o teste é `skills/evox-rom-ci-optimizer/tests/test_scanner_rules.sh`
 (13 cenários). Gate sem teste é opinião.
@@ -226,6 +231,7 @@ state/                 runtime local (quarentena, relatórios) — fora do Git
 | G4 | Guardião respeitado | R01–R09 verdes; nenhuma mutação sem estágio A+B e rollback |
 | G5 | Rastreabilidade | `MANIFEST.json` + `SHA256SUMS` de cada limpeza; commit por mudança |
 | G8 | Pipeline em 3 estágios, com custo travado | `ci_workflow_lint.py` → 12 PASS · workflow OK |
+| G10 | HIL A/B isolado e com rollback | `test_slot_router.sh` 13 PASS · lint local R12/R13 |
 | G9 | Ordem de módulos ratificada e aplicável | `module-rollout-order.md` + `rollout_gate.sh` 13 PASS |
 | G7 | L4 fecha com o pacote oficial | `test_extract_rom_assets.sh` → 15 PASS · `l4_closed: true` |
 | G6 | Portabilidade | `AGENTS.md` + `agente.md` funcionam copiados para outro workspace, sem caminho absoluto |

@@ -303,6 +303,18 @@ Workflow pronto e lintado: [`references/evox-ci-validator.yml`](references/evox-
 · travas verificadas por `scripts/ci_workflow_lint.py` (11 regras; 12 PASS no teste) ·
 injeção sequencial por `scripts/sandbox_rollout.sh` (9 PASS).
 
+## VI-E2. HIL local (`act` + slots A/B): quando usar, o que corrigir
+
+A AVD valida a camada de módulos; **não** valida kernel, HAL nem `/data` compartilhado. Para isso o
+gate final antes do USB é o **HIL local**: `act` com o aparelho no USB, flash no slot de staging,
+watchdog e rollback. Arquitetura híbrida (AVD como pré-gate barato, HIL como gate autoritativo):
+[`references/act-ab-hil-review.md`](references/act-ab-hil-review.md).
+
+Regra que evita o bootloop clássico de A/B: **`/data` é único**. Módulo experimental em
+`/data/adb/modules` derruba também o slot estável no fallback. Por isso `quarantine` roda **no host,
+antes** de trocar de slot, e `guard` desabilita os experimentais quando o contador estoura.
+Nunca `mount --bind` sobre `/data/adb/modules` (o gerenciador de root já leu a pasta).
+
 ## VI-F. Ordem incremental ratificada (15 módulos → 6 fases)
 
 ```text
@@ -330,6 +342,9 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `references/pong-hardware-matrix.md` | Matriz PASS/FAIL do Nothing Phone 2 (`pong`) — absorve a antiga skill `evox-pong-ci-architect` |
 | `references/ci-cost-locks.md` | As 4 travas de custo (concurrency, timeout 25/10, poweroff 1800 s) |
 | `references/kernel-selection-gate.md` | **Gate 1**: tríade kernel × ROM × device, escolha da versão estável, compatibilidade de módulo, estratégia para o `pong` |
+| `references/act-ab-hil-review.md` | **Revisão do HIL local**: 6 erros do draft (bind mount, rollback automático, `su` antes do root, `modules_stable`, AVB/`init_boot`, listas) e arquitetura híbrida corrigida |
+| `assets/00_slot_router.sh` | Roteador A/B: `guard`/`quarantine`/`activate`/`status`/`reset` — quarentena por `disable`, sem `mount`, sem `rm -rf` |
+| `tests/test_slot_router.sh` | 13 cenários do roteador (fallback, limite, ativação, recusas) |
 | `references/session-opening.md` | **P1–P8 ratificados**: explicar Vanilla×GAPPS, pedir zip, autorizar binário item a item, kernel, módulos, canário, cache, USB |
 | `scripts/session_open.py` | `questions` / `template` / `check` — sem `decision.json` completo, nada executa (exit 3) |
 | `references/emulation-sandbox.md` | **Estágio B**: restrições reais (arm64 × x86_64, KVM), cobertura por módulo, travas de custo, alternativas avaliadas |

@@ -24,7 +24,7 @@ import json
 import re
 import sys
 
-RULES = [
+CLOUD_RULES = [
     ("R1", "cancel-in-progress", lambda t: "cancel-in-progress: true" in t),
     ("R3", "emulator timeout<=15", lambda t: _emulator_timeout(t)),
     ("R4", "actions/cache", lambda t: "uses: actions/cache" in t),
@@ -37,6 +37,21 @@ RULES = [
     ("R11", "sem segredo literal", lambda t: not re.search(
         r"ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|BEGIN [A-Z ]*PRIVATE KEY", t)),
 ]
+
+# Perfil local (act + device no USB): concurrency/cache/KVM/snapshot não se aplicam,
+# mas rollback e gate de slot passam a ser obrigatórios.
+LOCAL_RULES = [
+    ("R5", "retention<=7", lambda t: _retention_ok(t)),
+    ("R6", "permissions read-only", lambda t: "write-all" not in t),
+    ("R10", "fastboot permitido (act-local)", lambda t: True),
+    ("R11", "sem segredo literal", lambda t: not re.search(
+        r"ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|BEGIN [A-Z ]*PRIVATE KEY", t)),
+    ("R12", "rollback por set-active", lambda t: "set-active" in t),
+    ("R13", "gate de slot", lambda t: "ro.boot.slot_suffix" in t),
+]
+
+LOCAL_MARKER = "# act-local: true"
+
 
 
 def _emulator_timeout(text: str) -> bool:
@@ -65,8 +80,10 @@ def _timeouts_ok(text: str) -> list[str]:
 
 def lint(path: str) -> dict:
     text = open(path, encoding="utf-8").read()
+    local = LOCAL_MARKER in text
+    rules = LOCAL_RULES if local else CLOUD_RULES
     results = []
-    for rid, name, fn in RULES:
+    for rid, name, fn in rules:
         try:
             ok = bool(fn(text))
         except Exception:  # regra que quebra no arquivo = falha, não passa
@@ -76,7 +93,8 @@ def lint(path: str) -> dict:
         results.append({"rule": "R2", "check": f"timeout-minutes {extra}", "ok": False})
     if not any(r["rule"] == "R2" for r in results):
         results.append({"rule": "R2", "check": "timeout<=30", "ok": True})
-    return {"file": path, "ok": all(r["ok"] for r in results),
+    return {"file": path, "profile": "local" if local else "cloud",
+            "ok": all(r["ok"] for r in results),
             "violations": [r for r in results if not r["ok"]], "results": results}
 
 
@@ -97,7 +115,7 @@ def main(argv: list[str]) -> int:
         print(json.dumps(reports, indent=2, ensure_ascii=False))
     else:
         for r in reports:
-            print(f"[lint] {r['file']}")
+            print(f"[lint] {r['file']} (perfil {r['profile']})")
             for item in r["results"]:
                 print(f"  {'OK   ' if item['ok'] else 'FALHA'} {item['rule']:<4} {item['check']}")
             print(f"[lint] {'OK' if r['ok'] else 'VIOLADO'} "
