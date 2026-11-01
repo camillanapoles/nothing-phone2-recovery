@@ -1,6 +1,6 @@
 ---
 name: evox-rom-ci-optimizer
-version: 3.1.0
+version: 3.2.0
 description: >
   Sistema multi-agente (EVOX-FORGE, CI-SANDBOX-PROBE, CONFLICT-INQUISITOR, SNAPSHOT-KEEPER)
   especialista em engenharia pre-flash Dual-Stage da ROM Evolution X 11.11 (Android 16 / API 36)
@@ -14,7 +14,7 @@ description: >
 license: uso interno — Camilla N. / fabrica-de-agentes
 ---
 
-# EVOX-CI v3.1 — Dual-Stage ROM & QEMU CI Orchestrator (v3 spec + backend operacional v2)
+# EVOX-CI v3.2 — Dual-Stage ROM & QEMU CI Orchestrator (instrução canônica + engine executável)
 
 > **Composicao deste arquivo:** esta skill e a fusao **nao-destrutiva** de duas geracoes:
 > **v3.0** (spec de orquestracao: 4 sub-agentes, 5 ondas, 15 modulos, 10 testes binarios) e
@@ -27,16 +27,29 @@ Sistema operacional cognitivo multi-agente sob arquitetura `Atomic-DAG-SoC` para
 pre-flash, versionamento particionado e validacao incremental na ROM **Evolution X 11.11
 (Android 16 / API 36 / Baklava)** antes de qualquer contato com o cabo USB.
 
+## Regra de precedência (instrução > repositório)
+
+Este repositório é **incompleto por desenho**: ele registra o que já rodou, não o que foi
+prometido. A hierarquia de verdade é:
+
+1. `references/module-matrix-5w1h.md` — **a instrução** (15 módulos + 3 plataformas, 5W1H). Vence sempre.
+2. `references/external-engines-arbitration.md` — regras `R01..R09` que o scanner deve aplicar.
+3. `SKILL.md` (este arquivo) — como o agente se comporta.
+4. `scripts/` — o que a máquina realmente executa hoje.
+5. Resto do repositório (`docs/`, `.github/`) — evidência histórica, não contrato.
+
+Se (4) divergir de (1)/(2), **corrija o script** — não reescreva a instrução para caber no código.
+
 ---
 
 ## 0. Delta de capacidade (o que a v3.1 adiciona sobre v2.0 e sobre v3.0 isolada)
 
-| Eixo | v2.0 (pacote) | v3.0 (spec) | **v3.1 (esta skill)** |
+| Eixo | v2.0 (pacote) | v3.0 (spec) | **v3.2 (esta skill)** |
 |---|---|---|---|
 | Sub-agentes | 3 (FORGE, PROBE, INQUISITOR) | 4 (+ `SNAPSHOT-KEEPER`) | 4 com backend executavel para cada um |
-| Escopo de modulos | "conjunto de modulos" | 15 componentes em 5 ondas | 15 componentes + `M12A/M12B/M08` externos mapeados a scripts |
+| Escopo de modulos | "conjunto de modulos" | 15 componentes em 5 ondas | 15 componentes + `M12A/M12B/M08` + matriz 5W1H rastreavel |
 | Validacao | 10 testes binarios (v2) | 10 testes binarios (v3, com `static_conflict_scanner.py`) | 10 testes com runner (`Makefile`) e evidencia por artefato |
-| Backends | 4 scripts | nenhum script (spec pura) | **8 scripts** (4 v2 + 4 v3) com contratos `--flag` |
+| Backends | 4 scripts | nenhum script (spec pura) | **8 scripts** + 13 testes de regra (R00–R09) |
 | Estado/snapshot | backup ad-hoc | `snapshot/<camada>/<tag>` + manifesto | `snapshot_branch_manager.sh` + manifesto SHA-256 por artefato |
 | Custo CI | `timeout-minutes` | trava dupla (`cancel-in-progress` + timeout + `.devcontainer`) | trava dupla + `references/devcontainer.json` versionado |
 | Rastreabilidade | README | narrativa | `Makefile` (`check/scan/forge/audit/bundle/snapshot/runtime-test/run-act`) |
@@ -113,6 +126,10 @@ exige `sys.boot_completed=1` e matriz de colisao `CLEAN`.
 | `CONFLICT-INQUISITOR` | Auditoria hostil, matriz de colisao, veto | `scripts/audit_rom_conflicts.sh`, `scripts/static_conflict_scanner.py`, `references/android16-evox-safelist.json` |
 | `SNAPSHOT-KEEPER` | Versionamento por branch/tag, manifesto | `scripts/snapshot_branch_manager.sh` |
 
+Regras de arbitragem detalhadas (MaxManager, Duck-ToolBox, GenieX, DroidSpaces) em
+`references/external-engines-arbitration.md`; escopo de cada módulo em
+`references/module-matrix-5w1h.md`; matriz do `pong` em `references/pong-hardware-matrix.md`.
+
 **Regra de veto:** `CONFLICT-INQUISITOR` tem poder de bloquear a release. Sem
 `conflict_report.json` com `status == "CLEAN"`, `SNAPSHOT-KEEPER` nao cria tag e o bundle
 nao sai do runner.
@@ -157,6 +174,7 @@ make help           # catalogo de alvos
 make check          # bash -n + JSON schema + self-test do auditor (cenario limpo)
 make extract ROM_PATH=/caminho/EvolutionX_11.11_ota.zip
 make scan           # scanner estatico dos 15 modulos (JSON + codigo de saida)
+make test           # regressao das regras R00..R09 (13 cenarios sinteticos)
 make audit          # matriz de conflitos -> workspace/out/conflict_matrix_report.md
 make forge ENGINE=apatch SUPERKEY="<superkey>"
 make bundle         # All-in-One + Watchdog Anti-Bootloop 120s
@@ -177,6 +195,11 @@ Contrato de pastas de trabalho: `modules/` (`.zip` Magisk/KSU/APM), `kernel_patc
 | `references/evox-ci-pipeline.yml` | Workflow GitHub Actions completo (extract → audit → emulador KVM API 36) |
 | `references/android16-evox-safelist.json` | Whitelist deterministica de pacotes intocaveis |
 | `references/devcontainer.json` | Trava de custo/idle-timeout em Codespaces |
+| `references/module-matrix-5w1h.md` | **Instrução canônica**: 15 módulos + 3 plataformas em Classes 1–6, com agente/onda/5W1H |
+| `references/external-engines-arbitration.md` | Regras `R01..R09` (MaxManager, Duck-ToolBox, GenieX, DroidSpaces, persist, priv-app, SELinux) |
+| `references/pong-hardware-matrix.md` | Matriz PASS/FAIL do Nothing Phone 2 (`pong`) — absorve a antiga skill `evox-pong-ci-architect` |
+| `references/ci-cost-locks.md` | As 4 travas de custo (concurrency, timeout 25/10, poweroff 1800 s) |
+| `tests/test_scanner_rules.sh` | Regressão das 13 regras do scanner (fixtures sintéticas, exit code contratual) |
 | `references/archive/evox-ci-v2.0-canonical-drive-export.md` | Documento canonico v2.0 (33 KB, export do Google Drive) |
 | `references/archive/evox-ci-v2.0-SKILL.md` | Resumo v2.0 empacotado (T01–T10) |
 | `assets/watchdog_anti_bootloop_service.sh` | Auto-desativacao de modulos se `boot_completed != 1` em 120s |
@@ -202,3 +225,7 @@ Contrato de pastas de trabalho: `modules/` (`.zip` Magisk/KSU/APM), `kernel_patc
   (4 sub-agentes, 5 ondas, M01–M15, 10 testes).
 - v2.0-full empacotado (`1dPTanP6heM83UQhbiMPzZMTM-Lp7DTPz`): resumo v2.0 arquivado.
 - Fusao v3.1: este arquivo + `Makefile` com alvos `scan/forge/snapshot/runtime-test`.
+- v3.2 (2026-11-01): absorve `evox-pong-ci-architect` como `references/pong-hardware-matrix.md`;
+  materializa a instrução em `references/module-matrix-5w1h.md`; implementa as regras
+  `R01..R09` no scanner (antes só `R00` + duas regras parciais); adiciona `tests/` com 13
+  cenários; CLI do scanner ganha `--modules-dir/--out/--strict/--json` e status `CLEAN|WARN|CONFLICT`.

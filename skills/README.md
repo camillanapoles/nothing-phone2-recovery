@@ -1,54 +1,76 @@
 # `skills/` — Skill stack do nothing-phone2-recovery
 
-Pacote de skills instalado a partir da pasta **Google Drive → `SKILLS/`** (fonte: apenas Drive,
-sem GitHub). Cada skill segue o *Skill Design Pattern*: `SKILL.md` (contrato de runtime) +
-`scripts/` + `references/` + `assets/` quando aplicável.
+Instalado a partir do **Google Drive → `SKILLS/`**. Nada aqui passou pelo GitHub.
 
-> Regra de uso (herdada do `AGENTS.md`): `SKILL.md` é a fonte de verdade. Um subagente recebe o
-> **caminho exato** do `SKILL.md`, nunca um resumo gerado.
+> **Contrato:** `SKILL.md` é a fonte de verdade. Um subagente recebe o **caminho absoluto** do
+> `SKILL.md`, nunca um resumo gerado. `make -C skills validate` é a porta de entrada.
 
 ## Índice
 
-| # | Skill | Tipo | Superfície de decisão | Entrada |
+| # | Skill | Tier | Superfície de decisão | Entrada |
 |---|---|---|---|---|
-| 1 | `evox-rom-ci-optimizer` **v3.1** | Orquestração Dual-Stage (4 sub-agentes) | ROM Evolution X 11.11 (A16) pré-flash, QEMU/KVM CI, snapshots | [`SKILL.md`](evox-rom-ci-optimizer/SKILL.md) |
-| 2 | `evox-pong-ci-architect` | Arquitetura CI | 12 componentes + release artifact no Nothing Phone 2 (`pong`) | [`SKILL.md`](evox-pong-ci-architect/SKILL.md) |
-| 3 | `android16-root-guardian` | Guardião Safe-First pós-flash | Kernel/root/KMI, OTA A/B, bootloop, Termux/ADB | [`SKILL.md`](android16-root-guardian/SKILL.md) |
-| 4 | `agent-governance-orchestrator` | Meta-governança | DAG, Ownership Ledger, Guard-4, 5W1H, gates binários | [`SKILL.md`](agent-governance-orchestrator/SKILL.md) |
-| 5 | `act-github-pat` | Credenciais/CLI | PAT Classic/Fine-Grained, `.actrc`, `nektos/act` | [`SKILL.md`](act-github-pat/SKILL.md) |
-| 6 | `github` | Operações `gh` | PR, issue, triage, Copilot review, CI | [`SKILL.md`](github/SKILL.md) |
-| 7 | `apex-talent-broker` | Arbitragem de oportunidades | Raspagem, EHV/SLI, propostas, reputação | [`SKILL.md`](apex-talent-broker/SKILL.md) |
+| 1 | `evox-rom-ci-optimizer` **v3.2** | core | ROM Evolution X 11.11 pré-flash, QEMU/KVM CI, snapshots, arbitragem das 3 plataformas | [`SKILL.md`](evox-rom-ci-optimizer/SKILL.md) |
+| 2 | `android16-root-guardian` | core | pós-flash Safe-First: KMI, root, OTA A/B, bootloop | [`SKILL.md`](android16-root-guardian/SKILL.md) |
+| 3 | `agent-governance-orchestrator` | meta | DAG, Ownership Ledger, Guard-4, 5W1H, gates | [`SKILL.md`](agent-governance-orchestrator/SKILL.md) |
+| 4 | `act-github-pat` | support | PAT Classic/Fine-Grained + `nektos/act` | [`SKILL.md`](act-github-pat/SKILL.md) |
+| 5 | `github` | support | `gh`: PR, issue, triage, Copilot, CI | [`SKILL.md`](github/SKILL.md) |
 
-## Composição: `evox-rom-ci-optimizer` v3.1
+**Excluídas por decisão (registradas em [`registry.json`](registry.json)):**
 
-O Drive tem duas gerações da mesma skill; esta instalação **funde as duas sem descartar nada**:
+- `apex-talent-broker` — fora do domínio do projeto (arbitragem de oportunidades).
+- `evox-pong-ci-architect` — absorvida em
+  [`evox-rom-ci-optimizer/references/pong-hardware-matrix.md`](evox-rom-ci-optimizer/references/pong-hardware-matrix.md)
+  para eliminar duas fontes de verdade sobre o mesmo pipeline.
 
-| Fonte no Drive | Papel na fusão |
-|---|---|
-| `SKILLS/evox-rom-ci-optimizer.zip` (**v3.0**, spec) | corpo do `SKILL.md` v3.1: 4 sub-agentes, Waves 1–5, M01–M15, 10 testes binários, trava de custo |
-| `SKILLS/evox-rom-ci-optimizer/` (**v2.0**, pacote em diretório) | `scripts/` (8), `references/` (3), `assets/` (2), `Makefile`, `install_local.sh`, README, doc canônio v2.0 (`references/archive/`) |
-| `SKILLS/evox-rom-ci-optimizer/evox-rom-ci-optimizer-v2.0-full.zip` | resumo v2.0 arquivado em `references/archive/evox-ci-v2.0-SKILL.md` |
+## Hierarquia de verdade (instrução > código)
 
-Alvos novos do `Makefile` v3.1 (não existiam em nenhuma das duas versões isoladas):
-`scan` (scanner estático Python), `forge` (Estágio A Guard-4), `snapshot` (SNAPSHOT-KEEPER),
-`runtime-test` (Estágio B via ADB), além de `check` agora compilar Python e validar 2 JSONs.
+1. `evox-rom-ci-optimizer/references/module-matrix-5w1h.md` — **a instrução** (15 módulos + 3 plataformas).
+2. `evox-rom-ci-optimizer/references/external-engines-arbitration.md` — regras `R01..R09`.
+3. `SKILL.md` — comportamento do agente.
+4. `scripts/` — o que a máquina executa hoje.
+5. Resto do repo — evidência histórica, não contrato.
 
-## Verificação rápida
+Divergiu? **Corrige-se o script**, não a instrução.
+
+## Harness (novo)
 
 ```bash
-cd skills/evox-rom-ci-optimizer && make check     # 4 blocos: bash -n, py_compile, JSON, self-test
-make scan                                         # scanner dos módulos (exit 1 se CONFLICT)
+make -C skills validate     # front matter, name==dir, links, caminhos em backtick, segredos, registry
+make -C skills check-core   # bash -n + py_compile + JSON schema + self-test do auditor
+make -C skills test         # 13 cenários de regressão das regras R00..R09 do scanner
+make -C skills check-all    # tudo acima em sequência
+make -C skills registry     # imprime o estado do ecossistema
 ```
 
-Evidência coletada na instalação (2026-11-01):
+O validador (`tools/validate_skills.py`) falha em: `SKILL.md` ausente, `name` ≠ diretório,
+descrição < 40 chars, link quebrado, `scripts/x` citado e inexistente, segredo exposto,
+skill fora do `registry.json`.
 
-- `make check` → `PASS` (8 scripts + 1 Python + 2 JSONs + auditor com 0 conflitos).
-- Cenário negativo forjado (2 módulos disputando `system/etc/audio_effects.xml`) →
-  `static_conflict_scanner.py` = `CONFLICT` (exit 1) e `audit_rom_conflicts.sh` =
-  `[VETO DO INQUISITOR] 1 conflito(s) fatal(is)`.
-- `snapshot_branch_manager.sh --layer wave1 --tag v11.11-w1-test` → manifesto registrado.
+## `evox-rom-ci-optimizer` v3.2 — o que mudou
 
-## Harness
+| Fonte no Drive | Papel |
+|---|---|
+| `SKILLS/evox-rom-ci-optimizer.zip` (v3.0, spec) | corpo do `SKILL.md`: 4 sub-agentes, Waves 1–5, M01–M15, 10 gates |
+| `SKILLS/evox-rom-ci-optimizer/` (v2.0, diretório) | 8 scripts, references, assets, `Makefile`, `install_local.sh`, doc canônico em `references/archive/` |
+| `SKILLS/evox-rom-ci-optimizer-v2.0-full.zip` | resumo v2.0 arquivado |
 
-`.claude/skills` é um symlink para esta pasta (o `.claude/` é gitignored); assim Claude Code e
-agentes compatíveis descobrem as skills sem duplicar arquivos no Git.
+Acrescentado na consolidação: `references/module-matrix-5w1h.md`,
+`references/external-engines-arbitration.md`, `references/pong-hardware-matrix.md`,
+`references/ci-cost-locks.md`, `tests/test_scanner_rules.sh`, alvos `test/scan/forge/snapshot/runtime-test`,
+e o scanner reescrito com 9 regras (`R00`–`R09`) + `--strict/--json/--out`.
+
+## Evidência coletada (2026-11-01)
+
+| Verificação | Resultado |
+|---|---|
+| `make -C skills validate` | `OK` (5 skills, 0 falhas) |
+| `make -C skills check-core` | `OK` |
+| `make -C skills test` | `13 PASS / 0 FAIL` |
+| Cenário negativo manual (2 módulos em `audio_effects.xml`) | `CONFLICT` exit 1 + veto do Inquisidor |
+| `snapshot_branch_manager.sh --layer wave1 --tag v11.11-w1-test` | manifesto registrado |
+
+## Descoberta pelo harness do agente
+
+`.claude/skills` é symlink para esta pasta (`.claude/` é gitignored): Claude Code e agentes
+compatíveis encontram as skills sem duplicar arquivos no Git. Briefing de retomada em
+[`../docs/skills/HANDOFF-BRIEF.md`](../docs/skills/HANDOFF-BRIEF.md).

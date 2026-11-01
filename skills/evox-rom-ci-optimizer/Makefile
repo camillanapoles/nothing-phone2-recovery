@@ -15,13 +15,14 @@ LAYER ?= wave1
 TAG ?= v11.11-w1-clean
 SNAPSHOT_SRC ?= ./workspace/out
 
-.PHONY: help check scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
+.PHONY: help check test scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
 
 help:
 	@echo "======================================================================="
 	@echo " EVOX-CI v3.1 — Evolution X 11.11 Pre-Flight ROM & CI Emulator Suite"
 	@echo "======================================================================="
-	@echo " make check        -> bash -n + JSON schema + self-test do auditor (v2)"
+	@echo " make check        -> bash -n + py_compile + JSON schema + self-test do auditor"
+	@echo " make test         -> regressao das regras R00..R09 do scanner (13 cenarios)"
 	@echo " make scan         -> [M15/T3] scanner estatico dos 15 modulos (v3)"
 	@echo " make audit        -> matriz de conflitos -> $(OUT_DIR)/conflict_matrix_report.md"
 	@echo " make extract      -> payload.bin da Evolution X 11.11 + manifesto SHA-256"
@@ -54,8 +55,11 @@ check:
 		--report-out "$(OUT_DIR)/conflict_matrix_report.md"
 
 scan:
-	@mkdir -p "$(OUT_DIR)"
-	@python3 scripts/static_conflict_scanner.py "$(MODULES_DIR)" | tee "$(OUT_DIR)/static_conflict_scan.json"
+	@mkdir -p "$(MODULES_DIR)" "$(OUT_DIR)"
+	@python3 scripts/static_conflict_scanner.py --modules-dir "$(MODULES_DIR)" --out "$(OUT_DIR)/conflict_report.json" --json | tee "$(OUT_DIR)/static_conflict_scan.json"
+
+test:
+	@./tests/test_scanner_rules.sh
 
 audit:
 	@mkdir -p "$(OUT_DIR)"

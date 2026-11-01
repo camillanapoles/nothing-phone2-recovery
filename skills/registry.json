@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.0.0",
+  "generated_for": "nothing-phone2-recovery",
+  "source": "Google Drive / SKILLS (instalação local; GitHub não utilizado)",
+  "updated": "2026-11-01",
+  "contract": {
+    "source_of_truth": "SKILL.md",
+    "delegation_rule": "passar o caminho absoluto do SKILL.md ao subagente; nunca um resumo gerado",
+    "promotion_rule": "skill só entra aqui após `make validate` + `make test` verdes"
+  },
+  "skills": [
+    {
+      "name": "evox-rom-ci-optimizer",
+      "version": "3.2.0",
+      "path": "evox-rom-ci-optimizer/SKILL.md",
+      "tier": "core",
+      "owner_agents": [
+        "EVOX-FORGE",
+        "CI-SANDBOX-PROBE",
+        "CONFLICT-INQUISITOR",
+        "SNAPSHOT-KEEPER"
+      ],
+      "triggers": [
+        "otimizar/validar ROM Evolution X 11.11 antes do flash",
+        "extrair payload.bin / criar imagem base no GitHub",
+        "injetar root/kernel (APatch+KPM, KernelSU, Magisk)",
+        "auditar conflitos entre módulos e prever bootloop",
+        "snapshot por camada / release artifact pre-USB"
+      ],
+      "capabilities": [
+        "scripts",
+        "references",
+        "assets",
+        "tests",
+        "make-targets"
+      ],
+      "depends_on": [
+        "agent-governance-orchestrator"
+      ],
+      "composes_with": [
+        "act-github-pat",
+        "github",
+        "android16-root-guardian"
+      ],
+      "entrypoints": {
+        "check": "make check",
+        "rules": "make test",
+        "scan": "make scan",
+        "state": "make snapshot"
+      },
+      "status": "active"
+    },
+    {
+      "name": "android16-root-guardian",
+      "version": "2.0.0",
+      "path": "android16-root-guardian/SKILL.md",
+      "tier": "core",
+      "owner_agents": [
+        "A16-SENTINEL",
+        "A16-INQUISITOR"
+      ],
+      "triggers": [
+        "diagnóstico pós-flash, bootloop, crash de zygote/system_server",
+        "KMI GKI 2.0, patch de kernel, troca de engine de root",
+        "retenção de root em OTA A/B",
+        "auditoria de módulos APatch/KernelSU/Magisk"
+      ],
+      "capabilities": [
+        "doctrine-only"
+      ],
+      "depends_on": [
+        "agent-governance-orchestrator"
+      ],
+      "composes_with": [
+        "evox-rom-ci-optimizer"
+      ],
+      "status": "active"
+    },
+    {
+      "name": "agent-governance-orchestrator",
+      "version": "2.0.0",
+      "path": "agent-governance-orchestrator/SKILL.md",
+      "tier": "meta",
+      "owner_agents": [
+        "GOVERNANCE-ORCHESTRATOR"
+      ],
+      "triggers": [
+        "orquestrar 2+ skills / agentes",
+        "arbitrar conflito de escrita entre agentes",
+        "decomposição 5W1H e gates binários pré-entrega",
+        "auditoria de qualidade e handoff"
+      ],
+      "capabilities": [
+        "doctrine-only"
+      ],
+      "depends_on": [],
+      "composes_with": [
+        "evox-rom-ci-optimizer",
+        "github",
+        "act-github-pat",
+        "android16-root-guardian"
+      ],
+      "status": "active"
+    },
+    {
+      "name": "act-github-pat",
+      "version": "1.0.0",
+      "path": "act-github-pat/SKILL.md",
+      "tier": "support",
+      "owner_agents": [
+        "act-runner"
+      ],
+      "triggers": [
+        "rodar workflow localmente com nektos/act",
+        "403 API rate limit exceeded",
+        "PAT Classic vs Fine-Grained, .actrc, .secrets, GHCR"
+      ],
+      "capabilities": [
+        "doctrine-only"
+      ],
+      "depends_on": [
+        "github"
+      ],
+      "composes_with": [
+        "evox-rom-ci-optimizer"
+      ],
+      "status": "active"
+    },
+    {
+      "name": "github",
+      "version": "1.0.0",
+      "path": "github/SKILL.md",
+      "tier": "support",
+      "owner_agents": [
+        "gh-cli"
+      ],
+      "triggers": [
+        "PR, issue, triage, review",
+        "status de CI, checks, Copilot review",
+        "ship PR com version bump"
+      ],
+      "capabilities": [
+        "scripts",
+        "references"
+      ],
+      "depends_on": [],
+      "composes_with": [
+        "act-github-pat"
+      ],
+      "status": "active"
+    }
+  ],
+  "excluded": [
+    {
+      "name": "apex-talent-broker",
+      "reason": "fora do domínio do projeto (arbitragem de oportunidades); removida por decisão da usuária em 2026-11-01"
+    },
+    {
+      "name": "evox-pong-ci-architect",
+      "reason": "absorvida por evox-rom-ci-optimizer/references/pong-hardware-matrix.md (fonte única de verdade)"
+    }
+  ]
+}

@@ -1,196 +1,135 @@
 # Inventário & Avaliação — Skill Stack (Google Drive `SKILLS/`)
 
-**Data:** 2026-11-01 · **Escopo:** instalação local a partir do Google Drive (GitHub intocado)
-**Destino:** `skills/` (repo `nothing-phone2-recovery`, branch `arena/863582fd-nothing-phone2-recovery`)
-**Origem:** pasta Drive `SKILLS` (ID `105yOkonl1tVXJZceY_zZslQXHa6VarjO`) — 8 zips + 1 skill em diretório
+**Data:** 2026-11-01 (atualizado após exclusões + consolidação)
+**Escopo:** instalação local a partir do Google Drive; **GitHub não utilizado**
+**Destino:** `skills/` no repo `nothing-phone2-recovery`, branch `arena/863582fd-nothing-phone2-recovery`
+**Origem:** pasta Drive `SKILLS` (ID `105yOkonl1tVXJZceY_zZslQXHa6VarjO`)
 
 ---
 
-## 1. Proveniência e deduplicação
+## 1. Proveniência
 
-| Item no Drive | ID | Bytes | Destino local |
+| Item no Drive | ID | Destino local | Situação |
 |---|---|---|---|
-| `evox-rom-ci-optimizer.zip` (**v3.0**, spec) | `1AERBRL3F2uGyYHvxtRFF9BTY0qRCFLyO` | 2.964 | corpo do `SKILL.md` v3.1 |
-| `evox-rom-ci-optimizer/` (**v2.0**, diretório) | `159t6guozDs2cKN-Lb46bgEwurulLKW6B` | ~52 KB | `scripts/`, `references/`, `assets/`, `Makefile`, `install_local.sh`, doc canônico em `references/archive/` |
-| `evox-rom-ci-optimizer-v2.0-full.zip` | `1dPTanP6heM83UQhbiMPzZMTM-Lp7DTPz` | 11.891 | `references/archive/evox-ci-v2.0-SKILL.md` |
-| `evox-pong-ci-architect.zip` | `13bpv4GPzmxHJW__ySLe6BjDbck1TMlOk` | 3.612 | `evox-pong-ci-architect/` |
-| `android16-root-guardian.zip` | `1DU5sOJeICqADMzNiPxL3rLCju5qImLZj` | 7.003 | `android16-root-guardian/` |
-| `agent-governance-orchestrator.zip` | `1q3ZWzukbxf5xb735DlKtXmxBRBFJr3hB` | 4.087 | `agent-governance-orchestrator/` |
-| `act-github-pat.zip` | `1Dcho4pvAFc2lBNe_NVKFq6JmYPyXAzYL` | 2.216 | `act-github-pat/` |
-| `github.zip` | `178UdD2zvCLisG4VXzkgp-9vIJddJfIP8` | 13.898 | `github/` |
-| `apex-talent-broker.zip` | `19bSWiLyKRj8pWu7VjMwZbsxRCSNFtELz` | 15.691 | `apex-talent-broker/` |
-| ~~`apex-talent-broker - 1.zip`~~ | `1VUwEFXYGEWgGl5_47bgwLvh4kLv5Ds4y` | 15.691 | descartado — byte-idêntico em tamanho ao original (duplicata) |
-| ~~2ª cópia `evox-rom-ci-optimizer.zip`~~ | `1lkDovb6StT3nSJRAEOf1a5P3Ly-6A1EH` | 2.964 | descartado — duplicata |
-
-> Não há mais nada acionável na pasta `SKILLS` além de `eftalyurtseven_skills.git` e
-> `Banco de Prompts` (repositório e base de prompts, não skills empacotadas).
+| `evox-rom-ci-optimizer.zip` (v3.0, spec) | `1AERBRL3F2uGyYHvxtRFF9BTY0qRCFLyO` | corpo do `SKILL.md` v3.2 | ativo |
+| `evox-rom-ci-optimizer/` (v2.0, diretório) | `159t6guozDs2cKN-Lb46bgEwurulLKW6B` | `scripts/`, `references/`, `assets/`, `Makefile` | ativo |
+| `evox-rom-ci-optimizer-v2.0-full.zip` | `1dPTanP6heM83UQhbiMPzZMTM-Lp7DTPz` | `references/archive/evox-ci-v2.0-SKILL.md` | arquivado |
+| `evox-pong-ci-architect.zip` | `13bpv4GPzmxHJW__ySLe6BjDbck1TMlOk` | `references/pong-hardware-matrix.md` | **absorvido** |
+| `android16-root-guardian.zip` | `1DU5sOJeICqADMzNiPxL3rLCju5qImLZj` | `android16-root-guardian/` | ativo |
+| `agent-governance-orchestrator.zip` | `1q3ZWzukbxf5xb735DlKtXmxBRBFJr3hB` | `agent-governance-orchestrator/` | ativo |
+| `act-github-pat.zip` | `1Dcho4pvAFc2lBNe_NVKFq6JmYPyXAzYL` | `act-github-pat/` | ativo |
+| `github.zip` | `178UdD2zvCLisG4VXzkgp-9vIJddJfIP8` | `github/` | ativo |
+| `apex-talent-broker.zip` | `19bSWiLyKRj8pWu7VjMwZbsxRCSNFtELz` | — | **excluído** (fora do projeto) |
+| `apex-talent-broker - 1.zip`, 2ª cópia do evox | `1VUwEFXYGEWgGl5_47bgwLvh4kLv5Ds4y`, `1lkDovb6StT3nSJRAEOf1a5P3Ly-6A1EH` | — | duplicatas |
 
 ---
 
-## 2. Estrutura de diretório completa (instalada)
+## 2. Estrutura completa (estado atual)
 
 ```text
-skills/
-├── README.md  (3474 B)                            # índice + regra de composição v2/v3
-├── act-github-pat/
-│   └── SKILL.md  (4865 B)                         # PAT Classic/Fine-Grained + nektos/act
-├── agent-governance-orchestrator/
-│   └── SKILL.md  (8946 B)                         # DAG-SoC, Ownership Ledger, Guard-4, 5W1H
-├── android16-root-guardian/
-│   └── SKILL.md  (16540 B)                        # pós-flash Safe-First: KMI, APatch/KSU/Magisk, OTA A/B
-├── apex-talent-broker/
-│   ├── SKILL.md  (22313 B)                        # arbitragem de oportunidades (EHV/SLI)
-│   ├── references/
-│   │   └── playbooks-and-pitches.md  (6077 B)
-│   └── scripts/
-│       └── opportunity_harvester.py  (7080 B)
-├── evox-pong-ci-architect/
-│   └── SKILL.md  (8153 B)                         # CI/arquitetura dos 12 componentes no `pong`
-├── evox-rom-ci-optimizer/                         # ★ skill completa v3.1 (v2 ⊕ v3)
-│   ├── SKILL.md  (12179 B)                        # spec v3.0 + catálogo/recursos v2.0 fundidos
-│   ├── Makefile  (4708 B)                         # check·scan·audit·extract·patch-boot·forge·bundle·snapshot·runtime-test·run-act
-│   ├── install_local.sh  (3708 B)                 # instalador idempotente Linux/Termux + CLI `evox-ci`
+skills/                                          5 skills ativas · 13 arquivos de contrato
+├── BOOT.md                     contrato de inicialização (ordem de carga + invariantes)
+├── README.md                   índice, hierarquia de verdade, harness
+├── Makefile                    validate · test · check-core · check-all · registry · tree
+├── registry.json               machine-readable: tier, gatilhos, deps, entrypoints, excluídas
+├── tools/
+│   └── validate_skills.py      11 checagens de contrato do harness
+├── evox-rom-ci-optimizer/      ★ v3.2
+│   ├── SKILL.md                spec v3 + backend v2 + regra de precedência instrução>repo
+│   ├── Makefile                check·test·scan·audit·extract·patch-boot·forge·bundle·snapshot·runtime-test·run-act
+│   ├── install_local.sh        instalador idempotente (Linux/Termux) + CLI evox-ci
 │   ├── assets/
-│   │   ├── evox_tuning_preset.prop  (783 B)
-│   │   └── watchdog_anti_bootloop_service.sh  (1313 B)
+│   │   ├── evox_tuning_preset.prop
+│   │   └── watchdog_anti_bootloop_service.sh
 │   ├── references/
-│   │   ├── android16-evox-safelist.json  (1170 B) # whitelist RescueParty
-│   │   ├── devcontainer.json  (274 B)             # trava de custo/idle em Codespaces
-│   │   ├── evox-ci-pipeline.yml  (7669 B)         # workflow GH Actions (KVM API 36)
-│   │   └── archive/
-│   │       ├── evox-ci-v2.0-SKILL.md  (3258 B)    # v2.0 empacotado
-│   │       └── evox-ci-v2.0-canonical-drive-export.md  (33119 B)  # doc canônico v2.0
-│   └── scripts/
-│       ├── audit_rom_conflicts.sh  (6747 B)       # CONFLICT-INQUISITOR (inode/Zygisk/KMI/RescueParty)
-│       ├── extract_evox_base.sh  (3443 B)         # payload.bin + manifesto SHA-256 + kallsyms
-│       ├── patch_boot_offline.sh  (4250 B)        # APatch/KSU/Magisk + rollback stock
-│       ├── build_safe_module_bundle.sh  (2336 B)  # All-in-One + watchdog 120 s
-│       ├── static_conflict_scanner.py  (3437 B)   # v3: scanner de 15 módulos (JSON/exit code)
-│       ├── snapshot_branch_manager.sh  (1959 B)   # v3: SNAPSHOT-KEEPER (branch/tag + manifesto)
-│       ├── runtime_module_tester.sh  (2071 B)     # v3: Estágio B via ADB/QEMU (soft-reboot)
-│       └── forge_patcher.sh  (1847 B)             # v3: Estágio A Guard-4 + KPM + namespaces
-└── github/
-    ├── SKILL.md  (2973 B)                         # operações `gh` (PR/issue/CI/Copilot)
-    ├── references/
-    │   ├── cli-patterns.md  (3243 B)
-    │   ├── copilot-review.md  (3244 B)
-    │   ├── copilot-workflow.md  (2838 B)
-    │   ├── pr-workflow.md  (3262 B)
-    │   ├── review-checklist.md  (1378 B)
-    │   └── triage-workflow.md  (7575 B)
-    └── scripts/
-        ├── copilot_activity.sh  (1652 B)
-        ├── pr_details.sh  (1182 B)
-        └── triage_gather.sh  (1445 B)
-
-17 diretórios · 36 arquivos · ~112 KB de contrato + 74 KB de scripts/assets
-Atalho de descoberta: .claude/skills -> ../skills  (symlink; .claude/ é gitignored)
+│   │   ├── module-matrix-5w1h.md            ← A INSTRUÇÃO (15 módulos, Classes 1–6, 5W1H)
+│   │   ├── external-engines-arbitration.md  ← regras R01..R09 + 3 interseções
+│   │   ├── pong-hardware-matrix.md          ← ex-evolution: evox-pong-ci-architect
+│   │   ├── ci-cost-locks.md                 ← 4 travas de custo
+│   │   ├── android16-evox-safelist.json · devcontainer.json · evox-ci-pipeline.yml
+│   │   └── archive/evox-ci-v2.0-SKILL.md · archive/evox-ci-v2.0-canonical-drive-export.md
+│   ├── scripts/
+│   │   ├── audit_rom_conflicts.sh · extract_evox_base.sh · patch_boot_offline.sh
+│   │   ├── build_safe_module_bundle.sh · forge_patcher.sh
+│   │   ├── static_conflict_scanner.py (R00..R09) · snapshot_branch_manager.sh
+│   │   └── runtime_module_tester.sh
+│   └── tests/
+│       └── test_scanner_rules.sh  13 cenários sintéticos, exit code contratual
+├── android16-root-guardian/SKILL.md
+├── agent-governance-orchestrator/SKILL.md
+├── act-github-pat/SKILL.md
+└── github/  SKILL.md · references/ (6) · scripts/ (3)
 ```
 
+Atalho de descoberta: `.claude/skills -> ../skills` (o `.claude/` é gitignored).
+
 ---
 
-## 3. Fusão `evox-rom-ci-optimizer` v2 ⊕ v3 → v3.1
+## 3. Fusão `evox-rom-ci-optimizer`: v3.0 ⊕ v2.0 → v3.2
 
-| Eixo | v2.0 (diretório) | v3.0 (zip) | v3.1 instalada |
+| Eixo | v2.0 | v3.0 | **v3.2** |
 |---|---|---|---|
-| Sub-agentes | 3 (FORGE, PROBE, INQUISITOR) | 4 (+ SNAPSHOT-KEEPER) | 4, **cada um com backend executável** |
-| Escopo | “conjunto de módulos” | M01–M15 em 5 ondas | 15 módulos + 3 plataformas (MaxManager, Duck-ToolBox, GenieX) mapeados a alvos |
-| Scripts | 4 | 0 (spec pura) | **8** |
-| Gates | 10 testes binários | 10 testes binários | 10 testes + runner (`make`) + evidência por artefato |
-| Estado | backup ad-hoc | `snapshot/<camada>/<tag>` | `snapshot_branch_manager.sh` + manifesto SHA-256 |
-| Custo CI | `timeout-minutes` | trava dupla + `.devcontainer` | trava tripla versionada (`devcontainer.json`) |
-| Rastreabilidade | README | narrativa | `Makefile` com 10 alvos + `references/archive` (nada descartado) |
+| Sub-agentes | 3 | 4 (+ SNAPSHOT-KEEPER) | 4, cada um com backend executável |
+| Escopo | módulos genéricos | M01–M15 / 5 ondas | + matriz 5W1H rastreável (instrução) |
+| Scripts | 4 | 0 | **8** |
+| Regras do scanner | — | 2 parciais | **9 (R00–R09)** + status CLEAN/WARN/CONFLICT |
+| Testes | — | — | **13 cenários** com exit code contratual |
+| Estado | backup ad-hoc | `snapshot/<camada>/<tag>` | `snapshot_branch_manager.sh` + manifesto |
+| Custo CI | `timeout-minutes` | trava dupla | trava quádrupla versionada |
+| Hardware | genérico | genérico | matriz `pong` absorvida (fim da duplicidade) |
 
 ---
 
-## 4. Avaliação individual (força · limite · quando acionar)
+## 4. Avaliação por skill
 
 | Skill | Força objetiva | Limite observado | Acionar quando |
 |---|---|---|---|
-| **evox-rom-ci-optimizer v3.1** | Única do pacote com **execução real**: 8 scripts, 10 gates com exit code, scanner JSON, snapshot com hash, watchdog de 120 s. Autossuficiente (instalador + Makefile + workflow pronto) | Depende de binários externos não embarcados (`payload-dumper-go`, `kptools`, `magiskboot`, `adb`, `act`); `runtime_module_tester.sh` exige device/QEMU acessível; o KVM do GitHub Actions é aproximação, não fidelidade de sensor físico | Qualquer mutação de ROM/kernel/módulo **antes** do cabo USB |
-| **evox-pong-ci-architect** | Traduz o pipeline para o hardware real (`pong`, SM8475): matriz PASS/FAIL de 12 componentes, `privapp-permissions`, `persist` intocável, `concurrency`/`timeout` | Prescritiva (sem scripts); sobrepõe-se em ~70 % ao escopo da evox-rom-ci-optimizer (risco de duas fontes de verdade) | Revisão de arquitetura do workflow e checklist de release do `pong` |
-| **android16-root-guardian** | Rigor Safe-First do lado físico: fingerprint de KMI, retenção de root em OTA A/B, Two-Man Rule, rollback por SHA-256 | Só texto; nenhum script de coleta incluído | Diagnóstico **após** o flash, bootloop, OTA, troca de engine de root |
-| **agent-governance-orchestrator** | Meta-camada que amarra as outras: 5W1H, Ownership Ledger, wave DAG, Guard-4, 8 gates de governança — é o “compilador” de composição multi-skill | Não executa nada; sem scripts de ledger/gate (fica no protocolo) | Orquestrar 2+ skills, arbitrar conflito de escrita, auditar entrega |
-| **act-github-pat** | Resolve o gargalo real do `act` (403 rate-limit) com matriz de escopos Classic vs Fine-Grained e injeção sem hardcode (`gh auth token`) | Depende de `gh` autenticado; nada sobre OIDC/`GITHUB_TOKEN` efêmero | Rodar workflow local, PAT para repro privado, GHCR |
-| **github** | Superfície `gh` completa com 6 references + 3 scripts de coleta em JSON (não inflam contexto) | Assume `gh` autenticado; política de “require confirmation” em merge/approve/close | PR, issue, triage, Copilot review, status de CI |
-| **apex-talent-broker** | Único vetor financeiro: EHV/SLI, funil de reputação, harvester Python + playbooks de pitch | Fricção com ToS de plataformas ao raspar; fora do domínio de engenharia do repo | Monetização/arbitragem de capital intelectual |
+| **evox-rom-ci-optimizer v3.2** | única com execução real e **teste de regressão**; 9 regras de arbitragem cobrem persist, priv-app, SELinux, MaxManager, Duck-ToolBox, GenieX, DroidSpaces; instrução separada do código com precedência declarada | depende de binários externos (`payload-dumper-go`, `kptools`, `magiskboot`, `adb`, `act`); emulador não reproduz sensor físico/TEE; sem eval de acurácia histórica | qualquer mutação de ROM/kernel/módulo antes do USB |
+| **android16-root-guardian** | doutrina Safe-First forte (Two-Man Rule, KMI, OTA A/B, rollback) | 100 % texto, sem coletor de telemetria | pós-flash, bootloop, OTA, troca de engine |
+| **agent-governance-orchestrator** | amarra as demais: 5W1H, Ownership Ledger, wave DAG, 8 gates | não executa; sem script de ledger | orquestrar 2+ skills, arbitrar escrita |
+| **act-github-pat** | resolve 403 rate-limit com matriz Classic vs Fine-Grained sem hardcode | exige `gh` autenticado; não cobre OIDC efêmero | rodar workflow local, PAT, GHCR |
+| **github** | 6 references + 3 scripts de coleta JSON (não inflam contexto) | exige `gh`; merge/approve exigem confirmação | PR, issue, triage, Copilot, CI |
 
 ---
 
-## 5. Quais qualidades foram incrementadas (delta real em capacidade)
+## 5. Qualidades incrementadas (delta acumulado)
 
-1. **Evidência antes de opinião.** Todo gate agora exige `sys.boot_completed=1`, hash ou JSON —
-   `PASS` autodeclarado deixa de ser aceitável (gate 3 e 7 da v3.1).
-2. **Safety-first com reversibilidade determinística.** Guard-4 virou rotina executável
-   (`forge_patcher.sh` salva `boot_stock_rollback.img` + `.sha256` **antes** de tocar o kernel).
-3. **Gêmeo digital antes do hardware.** Estágio B obrigatório: nada de testar hipótese de módulo
-   no slot de boot do celular; o runner efêmero absorve o erro.
-4. **Governança de topologia.** Ownership Ledger + waves impedem que dois módulos escrevam no
-   mesmo alvo (a causa-raiz histórica de bootloop registrada no `AGENTS.md`).
-5. **Disciplina de custo.** `concurrency: cancel-in-progress`, `timeout-minutes`,
-   `devcontainer.json` e `runtime-test` com `timeout 180` — CI deixou de ser recurso ilimitado.
-6. **Estado versionado, não memória.** Snapshot por camada com manifesto SHA-256 em
-   `snapshot/<camada>/<tag>`; rollback deixa de depender de lembrança.
-7. **Execução, não descrição.** Antes: prosa. Agora: 8 scripts com contrato `--flag`, exit codes
-   vetoriais (0/1) e um `Makefile` de 10 alvos — auditoria hostil automatizável em CI.
-8. **Handoff explícito entre especialistas.** Pré-flash (`evox-*`) → credenciais (`act-github-pat`)
-   → operação (`github`) → pós-flash (`android16-root-guardian`), arbitrado pelo
-   `agent-governance-orchestrator`.
-9. **Validação binária como contrato.** 10 testes com coluna “Ação se FAIL” — falha tem
-   consequência prescrita (bisect, isolar módulo, bloquear release), não improviso.
-10. **Anti-alucinação de ferramenta (KDI).** Cada skill declara o binário que precisa
-    (`kptools`, `payload-dumper-go`, `act`, `gh`); ferramenta ausente vira erro explícito
-    (`make run-act` → “act nao encontrado”), não promessa vazia.
-11. **Rastreabilidade de proveniência.** Toda skill carrega `SKILL.md` como fonte de verdade e o
-    doc canônico v2.0 preservado; nada foi silenciosamente reescrito.
+1. **Evidência antes de opinião** — `sys.boot_completed=1`, hash ou JSON; `PASS` autodeclarado não vale.
+2. **Reversibilidade determinística** — Guard-4 grava `boot_stock_rollback.img` + `.sha256` antes do kernel.
+3. **Gêmeo digital antes do hardware** — Estágio B obrigatório no QEMU/KVM.
+4. **Governança de topologia** — Ownership Ledger + ondas eliminam dois escritores no mesmo alvo.
+5. **Disciplina de custo** — 4 travas (concurrency, 25 min job, 10 min QEMU, poweroff 1800 s).
+6. **Estado versionado** — snapshot por camada com manifesto SHA-256.
+7. **Execução, não descrição** — 8 scripts, 12 alvos de `make`, exit codes vetoriais.
+8. **Instrução é artefato de primeira classe** — `module-matrix-5w1h.md` com precedência sobre o repo.
+9. **Arbitragem de plataformas externas** — R01–R09 codificam MaxManager/Duck-ToolBox/GenieX/DroidSpaces.
+10. **Regressão de regra** — 13 cenários provam que cada gate dispara; gate sem teste é opinião.
+11. **Anti-alucinação de ferramenta** — binário ausente gera erro explícito.
+12. **Harness auto-validável** — `validate_skills.py` impede skill sem front matter, link quebrado,
+    caminho inexistente, segredo exposto ou fora do registry.
+13. **Proveniência preservada** — doc canônico v2.0 arquivado; nada foi reescrito em silêncio.
+14. **Escopo honesto** — `apex-talent-broker` fora do projeto; `evox-pong-ci-architect` deixou de
+    competir como segunda fonte de verdade.
 
 ---
 
-## 6. Evidência de validação executada (2026-11-01)
+## 6. Evidência de validação (2026-11-01)
 
 | Verificação | Comando | Resultado |
 |---|---|---|
-| Sintaxe Bash (8 scripts + instalador + watchdog) | `make check` | `OK` em todos |
-| Compilação Python | `python3 -m py_compile scripts/static_conflict_scanner.py` | `OK` |
-| Schema JSON (safelist, devcontainer) | `python3 -m json.tool` | `OK` |
-| Self-test limpo (0 módulos) | `scripts/audit_rom_conflicts.sh` | `[APROVADO] Zero conflitos estáticos fatais` |
-| **Teste negativo** (2 módulos colidindo em `system/etc/audio_effects.xml`) | `static_conflict_scanner.py` | `status: CONFLICT` (exit 1), `FILE_OVERWRITE` apontado |
-| **Veto do Inquisidor** (mesmo cenário) | `audit_rom_conflicts.sh` | `Colisao de Inode: FAIL` + `[VETO DO INQUISITOR] 1 conflito fatal` |
-| Snapshot/estado | `snapshot_branch_manager.sh --layer wave1 --tag v11.11-w1-test` | `[OK] Snapshot registrado` |
-| Front matter das 7 skills | `head -3 */SKILL.md` | 7/7 com `name:` + `description:` |
-| Scripts das skills `github`/`apex` | `bash -n`, `py_compile` | `OK` |
+| Contrato do harness | `make -C skills validate` | `OK` (5 skills, 0 falhas) |
+| Sintaxe/compilação/JSON/auditor | `make -C skills check-core` | `OK` |
+| Regressão das 9 regras | `make -C skills test` | **13 PASS / 0 FAIL** |
+| Cenário negativo manual | 2 módulos em `audio_effects.xml` | `CONFLICT` exit 1 + veto |
+| Snapshot/estado | `snapshot_branch_manager.sh` | `[OK] Snapshot registrado` |
+| Segredos / links / nome↔dir | `tools/validate_skills.py` | 0 violações |
 
-> Nada foi enviado ao GitHub: nenhum `push`, PR, workflow ou secret tocado. Tudo local.
+> Nenhum `push`, PR, workflow ou secret foi tocado. Tudo local.
 
 ---
 
-## 7. Gaps honestos (o que o pacote ainda não cobre)
+## 7. Gaps e próximo passo
 
-1. **Duas fontes de verdade para o mesmo pipeline** (`evox-rom-ci-optimizer` vs
-   `evox-pong-ci-architect`). Recomendação: `evox-pong-ci-architect` passa a ser
-   `references/pong-hardware-matrix.md` dentro da v3.1, com uma matriz PASS/FAIL única.
-2. **`fabrica-de-agentes` / `skill-updater`** são citadas pelo `agent-governance-orchestrator`
-   (KDI → gap analysis) mas **não estão na pasta SKILLS** — a auto-evolução de skills está
-   prometida e não instalada.
-3. **Sem coletores de telemetria** no lado físico: `android16-root-guardian` é 100 % doutrina;
-   falta `scripts/collect_evidence.sh` (getprop/uname/dmesg/logcat/avc) com hash de saída.
-4. **Binários externos não embarcados** (`payload-dumper-go`, `kptools`, `magiskboot`, `adb`,
-   `act`, `gh`): a instalação os detecta, não os instala.
-5. **`apex-talent-broker`** não pertence ao domínio técnico do repo; útil, mas deve ficar fora do
-  caminho de descoberta padrão para não competir por contexto.
-6. **Nenhuma skill mede a própria taxa de acerto**: não há harness de eval (o `audit-fsm` do repo
-   poderia hospedar isso).
-
----
-
-## 8. Como acionar (caminho exato, para subagente)
-
-```text
-skills/evox-rom-ci-optimizer/SKILL.md          # pré-flash: ROM/kernel/módulos + CI + snapshot
-skills/evox-pong-ci-architect/SKILL.md         # matriz de hardware do Nothing Phone 2
-skills/android16-root-guardian/SKILL.md        # pós-flash, bootloop, OTA A/B
-skills/agent-governance-orchestrator/SKILL.md  # orquestração/handoff entre as acima
-skills/act-github-pat/SKILL.md                 # PAT + nektos/act
-skills/github/SKILL.md                         # gh: PR/issue/CI/Copilot
-skills/apex-talent-broker/SKILL.md              # monetização (fora do domínio técnico)
-```
+Ver [`HANDOFF-BRIEF.md`](HANDOFF-BRIEF.md): 6 lacunas (L1–L6) e as duas frentes prontas —
+(1) parametrizar kernel/KMI + device profile do `pong`; (2) `bootstrap_github_repo.sh`
+(**não executar** até liberação).
