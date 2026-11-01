@@ -1147,6 +1147,33 @@
       "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
       "strength": "semantic",
       "rationale": "M05 nao pode aceitar kernel compilado sob a Decisao A"
+    },
+    {
+      "id": "M124",
+      "file": "skills/evox-rom-ci-optimizer/scripts/success_guarantee.py",
+      "find": "    if dec.get(\"ratified\") is True and allow == [dec.get(\"engine\")] == [\"apatch\"]:",
+      "replace": "    if True:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_success_guarantee.sh",
+      "strength": "semantic",
+      "rationale": "R1 so e provado se a decisao estiver ratificada e houver um unico motor permitido"
+    },
+    {
+      "id": "M125",
+      "file": "skills/evox-rom-ci-optimizer/scripts/success_guarantee.py",
+      "find": "        if hard and dec.get(\"custom_kernel_allowed\") is not True:",
+      "replace": "        if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_success_guarantee.sh",
+      "strength": "semantic",
+      "rationale": "faltar USER_NS/PID_NS no kernel stock sob a Decisao A e IMPOSSIVEL, nao pendente"
+    },
+    {
+      "id": "M126",
+      "file": "skills/evox-rom-ci-optimizer/scripts/success_guarantee.py",
+      "find": "    if isinstance(n, int) and n == 0 and (conf.get(\"scan_report\") or \"\"):",
+      "replace": "    if True:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_success_guarantee.sh",
+      "strength": "semantic",
+      "rationale": "zero conflito exige relatorio real; sem relatorio nao e prova"
     }
   ]
 }

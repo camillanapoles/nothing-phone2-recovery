@@ -75,11 +75,15 @@ test-stage:
 	@./tests/test_stage_logic.sh
 	@./tests/test_root_engine_gate.sh
 
+test-guarantee:
+	@./tests/test_success_guarantee.sh
+
 test-droidspaces:
 	@./tests/test_root_decision.sh
 	@./tests/test_droidspaces_preflight.sh
 
 test-gates:
+	@./tests/test_success_guarantee.sh
 	@./tests/test_root_decision.sh
 	@./tests/test_droidspaces_preflight.sh
 	@./tests/test_kernel_compat_check.sh

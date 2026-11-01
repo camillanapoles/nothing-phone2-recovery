@@ -16,7 +16,17 @@
       "source": "https://github.com/bmax121/APatch",
       "reason": "Não depende de KMI nem de kernel de terceiro; rollback é a própria imagem stock.",
       "allowed": true,
-      "decision": "A"
+      "decision": "A",
+      "kernel_configs_required": [
+        "CONFIG_KALLSYMS",
+        "CONFIG_KALLSYMS_ALL"
+      ],
+      "hiding_stack": [
+        "apatch-native (Exclude modifications)",
+        "Zygisk Next",
+        "Zygisk Assistant"
+      ],
+      "source_extra": "https://github.com/bmax121/APatch (README: requer CONFIG_KALLSYMS=y e CONFIG_KALLSYMS_ALL=y)"
     },
     {
       "id": "magisk",

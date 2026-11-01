@@ -21,6 +21,8 @@ ainda) · **NÃO APROVADO** (fora da decisão) · **BLOQUEADO** (a decisão atua
 | P0.4 | Gate do motor | `root_engine_gate.py --engine apatch` → **0** | **APROVADO** |
 | P0.5 | Gate do M05 (contrato) | `droidspaces_preflight.py --static` → **PRONTO** | **APROVADO** |
 | P0.6 | Gate do M05 (kernel) | `droidspaces_preflight.py --kernel-evidence workspace/l4/kernel-config.json` | **CONDICIONADO** (depende de P0.2) |
+| P0.7 | Kernel do APatch: `CONFIG_KALLSYMS=y` + `CONFIG_KALLSYMS_ALL=y` | mesma evidência da L4 (README do APatch) | **CONDICIONADO** (depende de P0.2) |
+| P0.8 | Garantia prévia dos 5 requisitos | `make garantia` → 0 só com prova de cada um | **PENDENTE** (1/5 provado) |
 
 ---
 
@@ -80,7 +82,7 @@ PlayIntegrityFork → (Droidspaces, se ainda não instalado)**. Um único dono d
 | **KernelSU / SukiSU / ReSukiSU** | **NÃO APROVADO** | exigem kernel próprio — proibido por `custom_kernel_allowed: false` |
 | **Kernel de terceiro** (Meteoric, NP², build própria) | **NÃO APROVADO** | `origin: third-party` → exit 1, mesmo se certificado |
 | **Shamiko / Mountify / LSPosed-Riru** | **NÃO APROVADO** | conflito declarado no config-map do aparelho e nas `constraints` do M05 |
-| **Zygisk Assistant** | **NÃO APROVADO (ainda)** | não está no contrato dos 15 módulos; é fork da linha Shamiko, cujo conflito com APatch/kallsyms está documentado; não tem gate nem teste. Para aprovar: registrar módulo próprio + entrada no safelist + `static_conflict_scanner` + prova AVD (60 s) e aparelho (10 min) |
+| **Zygisk Assistant** | **APROVADO na fonte, pendente de prova** | o README do projeto declara explicitamente "KernelSU & APatch users: 1. Install ZygiskNext; 2. habilitar *Umount modules / Exclude modifications* no APatch Manager; 3. desligar *Enforce DenyList*". Está registrado em `references/hiding-stack.json` e no M08 (`hiding_base`). **Falta:** `sha256` do ZIP (release não publica digest) e a medição por app |
 | **LSPosed (qualquer variante)** | **NÃO APROVADO** | não faz parte dos 15 módulos aprovados; se você quiser, entra como módulo novo com gate próprio |
 
 ### Sobre a ocultação para bancos / gov.br
@@ -93,6 +95,30 @@ fazer no aparelho**, não afirmação. Enquanto não houver evidência, o estado
 **CONDICIONADO**, não "aprovado".
 
 ---
+
+## 4.1 A pilha de ocultação sob a Decisão A (com fonte primária)
+
+| Camada | O que faz | Fonte | Estado |
+|---|---|---|---|
+| **APatch — "Exclude modifications"** por app | faz umount dos módulos para o app alvo (é o mecanismo nativo de ocultação do APatch) | README do Zygisk Assistant, seção *KernelSU & APatch users* | suportado na fonte |
+| **Zygisk Next v1.5.2** (2026-10-15) · 6 714 344 B · `sha256:ce50b13f…9a96` | fornece a API Zygisk que o APatch não tem embutida | release oficial + README do Zygisk Assistant | suportado na fonte |
+| **Zygisk Assistant v2.1.4** (2025-02-23) · 392 961 B | esconde root/Zygisk do app (proc, su, mounts) | README do projeto (APatch) | **fonte antiga (616 dias)**; sem digest publicado → hash calculado no download |
+| **Tricky Store + PIFork** (M07/M08) | integridade/atestado — não é ocultação | config-map do aparelho | suportado na fonte |
+
+Ordem de configuração (a do README, literal): APatch Manager → *Exclude modifications* por app →
+Zygisk Next instalado → *Enforce DenyList* desligado → Zygisk Assistant por último.
+
+**Limite honesto:** "ocultação perfeita" não é demonstrável — existe sempre superfície de detecção
+(syscalls, timing, atestação). O que é demonstrável é a lista de apps testados com PASS, e é isso que
+o `make garantia` cobra (`device.hide_tested_apps`).
+
+## 4.2 Verdade sobre Zygisk × APatch (a pergunta que você fez)
+
+**Zygisk não é nativo do APatch — mas funciona com ele via Zygisk Next.** O README do próprio
+Zygisk Next só lista KernelSU e Magisk como pré-requisitos; quem documenta o caminho do APatch é o
+Zygisk Assistant ("KernelSU & APatch users: install ZygiskNext…"). Ou seja: `APatch + Zygisk Next +
+Zygisk Assistant` é combinação **declarada por fonte primária**, não invenção — e continua sem prova
+no seu aparelho até rodarmos a fila.
 
 ## 5. Conflitos documentais declarados (resolvidos por regra, não escondidos)
 
@@ -125,6 +151,23 @@ bash skills/evox-rom-ci-optimizer/tests/{test_root_decision,test_root_engine_gat
 sem PASS · `HIL A/B` não aprovado (pré-gate, nunca prova final).
 
 ---
+
+## 6.1 "Garantia prévia de sucesso" — como ela existe de verdade
+
+Garantia não é promessa: é **critério de aceitação executável**. `scripts/success_guarantee.py`
+(=`make garantia`) avalia os cinco pedidos e só retorna **GARANTIA_CONFIRMADA (0)** quando cada um
+tem prova registrada; caso contrário devolve **3** dizendo exatamente o que falta, e **1
+(IMPOSSÍVEL)** quando a própria Decisão A impede — que é diferente de "ainda não provei".
+
+| # | Requisito | Estado hoje | O que falta (comando) |
+|---|---|---|---|
+| R1 | motor único APatch | **PROVADO** | — |
+| R2 | root oculto para apps alvo | FALTA_PROVA | `hiding-stack.json` + medição por app |
+| R3 | integridade/fingerprint | FALTA_PROVA | `MEETS_DEVICE_INTEGRITY` medido no aparelho |
+| R4 | zero conflito | FALTA_PROVA | `static_conflict_scanner.py` sobre os ZIPs reais |
+| R5 | DroidSpaces conforme doc oficial | FALTA_PROVA | L4 do kernel + instalação observada |
+
+Nada aqui foi "aprovado por texto": sem `--evidence`, o script devolve 3 mesmo com todo o repo verde.
 
 ## 7. Pendências que travam a fila (ordem de ataque)
 

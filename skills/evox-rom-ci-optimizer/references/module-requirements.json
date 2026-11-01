@@ -113,9 +113,12 @@
         "PlayIntegrityFork"
       ],
       "compliance_role": "atestação/KeyMint + Play Integrity (MEETS_DEVICE_INTEGRITY)",
-      "not_approved": [
-        "Zygisk Assistant (fork de Shamiko; conflito não descartado com APatch kallsyms)"
-      ]
+      "hiding_base": {
+        "stack": "Zygisk Next + Zygisk Assistant + APatch 'Exclude modifications'",
+        "status": "source_approved_pending_device",
+        "source": "https://github.com/snake-4/Zygisk-Assistant (APatch users)",
+        "ref": "references/hiding-stack.json"
+      }
     },
     {
       "id": "M09",

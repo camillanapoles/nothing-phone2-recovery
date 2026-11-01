@@ -264,6 +264,7 @@ Nenhum deles é opcional; cada um tem script e teste próprios.
 |---|---|---|---|
 | **G-kernel** | este kernel serve para ESTA build no `pong`? | `kernel_compat_check.sh --rom-assets … --candidate …` | 0 compatível · 3 incompatível |
 | **G-motor** | motor de root × kernel × módulos fecham juntos? | `root_engine_gate.py --engine … [--candidate …] [--kernel-evidence …] [--show-policy]` | 0 compatível · 3 pendente · 1 incompatível |
+| **G-garantia** | os 5 requisitos do sucesso têm prova registrada? | `success_guarantee.py --root . [--evidence ev.json]` | 0 garantido · 3 pendente · 1 impossível sob a decisão |
 | **G-m05** | o DroidSpaces entra na hora e no kernel que o app manda? | `droidspaces_preflight.py --static\|--kernel-evidence F\|--device --adb adb` | 0 pronto · 3 pendente |
 | **G-rollout** | posso instalar o próximo módulo? | `rollout_gate.sh start/record/status` | 0 liberado · 3 bloqueado |
 | **G-cache** | o artefato testado é o artefato usado? | `cache_manager.sh put/get/verify` | 0 ok · 3 miss/divergente |
@@ -355,8 +356,9 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `references/root-engines.json` | fatos por motor de root (mecanismo, kernel próprio, SUSFS, rollback) + `allowed` (só APatch) e `blocked_by` nos proibidos |
 | `references/kernel-candidates.json` | candidatos de kernel com data, hash, suporte declarado à build pinada e `origin` (`stock-rom` × `third-party`) |
 | `references/module-requirements.json` | contrato dos 15 módulos (root, motor, SUSFS, Zygisk, mount-hide) |
+| `references/hiding-stack.json` | pilha de ocultação sob a Decisão A com fonte primária por camada (APatch *Exclude modifications* → Zygisk Next v1.5.2 · `sha256:ce50b13f…` → Zygisk Assistant v2.1.4) e o que **não** é demonstrável |
 | `references/droidspaces-requirements.json` | **M05 inteiro em dados**: app v7.1.0 + sha256 do APK, instalação em F0/W1 posição 2 depois do M01, 12 `CONFIG_*` de kernel, `proc_checks`, caminhos, R03, motores (`apatch/kernelsu/sukisu`), rollback |
-| `references/mutation-catalog.json` | 123 mutantes (≥2 semânticos por arquivo, com `strength` declarada; timeout não conta como kill) |
+| `references/mutation-catalog.json` | 126 mutantes (≥2 semânticos por arquivo, com `strength` declarada; timeout não conta como kill) |
 | `scripts/contradiction_scan.py` | Varredura de contradições (C1–C13): instrução ativa que ainda manda fazer o abandonado ou usa vocabulário ambíguo (`Gate 4`, `gate 10`, `init_boot` sem fonte) |
 | `scripts/coverage_matrix.py` | Cobertura fechada: todo script tem teste ou isenção declarada (`references/audit-exemptions.json`) |
 | `scripts/audit_loop.sh` | Harness de convergência: AG + scan + cobertura + suíte, em loop até estabilizar |
@@ -383,6 +385,7 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `scripts/extract_rom_assets.sh` | Fecha a L4 pelo `.zip` oficial (kernel/KMI + hashes), sem depender do aparelho |
 | `scripts/kernel_compat_check.sh` | Gate 1 executável: `COMPATIBLE`/`INCOMPATIBLE` com motivos |
 | `scripts/root_engine_gate.py` | Gate do motor: decisão ratificada (`decisao_motor`/`decisao_kernel`/`decisao_susfs`/`motor_unico`) × kernel candidato × requisitos dos 15 módulos + ordem/configs do M05 |
+| `scripts/success_guarantee.py` | **Garantia prévia**: 5 requisitos (motor único, ocultação, integridade, zero conflito, DroidSpaces oficial) com estado PROVADO/FALTA_PROVA/IMPOSSÍVEL e o comando que fecha cada lacuna |
 | `scripts/droidspaces_preflight.py` | Gate do M05: contrato estático, evidência de kernel (`--kernel-evidence`) e checagem no device (`--device --adb`, com `--expect-installed`) |
 | `scripts/rollout_gate.sh` | Ledger canário: recusa 2 módulos abertos e módulo seguinte sem PASS |
 | `scripts/cache_manager.sh` | Cache versionado das fases verdes (inline ≤25 MB, externo acima) |

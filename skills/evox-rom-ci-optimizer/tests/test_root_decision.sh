@@ -168,14 +168,15 @@ PY
 ck "M08 declara base Zygisk Next" "sim" "$(case "$stack" in "Zygisk Next|"*) echo sim;; *) echo nao;; esac)" "sim"
 ck "M07 cobre PIFork" "sim" "$(case "$stack" in *"PlayIntegrityFork"*) echo sim;; *) echo nao;; esac)" "sim"
 ck "M08 cobre Tricky Store" "sim" "$(case "$stack" in *"Tricky Store"*) echo sim;; *) echo nao;; esac)" "sim"
-nao_aprov=$(python3 - "$ROOT/$SK/references/module-requirements.json" <<'PY'
+ocult=$(python3 - "$ROOT/$SK/references/module-requirements.json" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1]))
 m08 = next(m for m in d["modules"] if m["id"] == "M08")
-print("sim" if any("Zygisk Assistant" in x for x in m08.get("not_approved") or []) else "nao")
+h = m08.get("hiding_base") or {}
+print(h.get("status", "-") + "|" + ("sim" if "Zygisk Assistant" in h.get("stack", "") else "nao"))
 PY
 )
-ck "Zygisk Assistant está marcado como não aprovado" "sim" "$nao_aprov" "sim"
+ck "M08 declara pilha de ocultação com Zygisk Assistant" "source_approved_pending_device|sim" "$ocult" "source_approved_pending_device|sim"
 
 # ---------- 4. a decisão está escrita nos documentos que valem ---------------
 grep -q "Decisão A ratificada" "$ROOT/docs/skills/ARCHITECTURE-DECISION.md" &&

@@ -36,11 +36,11 @@ Complementos: [`ARCHITECTURE-DECISION.md`](ARCHITECTURE-DECISION.md) (contrato) 
 | `test_ci_workflow_lint.sh` | **17** | `test_cache_and_guard4.sh` | **21** |
 | `test_stage_logic.sh` | 54 | `test_wrapper_stages.sh` | 34 |
 | `test_root_engine_gate.sh` | **35** | `test_droidspaces_preflight.sh` | **32** (novo) |
-| `test_root_decision.sh` | **38** (novo) | | |
+| `test_root_decision.sh` | **38** | `test_success_guarantee.sh` | **28** (novo) |
 | `test_collect_evidence.sh` (guardian) | 8 | | |
 
-**Total dos testes diretos: 482 casos** (427 na skill da ROM + 8 no guardian + 13 de estado + 34 nos
-wrappers de release), 0 falhas, em **26 suítes**. `make -s prove` roda tudo isso + `arch` + harness das 8 skills.
+**Total dos testes diretos: 510 casos** (455 na skill da ROM + 8 no guardian + 13 de estado + 34 nos
+wrappers de release), 0 falhas, em **27 suítes**. `make -s prove` roda tudo isso + `arch` + harness das 8 skills.
 Falseabilidade: `make mutation` → **121/121 mortos por asserção, 0 sobreviventes, 0 timeout** · `make vacuity` → 0 erro, 0 aviso
 (ver `FALSIFIABILITY-REPORT.md`).
 Loop de convergência: `audit_loop.sh` → `guard=0 scan=0 cov=0 tests=0` em 2 iterações.
