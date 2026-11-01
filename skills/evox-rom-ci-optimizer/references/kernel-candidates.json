@@ -17,7 +17,9 @@
       "android_release": "16",
       "kmi": "a-extrair-na-L4",
       "kernel_base": "a-extrair-na-L4",
-      "supported_rom_builds": ["EvolutionX-16.0-20260915-Pong-11.11"],
+      "supported_rom_builds": [
+        "EvolutionX-16.0-20260915-Pong-11.11"
+      ],
       "developer_support": {
         "declared": true,
         "source": "https://cdn.evolution-x.org/Pong/16/",
@@ -28,7 +30,8 @@
       "status": "baseline",
       "kernel_supports_susfs": false,
       "kernel_supports_kernelsu": false,
-      "evidence": "kernel_compat_check fecha quando a L4 extrair boot.img/KMI da build."
+      "evidence": "kernel_compat_check fecha quando a L4 extrair boot.img/KMI da build.",
+      "origin": "stock-rom"
     },
     {
       "id": "meteoric-v6-pong",
@@ -50,7 +53,8 @@
       "status": "rejected_eol",
       "kernel_supports_susfs": true,
       "kernel_supports_kernelsu": true,
-      "evidence": "Não declara suporte à build 2026-09-15 (A16/API 36); release tem ~17 meses e o device guide o classifica como EOL."
+      "evidence": "Não declara suporte à build 2026-09-15 (A16/API 36); release tem ~17 meses e o device guide o classifica como EOL.",
+      "origin": "third-party"
     },
     {
       "id": "np2-kernel-lineageos-v3.0.5",
@@ -72,7 +76,8 @@
       "status": "candidate_unverified",
       "kernel_supports_susfs": true,
       "kernel_supports_kernelsu": true,
-      "evidence": "release ativo (v3.0.5, 2026-08-12) e hash publicado; falta L4 da build pinada (KMI/base) e declaração explícita para a build."
+      "evidence": "release ativo (v3.0.5, 2026-08-12) e hash publicado; falta L4 da build pinada (KMI/base) e declaração explícita para a build.",
+      "origin": "third-party"
     }
   ]
 }

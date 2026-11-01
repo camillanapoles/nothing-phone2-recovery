@@ -9,6 +9,8 @@ nunca com opinião:
   - Módulo com requisito de motor explícito tem de casar com o motor escolhido.
   - Candidato marcado `rejected_eol` nunca passa (release parado não é "mais estável").
   - DroidSpaces (M05) + mount-hide global do SUSFS violam R03 → condição obrigatória.
+  - Decisão ratificada (references/root-decision.json): um ÚNICO motor, kernel stock da ROM.
+    Qualquer outro motor ou kernel de terceiro é INCOMPATÍVEL (1), nunca "pendente".
   - DroidSpaces segue a instrução do próprio app: motor na lista suportada, instalação depois
     do root (M01) e configs de kernel provadas por `--kernel-evidence` (senão, condição/pendente).
 
@@ -16,6 +18,7 @@ Uso:
   root_engine_gate.py --engine apatch [--candidate stock-evolutionx] [--modules F]
                                 [--kernel-evidence F] [--json]
   root_engine_gate.py --list-engines
+  root_engine_gate.py --show-policy
 
 Exit: 0 COMPATÍVEL · 3 PENDENTE (falta dado/certificação) · 1 INCOMPATÍVEL · 2 uso · 4 entrada inválida
 """
@@ -30,6 +33,7 @@ ENGINES = f"{SK}/references/root-engines.json"
 CANDIDATES = f"{SK}/references/kernel-candidates.json"
 MODULES = f"{SK}/references/module-requirements.json"
 DROID = f"{SK}/references/droidspaces-requirements.json"
+DECISION = f"{SK}/references/root-decision.json"
 
 
 def load(path: str) -> dict:
@@ -64,6 +68,19 @@ def main(argv: list[str]) -> int:
         print(f"[ERRO] JSON inválido: {exc}", file=sys.stderr)
         return 4
 
+    if "--show-policy" in argv:
+        dec_p = os.path.join(root, DECISION)
+        if not os.path.exists(dec_p):
+            print(f"[ERRO] decisão do motor ausente: {dec_p}", file=sys.stderr)
+            return 4
+        dec = load(dec_p)
+        print(f"[política] decisão {dec.get('decision')} · motor={dec.get('engine')} · "
+              f"kernel={dec.get('kernel_source')} · custom_kernel={dec.get('custom_kernel_allowed')} · "
+              f"susfs={dec.get('susfs_allowed')} · ratificada={dec.get('ratified')} "
+              f"por {dec.get('decided_by')} em {dec.get('decided_at')}")
+        print(f"[política] motores proibidos: {', '.join(dec.get('forbidden_engines') or []) or '(nenhum)'}")
+        return 0
+
     if "--list-engines" in argv:
         for e in engines:
             print(f"{e['id']:12} custom_kernel={str(e['requires_custom_kernel']):5} "
@@ -86,6 +103,39 @@ def main(argv: list[str]) -> int:
     def add(name: str, verdict: str, detail: str = "") -> None:
         checks.append({"check": name, "verdict": verdict, "detail": detail})
 
+    # 0. decisão ratificada: motor único + kernel stock (isonomia de metodologia)
+    dec_p = os.path.join(root, DECISION)
+    if not os.path.exists(dec_p):
+        print(f"[ERRO] decisão do motor ausente: {dec_p}", file=sys.stderr)
+        return 4
+    try:
+        dec = load(dec_p)
+    except Exception as exc:
+        print(f"[ERRO] decisão inválida: {exc}", file=sys.stderr)
+        return 4
+
+    chosen = dec.get("engine")
+    if dec.get("ratified") is not True:
+        add("decisao_ratificada", "pendente",
+            f"decisão {dec.get('decision')} sem ratificação de quem decide — nada executa")
+    else:
+        add("decisao_ratificada", "ok",
+            f"decisão {dec.get('decision')} ratificada por {dec.get('decided_by')} em {dec.get('decided_at')}")
+
+    if engine["id"] != chosen:
+        add("decisao_motor", "incompativel",
+            f"decisão {dec.get('decision')} fixa {chosen} como motor único; "
+            f"escolhido={engine['id']} está proibido")
+    else:
+        add("decisao_motor", "ok", f"motor único ratificado: {chosen}")
+
+    allowed = [e["id"] for e in engines if e.get("allowed")]
+    if allowed != [chosen]:
+        add("motor_unico", "incompativel",
+            f"motores marcados como permitidos={allowed or '[]'} ≠ [{chosen}] — isonomia quebrada")
+    else:
+        add("motor_unico", "ok", f"exatamente 1 motor permitido em root-engines.json: {chosen}")
+
     # 1. candidato de kernel selecionado
     if cand is not None:
         if cand.get("status") == "rejected_eol":
@@ -100,6 +150,27 @@ def main(argv: list[str]) -> int:
         add("kernel_certificado", "pendente" if engine["requires_custom_kernel"] else "ok",
             "motor exige kernel próprio e nenhum candidato foi escolhido"
             if engine["requires_custom_kernel"] else "motor roda no kernel stock da ROM")
+
+    # 1b. decisão sobre o kernel: stock da ROM ou terceiro
+    if cand is not None:
+        origin = cand.get("origin", "third-party")
+        if origin == "stock-rom":
+            add("decisao_kernel", "ok", f"{cand.get('id')} é o kernel stock da ROM")
+        elif dec.get("custom_kernel_allowed") is True:
+            add("decisao_kernel", "ok", f"kernel de terceiro permitido pela decisão vigente")
+        else:
+            add("decisao_kernel", "incompativel",
+                f"{cand.get('id')} é kernel de terceiro; decisão {dec.get('decision')} exige o kernel stock")
+
+    # 1c. SUSFS fora do escopo quando a decisão não o permite
+    if dec.get("susfs_allowed") is not True:
+        if engine.get("supports_susfs") or any(m.get("requires_susfs") for m in modules):
+            add("decisao_susfs", "incompativel",
+                f"SUSFS proibido pela decisão {dec.get('decision')} "
+                f"(motor={engine['id']}, módulos com requires_susfs="
+                f"{[m['id'] for m in modules if m.get('requires_susfs')] or 'nenhum'})")
+        else:
+            add("decisao_susfs", "ok", "SUSFS fora do escopo (nenhum módulo depende dele)")
 
     # 2. engine exige kernel próprio
     if engine["requires_custom_kernel"] and cand is None:
@@ -188,11 +259,14 @@ def main(argv: list[str]) -> int:
 
     payload = {
         "schema": "evox-root-engine-verdict/1",
-        "engine": {"id": engine["id"], "name": engine["name"], "status": engine["status"],
+        "engine": {"id": engine["id"], "name": engine.get("name"), "status": engine.get("status"),
                    "requires_custom_kernel": engine["requires_custom_kernel"],
                    "supports_susfs": engine["supports_susfs"]},
         "kernel_candidate": ({"id": cand["id"], "status": cand.get("status")} if cand else None),
         "modules_in_scope": len(modules),
+        "decision": {"id": dec.get("decision"), "engine": chosen, "ratified": dec.get("ratified"),
+                     "kernel_source": dec.get("kernel_source"),
+                     "custom_kernel_allowed": dec.get("custom_kernel_allowed")},
         "verdict": verdict,
         "checks": checks,
         "reasons": [c["detail"] for c in checks if c["verdict"] != "ok"],

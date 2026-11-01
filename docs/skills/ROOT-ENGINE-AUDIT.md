@@ -133,31 +133,34 @@ python3 skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py --engine kernel
 > superfície, com perda de OTA e um artefato a mais para auditar. Não é “mais limpo” que APatch;
 > é mais **ocultável**.
 
-## 8. Recomendação (com dado) e o que falta para você decidir
+## 8. Decisão A ratificada — motor único (2026-11-01)
 
-**Recomendação:** duas ondas.
+**A usuária confirmou:** *"Confirmo APatch no kernel stock"*. As opções B e C ficam **arquivadas**,
+não pendentes.
 
-1. **Onda 1 (agora):** kernel stock + **APatch**. É o único conjunto que o gate declara
-   `COMPATÍVEL` sem dados novos; entrega root, Guard-4, rollback por imagem stock e todos os 15
-   módulos sem depender de kernel de terceiro.
-2. **Onda 2 (se e quando a ocultação em nível de kernel for requisito):** **KernelSU/SukiSU com
-   SUSFS** sobre um kernel **mantido** — candidato atual: NP² Kernel v3.0.5 (`candidate_unverified`),
-   não o Meteoric (EOL).
+| Opção | Estado | Prova |
+|---|---|---|
+| **A — APatch no kernel stock** | **RATIFICADA** (2026-11-01) | `references/root-decision.json` · `root_engine_gate.py --engine apatch` → **0** |
+| B — KernelSU/SukiSU + SUSFS | **PROIBIDA** por decisão (não é "pendente") | `--engine kernelsu\|sukisu` → **1** |
+| C — Magisk | **PROIBIDA** por decisão | `--engine magisk` → **1** · DroidSpaces nem suporta Magisk |
 
-Para transformar a onda 2 em decisão executável, faltam **três dados** (nenhum deles é opinião):
+O que a decisão fixa, em termos executáveis:
 
-1. **L4 da build pinada** — `extract_evox_base.sh` sobre o ZIP oficial (já pinado em
-   `references/rom-artifacts.json`) → KMI e base reais do kernel da ROM.
-2. **Declaração do mantenedor do kernel** de suporte à build `EvolutionX-16.0-20260915-Pong-11.11`
-   (API 36) — suporte “a LineageOS/A16 em geral” não fecha o gate.
-3. **Hash do artefato** (o NP² já publica; o Meteoric não) e teste em AVD antes do físico.
+1. **Um motor só.** `root-engines.json` marca `apatch` como o único `allowed: true`; os demais
+   carregam `blocked_by`. Dois motores permitidos = `motor_unico` INCOMPATÍVEL.
+2. **Kernel só o da ROM.** `kernel-candidates.json` passou a declarar `origin` (`stock-rom` ×
+   `third-party`); qualquer candidato de terceiro é INCOMPATÍVEL mesmo que fosse certificado.
+   `--candidate stock-evolutionx` continua **PENDENTE (3)** — o kernel certo ainda exige a L4.
+3. **SUSFS sai do escopo** (`decisao_susfs`): nenhum módulo do escopo depende dele; R03 deixa de ser
+   condição ativa (continua documentada e testada, para o caso de a decisão ser revista).
+4. **M01 = patch `kptools`/`kpimg` no `boot.img` oficial**; rollback é a imagem stock verificada.
+5. **M05/DroidSpaces** só aceita motor ratificado (`motor_ratificado` no preflight).
+6. **Isonomia de metodologia de kernel:** todo módulo `kernel_level: true` (M01, M05, M10) declara
+   `kernel_evidence: rom_package` + `kernel_gate: kernel_compat_check.sh` — uma prova só, do mesmo
+   pacote. Nada de "caminho paralelo" com kernel compilado.
 
-**Decisão sua (assinale):**
+**Provas:** `tests/test_root_decision.sh` (28 casos) + `tests/test_root_engine_gate.sh` (31) +
+`tests/test_droidspaces_preflight.sh` (28). Revisão só com nova decisão explícita e kernel
+**declarado e certificado** à build 2026-09-15 (`revisit_if` no JSON).
 
-- [ ] **A — APatch no kernel stock** (recomendado): começo hoje, sem kernel de terceiro.
-- [ ] **B — KernelSU/SukiSU + SUSFS**: aceito trocar o kernel oficial por um de terceiro, com perda
-      de OTA, e vou fornecer/aguardar os 3 dados acima antes de qualquer flash.
-- [ ] **C — Magisk**: fallback (só se algum módulo exigir Magisk especificamente; hoje nenhum exige).
-
-Enquanto não houver resposta, o estado correto é **nada de `fastboot flash`** — o gate continua
-`PENDENTE` e o ledger continua fechado.
+Enquanto a L4 não fechar, o estado correto continua **nada de `fastboot flash`**.

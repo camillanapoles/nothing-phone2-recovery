@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# droidspaces_preflight.py — M05 só entra com contrato completo e requisitos provados (20 casos)
+# droidspaces_preflight.py — M05 só entra com contrato completo e requisitos provados (28 casos)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; D="$HERE/../scripts/droidspaces_preflight.py"; ROOT="$(cd "$HERE/../../.." && pwd)"
 P=0; F=0
@@ -16,12 +16,16 @@ rc=$(run --static); ck "contrato do M05 está completo" "exit" "$rc" "0"
 verdict=$(python3 "$D" --root "$ROOT" --static --json | python3 -c 'import json,sys;print(json.load(sys.stdin)["verdict"])')
 ck "veredito é PRONTO" "PRONTO" "$verdict" "PRONTO"
 rc=$(run --static --engine magisk); ck "motor não suportado (magisk) reprova" "exit" "$rc" "3"
+rc=$(run --static --engine kernelsu); ck "motor fora da decisão A reprova" "exit" "$rc" "3"
+why=$(python3 "$D" --root "$ROOT" --static --engine kernelsu --json | python3 -c 'import json,sys;print("sim" if any("motor_ratificado" in r for r in json.load(sys.stdin)["reasons"]) else "nao")')
+ck "motivo cita a decisão ratificada" "sim" "$why" "sim"
 
 # ---------------- fixtures: o preflight sabe reprovar -------------------------
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
 R="$T/skills/evox-rom-ci-optimizer/references"; mkdir -p "$R"
 cp "$ROOT/skills/evox-rom-ci-optimizer/references/droidspaces-requirements.json" "$R/"
 cp "$ROOT/skills/evox-rom-ci-optimizer/references/module-requirements.json" "$R/"
+cp "$ROOT/skills/evox-rom-ci-optimizer/references/root-decision.json" "$R/"
 
 fixture(){ python3 - "$R/droidspaces-requirements.json" "$1" "$2" <<'PY'
 import json, sys

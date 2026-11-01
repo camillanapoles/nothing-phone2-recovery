@@ -13,9 +13,15 @@ O motor de root não é detalhe de instalação — ele decide **se o kernel ofi
 | Magisk | não | não | idem (root em userspace) |
 | KernelSU / SukiSU | **sim** | **sim** | kernel de terceiro entra no caminho crítico; OTA deixa de valer |
 
+**Decisão A ratificada pela usuária em 2026-11-01** (`references/root-decision.json`): **APatch** no
+`boot.img` da ROM, motor único, kernel de terceiro **proibido**, SUSFS fora do escopo. Na prática, as
+três linhas acima deixam de ser menu: `root_engine_gate.py --engine magisk|kernelsu|sukisu` devolve
+**INCOMPATÍVEL (1)** e qualquer `--candidate` com `origin: third-party` também. O kernel do pacote
+(`stock-evolutionx`) continua exigindo a L4 — PENDENTE (3) não é aprovação.
+
 Quem cruza motor × kernel × requisitos dos 15 módulos é `root_engine_gate.py`
-(`references/root-engines.json`, `references/kernel-candidates.json`,
-`references/module-requirements.json`). Ele devolve `COMPATÍVEL` (0), `PENDENTE` (3) — falta dado,
+(`references/root-decision.json`, `references/root-engines.json`,
+`references/kernel-candidates.json`, `references/module-requirements.json`). Ele devolve `COMPATÍVEL` (0), `PENDENTE` (3) — falta dado,
 por exemplo L4 da build — ou `INCOMPATÍVEL` (1). Auditoria completa: `docs/skills/ROOT-ENGINE-AUDIT.md`.
 
 ## 1. Tríade obrigatória: kernel × ROM × device

@@ -38,8 +38,34 @@ com o objetivo `G10`. A varredura (`contradiction_scan.py`, regras C8–C10) rep
 | 8 | Nenhum workflow do GitHub executa `fastboot` | AG13 |
 | 9 | Emulador prova a **camada de módulos**, nunca o boot do pong | AG8 |
 | 10 | Decisão registrada antes de executar (`decision.json`) | `session_open.py check` |
-| 11 | Teste só vale se puder reprovar (mutação) | `make mutation` 115/115 · AG19/AG21 |
+| 11 | Teste só vale se puder reprovar (mutação) | `make mutation` 121/121 · AG19/AG21 |
 | 12 | Asserção não pode ser impossível nem engolir falha | `make vacuity` · AG20 |
+| 13 | **Um único motor de root (APatch) e um único kernel (o da ROM)** | `root_engine_gate.py` + `tests/test_root_decision.sh` |
+
+
+## 2.1 Decisão A ratificada — motor único e kernel da ROM (2026-11-01)
+
+**Confirmado pela usuária:** *"Confirmo APatch no kernel stock"*. Registro executável:
+`skills/evox-rom-ci-optimizer/references/root-decision.json` (`decision: A`, `ratified: true`,
+`decided_by: user`, `decided_at: 2026-11-01`, `engine: apatch`, `kernel_source: stock-rom`,
+`custom_kernel_allowed: false`, `susfs_allowed: false`, `exclusive_single_engine: true`).
+
+| Consequência | Antes | Agora |
+|---|---|---|
+| `--engine kernelsu` / `--engine sukisu` / `--engine magisk` | 3 (pendente) | **1 (INCOMPATÍVEL)** — decidido, não pendente |
+| kernel de terceiro (`--candidate np2-…`, `meteoric-…`) | 1 por EOL/não certificado | **1 por política**, independente de certificação |
+| `--candidate stock-evolutionx` | 3 (falta L4) | 3 (falta L4) — o kernel certo continua exigindo prova |
+| SUSFS | condição possível | **proibido** (`decisao_susfs`) — nada no escopo depende dele |
+| M01 | "patch ou kernel de terceiro" | **patch `kptools`/`kpimg` no `boot.img` da ROM** |
+| DroidSpaces (M05) | qualquer motor da lista do app | só `apatch` (`motor_ratificado`) |
+
+**Isonomia de metodologia de kernel:** todo módulo `kernel_level: true` (M01, M05, M10) declara
+`kernel_evidence: rom_package` + `kernel_gate: kernel_compat_check.sh` — a mesma prova, extraída do
+mesmo pacote. Não existe "caminho B" com kernel compilado; a suíte `test_root_decision.sh` falha se
+alguém reintroduzir um segundo motor, um segundo método de kernel ou um candidato sem origem.
+
+Revisão só com nova decisão explícita (`revisit_if` no JSON): kernel com suporte **declarado e
+certificado** (`kernel_compat_check.sh` exit 0) à build 2026-09-15.
 
 ## 2. Arquitetura em vigor
 
@@ -125,7 +151,7 @@ o probe retorna `NO_DEVICE`/`BOOTLOADER` → recuperação manual por botão fí
 ```bash
 make -s arch                                  # AG1–AG21
 skills/evox-rom-ci-optimizer/scripts/audit_loop.sh   # AG + scan + cobertura + vacuidade + suítes
-make -s mutation                              # falseabilidade: 115 mutantes, 0 sobreviventes
+make -s mutation                              # falseabilidade: 121 mutantes, 0 sobreviventes
 make -s prove                                 # estado + guard + 15 suítes + eval
 python3 skills/evox-rom-ci-optimizer/scripts/architecture_guard.py --self-test
 python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --file workspace/decision.json --json

@@ -14,7 +14,9 @@
       "rollback": "boot_stock_rollback.img (sha256 verificado)",
       "status": "baseline_recommended",
       "source": "https://github.com/bmax121/APatch",
-      "reason": "Não depende de KMI nem de kernel de terceiro; rollback é a própria imagem stock."
+      "reason": "Não depende de KMI nem de kernel de terceiro; rollback é a própria imagem stock.",
+      "allowed": true,
+      "decision": "A"
     },
     {
       "id": "magisk",
@@ -27,7 +29,9 @@
       "rollback": "boot_stock_rollback.img",
       "status": "fallback",
       "source": "https://github.com/topjohnwu/Magisk",
-      "reason": "Caminho mais batido, mas é root em espaço de usuário: não serve para módulos que exigem primitivas de kernel."
+      "reason": "Caminho mais batido, mas é root em espaço de usuário: não serve para módulos que exigem primitivas de kernel.",
+      "allowed": false,
+      "blocked_by": "root-decision.json (decisão A: APatch no kernel stock)"
     },
     {
       "id": "kernelsu",
@@ -40,7 +44,9 @@
       "rollback": "boot_stock_rollback.img da ROM (volta ao kernel stock)",
       "status": "second_wave",
       "source": "https://github.com/KernelSU-Next/KernelSU-Next",
-      "reason": "No pong o kernel stock não tem KSU: exige kernel de terceiro — logo, mais variáveis e perda do kernel oficial."
+      "reason": "No pong o kernel stock não tem KSU: exige kernel de terceiro — logo, mais variáveis e perda do kernel oficial.",
+      "allowed": false,
+      "blocked_by": "root-decision.json (decisão A: APatch no kernel stock)"
     },
     {
       "id": "sukisu",
@@ -53,15 +59,23 @@
       "rollback": "boot_stock_rollback.img da ROM",
       "status": "second_wave",
       "source": "https://github.com/ReSukiSU/ReSukiSU",
-      "reason": "Mesma classe do KernelSU, com KPM; hoje é o que kernels ativos do pong embarcam."
+      "reason": "Mesma classe do KernelSU, com KPM; hoje é o que kernels ativos do pong embarcam.",
+      "allowed": false,
+      "blocked_by": "root-decision.json (decisão A: APatch no kernel stock)"
     }
   ],
   "susfs": {
     "id": "susfs",
     "name": "SUSFS",
     "requires_kernel_patch": true,
-    "works_with": ["kernelsu", "sukisu"],
-    "not_compatible_with": ["apatch", "magisk"],
+    "works_with": [
+      "kernelsu",
+      "sukisu"
+    ],
+    "not_compatible_with": [
+      "apatch",
+      "magisk"
+    ],
     "mount_hide_global": "proibido quando DroidSpaces (M05) está no escopo (regra R03)",
     "source": "https://gitlab.com/simonpunk/susfs4ksu"
   }

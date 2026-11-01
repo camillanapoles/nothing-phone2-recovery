@@ -44,6 +44,10 @@ declara o que fica bloqueado).
 
 ### P4 · Kernel — propor o mais estável/compatível
 
+> **RATIFICADO pela usuária em 2026-11-01:** "Confirmo APatch no kernel stock". O padrão abaixo
+> deixou de ser proposta e virou política (`references/root-decision.json`); motor único, kernel de
+> terceiro proibido, SUSFS fora do escopo. Ver `docs/skills/ROOT-ENGINE-AUDIT.md` §8.
+
 Padrão recomendado: **stock + APatch no `boot.img` oficial**. Motivos: (a) é o único kernel com
 suporte garantido à build exata; (b) rollback é byte-idêntico ao pacote; (c) não cria dependência de
 KMI de terceiro. Kernel externo só entra se o candidato declarar `model=pong`, API 36, KMI igual e

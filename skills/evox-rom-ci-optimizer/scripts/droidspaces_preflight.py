@@ -29,6 +29,7 @@ import sys
 SK = "skills/evox-rom-ci-optimizer"
 DROID = f"{SK}/references/droidspaces-requirements.json"
 MODULES = f"{SK}/references/module-requirements.json"
+DECISION = f"{SK}/references/root-decision.json"
 HEX64 = re.compile(r"[0-9a-f]{64}")
 PLACEHOLDER = re.compile(r"(?i)\b(todo|tbd|placeholder|preencher|a-definir|xxx)\b")
 
@@ -108,6 +109,14 @@ def check_static(root: str, engine: str) -> list[dict]:
     add("selinux_enforcing", cons.get("selinux") == "Enforcing", f"selinux={cons.get('selinux')}")
     add("motor_suportado", engine in (cons.get("supported_engines") or []),
         f"engine={engine} suportados={cons.get('supported_engines')}")
+    dec_p = os.path.join(root, DECISION)
+    if not os.path.exists(dec_p):
+        add("motor_ratificado", False, "root-decision.json ausente — decisão do motor desconhecida")
+    else:
+        dec = load(dec_p)
+        add("motor_ratificado", engine == dec.get("engine") and dec.get("ratified") is True,
+            f"decisão {dec.get('decision')} ratificada em {dec.get('decided_at')} fixa "
+            f"{dec.get('engine')}; usado={engine}")
 
     m05 = next((m for m in mods if m.get("id") == "M05"), None)
     add("m05_no_contrato_de_modulos", m05 is not None, "M05 presente em module-requirements.json")

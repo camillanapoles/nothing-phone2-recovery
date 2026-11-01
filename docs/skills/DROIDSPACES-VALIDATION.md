@@ -94,4 +94,6 @@ bash skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh   # 26/26
    Artifact testado).
 3. **Conflitos declarados** (Shamiko / Mountify / LSPosed-Riru): estão no contrato como proibição, mas
    o teste de conflito real é o `static_conflict_scanner.py` rodando sobre os ZIPs reais.
-4. **Decisão A (APatch)** segue como **recomendação minha**, não como escolha confirmada por você.
+4. **Decisão A (APatch)** era recomendação; **foi ratificada por você em 2026-11-01** — o M05 agora
+   só aceita o motor ratificado (`motor_ratificado`), e Magisk/KernelSU/SukiSU são INCOMPATÍVEIS.
+   Ver `docs/skills/ROOT-ENGINE-AUDIT.md` §8.

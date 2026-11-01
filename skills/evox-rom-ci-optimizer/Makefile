@@ -76,9 +76,11 @@ test-stage:
 	@./tests/test_root_engine_gate.sh
 
 test-droidspaces:
+	@./tests/test_root_decision.sh
 	@./tests/test_droidspaces_preflight.sh
 
 test-gates:
+	@./tests/test_root_decision.sh
 	@./tests/test_droidspaces_preflight.sh
 	@./tests/test_kernel_compat_check.sh
 	@./tests/test_rollout_gate.sh

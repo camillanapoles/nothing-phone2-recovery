@@ -107,7 +107,13 @@ Regras de carga: ler **só** a skill que casa com a tarefa (economia de contexto
     confirmar em `payload.bin`; ver `docs/skills/AUDIT-CONTRADICTIONS.md`). `guard4_verify.sh` exige
     par de rollback byte-idêntico para **cada** partição de boot que o pacote tiver. O roteador só é
     instalado depois do primeiro boot com root.
-21. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
+21. **Um único motor de root — APatch no kernel stock.** Decisão A ratificada pela usuária em
+    2026-11-01 (`skills/evox-rom-ci-optimizer/references/root-decision.json`): **APatch** faz o M01
+    no `boot.img` da ROM e o kernel é **o do pacote**. Magisk, KernelSU, SukiSU e SUSFS estão
+    **proibidos** — `root_engine_gate.py` devolve `INCOMPATÍVEL` (1) para eles, não "pendente".
+    Metodologia de kernel é a mesma para todo módulo kernel-level: `kernel_compat_check.sh` sobre a
+    evidência extraída do pacote (`kernel_evidence: rom_package`). Teste: `tests/test_root_decision.sh`.
+22. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
 
 Sempre que uma regra R01–R09 for tocada, o teste é `skills/evox-rom-ci-optimizer/tests/test_scanner_rules.sh`
 (13 cenários). Gate sem teste é opinião.

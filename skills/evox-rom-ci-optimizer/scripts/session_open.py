@@ -117,9 +117,13 @@ P10_P13 = {
             "rationale": "um pacote cobre banking+Play Integrity; separar só se o "
                          "static_conflict_scanner apontar colisão real de módulo",
             "revisit_if": "scanner reportar colisão de arquivo/overlay"},
-    "P11": {"decision": "kernel stock + APatch",
-            "rationale": "qualquer kernel externo sem suporte declarado à build "
-                         "2026-09-15 viola a regra de compatibilidade exata",
+    "P11": {"decision": "kernel stock + APatch (motor único)",
+            "rationale": "ratificado pela usuária em 2026-11-01 — 'Confirmo APatch no kernel stock'; "
+                         "qualquer kernel externo sem suporte declarado à build 2026-09-15 viola a "
+                         "regra de compatibilidade exata",
+            "decided_by": "user",
+            "ratified_at": "2026-11-01",
+            "enforced_by": "references/root-decision.json + tests/test_root_decision.sh",
             "revisit_if": "aparecer release com suporte explícito a Pong/A16 2026-09-15"},
     "P12": {"decision": "workflow HIL permanece fora de .github/workflows",
             "rationale": "exige USB físico; runner hospedado não tem o aparelho e "
@@ -145,7 +149,9 @@ def _fill_delegated(doc: dict) -> dict:
     k = doc.setdefault("kernel", {})
     k["choice"] = "stock+apatch"
     k["rationale"] = P10_P13["P11"]["rationale"]
-    k["decided_by"] = DECIDED_BY
+    k["decided_by"] = "user"
+    k["ratified_at"] = "2026-11-01"
+    k["policy_ref"] = "references/root-decision.json"
     for m in doc.get("modules") or []:
         m["approved"] = True
         m["approved_by"] = DECIDED_BY

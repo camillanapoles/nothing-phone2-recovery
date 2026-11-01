@@ -8,7 +8,9 @@
       "patch_dir": "platform/kernel/patches",
       "supports_susfs": false,
       "supports_zsuy_fix": true,
-      "description": "Kallsyms-based root manager. Preferred for Pong (no KMI dependency)."
+      "description": "Kallsyms-based root manager. Preferred for Pong (no KMI dependency).",
+      "selected": true,
+      "decision": "A"
     },
     {
       "id": "magisk",
@@ -18,7 +20,9 @@
       "patch_dir": "",
       "supports_susfs": false,
       "supports_zsuy_fix": false,
-      "description": "Traditional boot.img patcher. Works on Pong but lacks LKM support."
+      "description": "Traditional boot.img patcher. Works on Pong but lacks LKM support.",
+      "selected": false,
+      "blocked_by": "root-decision.json (decisão A)"
     },
     {
       "id": "kernelsu-next",
@@ -28,7 +32,9 @@
       "patch_dir": "",
       "supports_susfs": true,
       "supports_zsuy_fix": true,
-      "description": "LKM-based root. Requires custom kernel build with KSU integration."
+      "description": "LKM-based root. Requires custom kernel build with KSU integration.",
+      "selected": false,
+      "blocked_by": "root-decision.json (decisão A)"
     }
   ],
   "toolchains": [
@@ -56,8 +62,15 @@
       "description": "Upstream LLVM for GKI builds"
     }
   ],
-  "lto_modes": ["none", "thin", "full"],
-  "build_scopes": ["image-only", "full"],
+  "lto_modes": [
+    "none",
+    "thin",
+    "full"
+  ],
+  "build_scopes": [
+    "image-only",
+    "full"
+  ],
   "kernels": [
     {
       "id": "prebuilt-evolutionx",

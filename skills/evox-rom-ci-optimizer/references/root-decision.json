@@ -1,0 +1,52 @@
+{
+  "schema": "evox-root-decision/1",
+  "decision": "A",
+  "ratified": true,
+  "decided_by": "user",
+  "decided_at": "2026-11-01",
+  "statement": "Confirmo APatch no kernel stock",
+  "engine": "apatch",
+  "engine_version": "v11219",
+  "kernel_source": "stock-rom",
+  "kernel_artifact": "boot.img do payload.bin da build EvolutionX-16.0-20260915-Pong-11.11",
+  "custom_kernel_allowed": false,
+  "susfs_allowed": false,
+  "exclusive_single_engine": true,
+  "forbidden_engines": [
+    "magisk",
+    "kernelsu",
+    "sukisu"
+  ],
+  "forbidden_capabilities": [
+    "CONFIG_KSU / KSU LKM",
+    "SUSFS (KernelSU/SukiSU)",
+    "kernel compilado por terceiro",
+    "KPM de terceiro"
+  ],
+  "m01_method": "patch kptools/kpimg no boot.img da ROM + KPModule do APatch",
+  "rollback": "boot_stock_rollback.img byte-idêntico ao boot.img do pacote (guard4_verify.sh)",
+  "isonomia": {
+    "rule": "uma única metodologia de root e de kernel no projeto inteiro",
+    "kernel_method": "kernel_compat_check.sh (pong + API 36 + KMI + base + build exata) para todo módulo",
+    "module_method": "um módulo por vez via rollout_gate.sh, com PASS antes do próximo",
+    "enforced_by": [
+      "root_engine_gate.py (decisao_motor / decisao_kernel / decisao_susfs / motor_unico)",
+      "droidspaces_preflight.py (motor_ratificado)",
+      "tests/test_root_decision.sh"
+    ]
+  },
+  "consequences": [
+    "KernelSU, SukiSU e Magisk ficam INCOMPATÍVEIS (exit 1), não 'pendentes'",
+    "nenhum candidato de kernel de terceiro pode ser escolhido (só o kernel stock da ROM)",
+    "SUSFS sai do escopo: sem módulo que o exija; R03 (mount-hide global) deixa de ser condição ativa",
+    "M01 = patch kptools/kpimg no boot.img oficial; rollback é a imagem stock verificada",
+    "as 12 CONFIG_* do DroidSpaces (M05) dependem do kernel da ROM, não de kernel compilado"
+  ],
+  "revisit_if": "aparecer kernel com suporte declarado E certificado (kernel_compat_check exit 0) à build 2026-09-15 e uma nova decisão explícita da usuária",
+  "sources": [
+    "docs/skills/ROOT-ENGINE-AUDIT.md §8 (opções A/B/C)",
+    "references/root-engines.json (fatos por motor)",
+    "references/kernel-candidates.json (candidatos com data/hash/suporte)",
+    "https://nothingarchive.tech/docs/guides (Meteoric EOL; KSU no stock boot.img não cobre SUSFS)"
+  ]
+}

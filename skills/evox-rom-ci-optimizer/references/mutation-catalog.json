@@ -1075,6 +1075,60 @@
       "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
       "strength": "semantic",
       "rationale": "evidencia de kernel sem CONFIG_* obrigatoria tem de deixar PENDENTE"
+    },
+    {
+      "id": "M116",
+      "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+      "find": "    if engine[\"id\"] != chosen:",
+      "replace": "    if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_root_decision.sh",
+      "strength": "semantic",
+      "rationale": "motor fora da decisao ratificada nao pode ser liberado"
+    },
+    {
+      "id": "M117",
+      "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+      "find": "    if allowed != [chosen]:",
+      "replace": "    if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_root_decision.sh",
+      "strength": "semantic",
+      "rationale": "isonomia: dois motores permitidos tem de quebrar o gate"
+    },
+    {
+      "id": "M118",
+      "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+      "find": "        if origin == \"stock-rom\":",
+      "replace": "        if True:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_root_decision.sh",
+      "strength": "semantic",
+      "rationale": "kernel de terceiro nao pode passar como se fosse o da ROM"
+    },
+    {
+      "id": "M119",
+      "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+      "find": "    if dec.get(\"ratified\") is not True:",
+      "replace": "    if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+      "strength": "contract",
+      "rationale": "decisao sem ratificacao nao pode executar"
+    },
+    {
+      "id": "M120",
+      "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+      "find": "            add(\"decisao_susfs\", \"incompativel\",",
+      "replace": "            add(\"decisao_susfs\", \"ok\",",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_root_decision.sh",
+      "strength": "semantic",
+      "rationale": "SUSFS proibido tem de reprovar, nao virar 'ok' com o mesmo detalhe"
+    },
+    {
+      "id": "M121",
+      "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
+      "find": "        add(\"motor_ratificado\", engine == dec.get(\"engine\") and dec.get(\"ratified\") is True,",
+      "replace": "        add(\"motor_ratificado\", True,",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
+      "strength": "semantic",
+      "rationale": "M05 tem de exigir o motor ratificado, nao qualquer motor suportado"
     }
   ]
 }
