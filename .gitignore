@@ -91,3 +91,7 @@ workspace/evox.env
 workspace/evox.env.tmp
 *.zip.part
 *.zip.mismatch
+
+# ---- Artefatos de auditoria gerados (não versionar) ----
+work/
+workspace/
