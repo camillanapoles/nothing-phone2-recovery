@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # =============================================================================
-# CI-SANDBOX-PROBE v3.0 — [Estagio B] Teste Dinamico no QEMU/KVM via ADB
+# CI-SANDBOX-PROBE v3.1 — [Estagio B] Teste dinamico na AVD (API 36 x86_64) via ADB
 # =============================================================================
 set -euo pipefail
 
 MODULES_DIR="${1:-./modules}"
 
-echo "[*] Aguardando ADB e sys.boot_completed=1 no QEMU/KVM..."
+echo "[*] Aguardando ADB e sys.boot_completed=1 no emulador (AVD)..."
 adb wait-for-device
 adb root || true
 
@@ -43,4 +43,4 @@ if [ -n "$CRASHES" ]; then
   exit 1
 fi
 
-echo "[OK] Validacao em Emulador QEMU/KVM concluida sem crashes de Zygote ou SystemServer!"
+echo "[OK] Validacao na AVD concluida sem crashes de Zygote ou SystemServer (nao prova boot do pong arm64)."

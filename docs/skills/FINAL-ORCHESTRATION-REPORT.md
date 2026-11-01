@@ -165,8 +165,11 @@ higiene de estado ................ 13 PASS · clean · 0 linhas no DB do FSM
 | P7 | Cache | "melhor performance" | §P7: **inline ≤ 25 MB · retention 5 d · prune 90 d** |
 | P8 | USB | "produção, só após 10/10 no emulador" | §P8 + `usb.acknowledged` obrigatório na decisão |
 
-**Ainda abertas:** P9 (autorizar o PR), P10 (Duck-ToolBox consolidado × separado),
-P11 (kernel de terceiro), P12 (ativar o workflow). Ver `PR-AUTHORIZATION-5W1H.md`.
+**Bloqueantes (humanas):** P1 (Vanilla × GApps), P2 (caminho do `.zip` + sha256), P3 (autorização
+de binários) e P9 (autorizar o PR).
+**Delegadas e aceitas:** P10 Duck-ToolBox consolidado · P11 kernel stock + APatch · P12 HIL fora do
+GitHub Actions · P13 HIL A/B como pré-gate · P14 quarentena no host. Detalhe e critérios de revisão
+em [`PENDING-DECISIONS.md`](PENDING-DECISIONS.md).
 
 ## 11. Checklist de ratificação (marque para liberar a próxima sessão)
 
@@ -179,3 +182,31 @@ P11 (kernel de terceiro), P12 (ativar o workflow). Ver `PR-AUTHORIZATION-5W1H.md
 
 Com **R1–R5 + P1–P3**, a próxima sessão executa o Stage A real (L4 + kernel gate + patch + rollback)
 e devolve o pacote com hashes; o Stage B roda na sequência, módulo por módulo.
+
+---
+
+## 12. Ratificação de execução (2026-11-01) — contrato para a próxima sessão
+
+Esta seção fecha o pedido de **garantia**: a próxima sessão que executar não pode trocar os
+princípios nem “reinterpretar” a arquitetura. Tudo abaixo é **executável**, não narrativa.
+
+| Peça | Arquivo | O que garante |
+|---|---|---|
+| Contrato | [`ARCHITECTURE-DECISION.md`](ARCHITECTURE-DECISION.md) | 10 princípios, arquitetura A→B→C→E→D, lista do que **não** refazer, limites do A/B |
+| Trava | `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` | **AG1–AG15** falham o build se a arquitetura antiga voltar (`make -s arch`, dentro de `make -s prove`) |
+| Classificador de falha | `scripts/abl_fallback_probe.sh` | distingue `OK` / `ABL_FALLBACK` / `HANG` / `HANG_EARLY` / `BOOTLOADER` / `NO_DEVICE` |
+| Marcas de boot | `assets/00_slot_router.sh guard` | separa falha antes do userspace de travamento pós-kernel |
+| Abertura | `scripts/session_open.py` (`auto` + `check`) | preenche P10–P14, mantém P1–P3 bloqueantes |
+| Validação | [`VALIDATION-REPORT.md`](VALIDATION-REPORT.md) | prova arquivo por arquivo, inclusive o que **não** foi possível validar offline |
+
+**Números deste worktree:** `make -s prove` exit **0** · 15 regras de arquitetura OK ·
+14 suítes verdes · 157 casos (144 na skill de ROM + 13 no teste de estado) · `bash -n` em 35 scripts · `py_compile` em 6 módulos.
+
+**Correções aplicadas neste turno:** `bootctl` removido do HIL (AG14) · pipeline antigo
+movido para `references/archive/` com aviso SUPERSEDIDO (AG15) · `QEMU/KVM` → AVD em
+`runtime_module_tester.sh`, `pong-hardware-matrix.md`, `AGENTS.md`, `agente.md`, `skills/README.md` ·
+guia legado do `.github/workflows/boot-test.yml` marcado como tal.
+
+**Ainda fora do alcance do sandbox:** download do `.zip` (sem egress), L4 real e patch de boot
+(sem `payload-dumper-go`/`magiskboot`/`kptools`), e comportamento real do ABL (sem USB).
+O relatório de validação declara isso explicitamente — nada foi simulado como se fosse real.

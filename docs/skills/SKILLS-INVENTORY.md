@@ -50,7 +50,7 @@ skills/                                          8 skills ativas · 8 contratos 
 │   │   ├── external-engines-arbitration.md  ← regras R01..R09 + 3 interseções
 │   │   ├── pong-hardware-matrix.md          ← ex-evolution: evox-pong-ci-architect
 │   │   ├── ci-cost-locks.md                 ← 4 travas de custo
-│   │   ├── android16-evox-safelist.json · devcontainer.json · evox-ci-pipeline.yml
+│   │   ├── android16-evox-safelist.json · devcontainer.json · evox-ci-validator.yml (+ archive/evox-ci-pipeline.yml)
 │   │   └── archive/evox-ci-v2.0-SKILL.md · archive/evox-ci-v2.0-canonical-drive-export.md
 │   ├── scripts/
 │   │   ├── audit_rom_conflicts.sh · extract_evox_base.sh · patch_boot_offline.sh

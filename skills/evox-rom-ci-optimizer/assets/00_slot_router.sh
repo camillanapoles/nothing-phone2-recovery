@@ -177,6 +177,19 @@ cmd_guard() {
   printf '%s\n' "$attempts" >"$STATE/attempts"
   printf '%s\n' "$slot" >"$STATE/last_slot"
 
+  # Marca de boot: prova que ESTE boot chegou ao userspace (post-fs-data).
+  # Sem marca + sem boot_completed ⇒ falha antes do userspace (kernel/bootloader).
+  # Com marca + sem boot_completed ⇒ travamento pós-kernel (system_server/watchdog).
+  mkdir -p "$STATE/marks" 2>/dev/null || true
+  _up="$(cut -d' ' -f1 /proc/uptime 2>/dev/null || echo '?')"
+  _mk="$STATE/marks/${slot#_}_${attempts}.mark"
+  printf 'slot=%s\nattempt=%s\nuptime=%s\nat=%s\n' "$slot" "$attempts" "$_up" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo '-')" >"$_mk" 2>/dev/null || true
+  # mantém no máximo 20 marcas
+  ls -1t "$STATE/marks" 2>/dev/null | tail -n +21 | while read -r old; do
+    [ -n "$old" ] && rm -f "$STATE/marks/$old"
+  done
+
   if [ "$slot" = "$STAGING_SLOT" ]; then
     if [ "$attempts" -gt "$MAX_ATTEMPTS" ]; then
       mark_all "$STAGED" 1

@@ -73,7 +73,7 @@ Regras de carga: ler **só** a skill que casa com a tarefa (economia de contexto
 
 ## 3. Guardião — invariantes que nunca se negociam
 
-1. **Nada físico sem estágio.** Sem estágio A (offline) + estágio B (QEMU/KVM) + `boot_stock_rollback.img`
+1. **Nada físico sem estágio.** Sem estágio A (offline) + estágio B (AVD API 36 x86_64 como **pré-gate**, não como prova de boot do pong) + `boot_stock_rollback.img`
    com SHA-256 verificado, não existe `fastboot flash`.
 2. **`persist` é intocável** (calibração Goodix). Escrita = `CONFLICT` (regra R06).
 3. **SELinux `Enforcing`** é requisito de produto; nunca "resolver" com `permissive` (R08).
@@ -96,7 +96,7 @@ Regras de carga: ler **só** a skill que casa com a tarefa (economia de contexto
 16. **Emulação não é o aparelho.** A AVD x86_64 valida a camada de módulos; kernel/KPM, NPU,
     câmera HAL e `sysfs` só se provam no `pong`. Nunca declarar "pronto para flash" com base só no CI.
 17. **Custo trava o CI, não o contrário.** Todo workflow precisa de `cancel-in-progress`, timeouts
-    (job ≤ 30, emulador ≤ 15), cache por sha256 da ROM, retenção curta e watchdog de boot —
+    (job ≤ 30, AVD ≤ 15), cache por sha256 da ROM, retenção curta e watchdog de boot —
     `ci_workflow_lint.py` reprova o que faltar.
 18. **Ordem de módulo é contrato.** F0→F5 com um módulo por vez; fora de ordem = `rollout_gate` bloqueia.
 19. **`/data` é único entre os slots.** Módulo experimental quebra também o slot estável no fallback.

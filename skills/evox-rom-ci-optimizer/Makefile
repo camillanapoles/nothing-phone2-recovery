@@ -76,6 +76,8 @@ test-gates:
 	@./tests/test_cache_and_guard4.sh
 	@./tests/test_session_open.sh
 	@./tests/test_slot_router.sh
+	@./tests/test_abl_probe.sh
+	@./tests/test_architecture_guard.sh
 
 test-ci:
 	@./tests/test_sandbox_rollout.sh
@@ -125,7 +127,7 @@ runtime-test:
 
 run-act:
 	@if command -v act >/dev/null 2>&1; then \
-		act workflow_dispatch -W references/evox-ci-pipeline.yml -j forge-and-audit-rom; \
+		act workflow_dispatch -W references/evox-ci-validator.yml; \
 	else \
 		echo "nektos/act nao encontrado. Instale o act ou acione a skill act-github-pat."; \
 		exit 1; \

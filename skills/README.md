@@ -9,7 +9,7 @@ Instalado a partir do **Google Drive → `SKILLS/`**. Nada aqui passou pelo GitH
 
 | # | Skill | Tier | Classe | Superfície de decisão | Entrada |
 |---|---|---|---|---|---|
-| 1 | `evox-rom-ci-optimizer` **v3.2** | core | executable | ROM Evolution X 11.11 pré-flash, QEMU/KVM CI, snapshots, arbitragem R01–R09 | [`SKILL.md`](evox-rom-ci-optimizer/SKILL.md) |
+| 1 | `evox-rom-ci-optimizer` **v3.2** | core | executable | ROM Evolution X 11.11 pré-flash, AVD API 36 no CI + HIL local A/B, snapshots, arbitragem R01–R09 | [`SKILL.md`](evox-rom-ci-optimizer/SKILL.md) |
 | 2 | `android16-root-guardian` **v2.1** | core | executable | pós-flash Safe-First + coletor de evidência com manifesto SHA-256 | [`SKILL.md`](android16-root-guardian/SKILL.md) |
 | 3 | `agent-governance-orchestrator` | meta | doctrine | DAG, Ownership Ledger, Guard-4, 5W1H, gates | [`SKILL.md`](agent-governance-orchestrator/SKILL.md) |
 | 4 | `fabrica-de-agentes` **v2.0** | meta | doctrine | criação/validação de skill: 9 fases, 12 testes, economia de contexto | [`SKILL.md`](fabrica-de-agentes/SKILL.md) |

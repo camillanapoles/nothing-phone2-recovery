@@ -135,10 +135,15 @@ jobs:
           assert not bad, f"módulos não aprovados: {bad}"
           print("todos os módulos do ledger estão passed")
           PY
-      - name: Ativar aprovados e marcar slot como successful
+      - name: Ativar aprovados e confirmar boot no slot de staging
+        # HAL boot_control nao e garantida no Pong: nao usamos `bootctl`.
         run: |
           adb shell "su -c '/data/adb/00_slot_router.sh activate'"
-          adb shell "su -c 'bootctl mark-boot-successful || true'"
+          boot="$(adb shell getprop sys.boot_completed | tr -d '\r')"
+          slot="$(adb shell getprop ro.boot.slot_suffix | tr -d '\r')"
+          echo "boot_completed=$boot slot=$slot"
+          [ "$boot" = "1" ] || { echo "ERRO: boot_completed=$boot"; exit 1; }
+          [ "$slot" = "_${{ inputs.staging }}" ] || { echo "ERRO: slot $slot != _${{ inputs.staging }}"; exit 1; }
       - name: Snapshot da promoção
         run: |
           adb shell "su -c '/data/adb/00_slot_router.sh status'" | tee workspace/backup/slot_state.txt

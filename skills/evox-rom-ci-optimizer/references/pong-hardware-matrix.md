@@ -12,7 +12,7 @@
 | Nível | O que valida | Ferramenta |
 |---|---|---|
 | **Estrutural (estático)** | pacotes, XML de permissão, bibliotecas `arm64-v8a`, `system.prop`, sobreposição de arquivos críticos | `scripts/static_conflict_scanner.py`, `scripts/audit_rom_conflicts.sh` |
-| **Comportamental (QEMU/KVM)** | inicialização do sistema, Free-Form/WindowManager, scripts de boot, estabilidade de `system_server` | `scripts/runtime_module_tester.sh` + `references/evox-ci-pipeline.yml` |
+| **Comportamental (QEMU/KVM)** | inicialização do sistema, Free-Form/WindowManager, scripts de boot, estabilidade de `system_server` | `scripts/runtime_module_tester.sh` + `references/evox-ci-validator.yml` (o `evox-ci-pipeline.yml` antigo está em `references/archive/`) |
 
 > O emulador **não** reproduz sensor físico proprietário (Goodix/IMX890) nem o TEE do SoC:
 > aprovação comportamental não substitui a matriz estática nem libera `persist`.

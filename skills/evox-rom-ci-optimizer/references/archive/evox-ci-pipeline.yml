@@ -1,3 +1,6 @@
+# ARQUIVO HISTORICO — SUPERSEDIDO por references/evox-ci-validator.yml
+# Mantido apenas como registro da arquitetura anterior (QEMU/KVM + gate inline).
+# Nao usar em execucao: nao tem trava AG, nem quarentena, nem probe A/B.
 name: Evolution X 11.11 Pre-Flight ROM Optimizer & Emulator Gate
 
 on:

@@ -59,7 +59,7 @@ Só então edito arquivo.
 [ ] ler module-matrix-5w1h.md e external-engines-arbitration.md
 [ ] scripts/preflight_deps.sh --require <bins>   → exit 0 (senão: falta binário, paro aqui)
 [ ] make scan / make audit                       → CLEAN (WARN = justificar; CONFLICT = veto)
-[ ] estágio A (offline) → estágio B (QEMU/KVM) → rollback com sha256 verificado
+[ ] estágio A (offline) → estágio B (AVD x86_64, pré-gate) → HIL local A/B (gate autoritativo) → rollback com sha256 verificado
 [ ] gate 10 (pré-USB) só com 10/10 PASS
 ```
 

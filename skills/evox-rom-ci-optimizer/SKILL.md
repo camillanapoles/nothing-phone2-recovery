@@ -122,7 +122,7 @@ exige `sys.boot_completed=1` e matriz de colisao `CLEAN`.
 | Sub-agente | Papel | Backend nesta skill |
 |---|---|---|
 | `EVOX-FORGE` | Extracao, patch offline, empacotamento | `scripts/extract_evox_base.sh`, `scripts/forge_patcher.sh`, `scripts/patch_boot_offline.sh`, `scripts/build_safe_module_bundle.sh` |
-| `CI-SANDBOX-PROBE` | Emulacao QEMU/KVM, runtime test, telemetria | `scripts/runtime_module_tester.sh`, `references/evox-ci-pipeline.yml`, `references/devcontainer.json` |
+| `CI-SANDBOX-PROBE` | Emulacao em AVD (API 36), runtime test, telemetria | `scripts/runtime_module_tester.sh`, `references/evox-ci-validator.yml`, `references/devcontainer.json` |
 | `CONFLICT-INQUISITOR` | Auditoria hostil, matriz de colisao, veto | `scripts/audit_rom_conflicts.sh`, `scripts/static_conflict_scanner.py`, `references/android16-evox-safelist.json` |
 | `SNAPSHOT-KEEPER` | Versionamento por branch/tag, manifesto | `scripts/snapshot_branch_manager.sh` |
 
@@ -180,7 +180,7 @@ make forge ENGINE=apatch SUPERKEY="<superkey>"
 make bundle         # All-in-One + Watchdog Anti-Bootloop 120s
 make snapshot LAYER=wave1 TAG=v11.11-w1-clean
 make runtime-test   # QEMU/KVM + ADB (requer device/emulador acessivel)
-make run-act        # executa references/evox-ci-pipeline.yml via nektos/act
+make run-act        # executa references/evox-ci-validator.yml via nektos/act
 ```
 
 Contrato de pastas de trabalho: `modules/` (`.zip` Magisk/KSU/APM), `kernel_patches/` (`.kpm`),
@@ -334,7 +334,7 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 
 | Caminho | Funcao |
 |---|---|
-| `references/evox-ci-pipeline.yml` | Workflow GitHub Actions completo (extract → audit → emulador KVM API 36) |
+| `references/evox-ci-validator.yml` | Workflow cloud vigente (extract → audit → AVD API 36); o antigo `evox-ci-pipeline.yml` está em `references/archive/` |
 | `references/android16-evox-safelist.json` | Whitelist deterministica de pacotes intocaveis |
 | `references/devcontainer.json` | Trava de custo/idle-timeout em Codespaces |
 | `references/module-matrix-5w1h.md` | **Instrução canônica**: 15 módulos + 3 plataformas em Classes 1–6, com agente/onda/5W1H |
@@ -342,7 +342,10 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `references/pong-hardware-matrix.md` | Matriz PASS/FAIL do Nothing Phone 2 (`pong`) — absorve a antiga skill `evox-pong-ci-architect` |
 | `references/ci-cost-locks.md` | As 4 travas de custo (concurrency, timeout 25/10, poweroff 1800 s) |
 | `references/kernel-selection-gate.md` | **Gate 1**: tríade kernel × ROM × device, escolha da versão estável, compatibilidade de módulo, estratégia para o `pong` |
-| `references/act-ab-hil-review.md` | **Revisão do HIL local**: 6 erros do draft (bind mount, rollback automático, `su` antes do root, `modules_stable`, AVB/`init_boot`, listas) e arquitetura híbrida corrigida |
+| `references/act-ab-hil-review.md` | **Revisão do HIL local**: 6 erros do draft (bind mount, rollback automático, `su` antes do root, `modules_stable` inexistente, AVB/`init_boot`, listas) e arquitetura híbrida corrigida |
+| `scripts/abl_fallback_probe.sh` | **Captura de falha A/B**: classifica `OK` / `ABL_FALLBACK` / `HANG` / `HANG_EARLY` / `BOOTLOADER` / `NO_DEVICE`, coleta pstore/dmesg/logcat e força rollback |
+| `scripts/architecture_guard.py` | Trava de arquitetura (AG1–AG12): impede voltar ao modelo antigo e valida que as correções seguem aplicadas |
+| `tests/test_abl_probe.sh` | 12 cenários do probe (fallback, hang, hang precoce, sem device, rollback) |
 | `assets/00_slot_router.sh` | Roteador A/B: `guard`/`quarantine`/`activate`/`status`/`reset` — quarentena por `disable`, sem `mount`, sem `rm -rf` |
 | `tests/test_slot_router.sh` | 13 cenários do roteador (fallback, limite, ativação, recusas) |
 | `references/session-opening.md` | **P1–P8 ratificados**: explicar Vanilla×GAPPS, pedir zip, autorizar binário item a item, kernel, módulos, canário, cache, USB |

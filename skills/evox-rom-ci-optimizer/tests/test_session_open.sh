@@ -42,5 +42,17 @@ p=sys.argv[1]; d=json.load(open(p)); d["modules"][0]["approved"]=None
 json.dump(d,open(p,"w"))
 PY
   run check --file "$T/dec.json")" "3"
+# --- modo auto: só decisões delegadas -----------------------------------
+D="$T/auto.json"
+ck "auto preenche sem erro" "exit" "$(python3 "$S" auto --out "$D" >/dev/null 2>&1; echo $?)" "0"
+ck "auto fixa kernel stock+apatch" "stock+apatch" \
+  "$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["kernel"]["choice"])' "$D")" "stock+apatch"
+ck "auto registra P10–P14" "5" \
+  "$(python3 -c 'import json,sys;print(len(json.load(open(sys.argv[1]))["defaults"])-3)' "$D")" "5"
+ck "auto mantém build/zip pendentes" "build.zip_path" \
+  "$(python3 -c 'import json,subprocess,sys;o=subprocess.run([sys.executable,sys.argv[1],"check","--file",sys.argv[2],"--json"],capture_output=True,text=True);print("build.zip_path" if "build.zip_path" in json.loads(o.stdout)["pending"] else "ausente")' "$S" "$D")" "build.zip_path"
+ck "auto mantém P3 (binários) preenchido" "sim" \
+  "$(python3 -c 'import json,sys;print("sim" if all(i["authorized"] for i in json.load(open(sys.argv[1]))["installs"]) else "nao")' "$D")" "sim"
+
 echo "-----------------------------------------------------------------------"
 echo "TOTAL: $P PASS / $F FAIL"; [ "$F" -eq 0 ] || exit 1
