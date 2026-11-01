@@ -77,7 +77,13 @@ Regras de carga: ler **só** a skill que casa com a tarefa (economia de contexto
 10. **Abertura com briefing + pergunta.** Antes de baixar qualquer ROM, explicar o plano e perguntar
    **Vanilla × GAPPS** com prós/contras; registrar `workspace/decision.json`. Sem decisão, parar.
 11. **Reversibilidade antes de otimização**: toda mudança declara o comando exato que desfaz.
-12. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
+12. **Kernel só com tríade fechada.** `model=pong` + API 36 + KMI igual ao da ROM + mesma base
+    `major.minor` + suporte declarado à build exata (`kernel_compat_check.sh` → exit 0).
+13. **Um módulo por vez.** Instalar, reiniciar, provar (`boot.ok`, `crashes=0`, `uptime ≥ 10 min`)
+    e só então o próximo. `rollout_gate.sh` bloqueia o contrário.
+14. **Fase verde vira cache.** `cache_manager.sh put` + `verify`: o artefato testado é o usado.
+15. **Rollback provado antes do flash.** `guard4_verify.sh` → `VERIFIED`, senão não há flash.
+16. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
 
 Sempre que uma regra R01–R09 for tocada, o teste é `skills/evox-rom-ci-optimizer/tests/test_scanner_rules.sh`
 (13 cenários). Gate sem teste é opinião.

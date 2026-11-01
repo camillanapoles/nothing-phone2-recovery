@@ -256,6 +256,32 @@ O que cada imagem entrega depois:
 Diagnóstico único: `./scripts/preflight_deps.sh --hints` e, para exigir só o da L4:
 `./scripts/preflight_deps.sh --require payload-dumper-go,unzip,python3,sha256sum`.
 
+## VI-D. Gates obrigatórios: kernel, rollout canário, cache e rollback
+
+Nenhum deles é opcional; cada um tem script e teste próprios.
+
+| Gate | Pergunta que responde | Script | Exit |
+|---|---|---|---|
+| **G-kernel** | este kernel serve para ESTA build no `pong`? | `kernel_compat_check.sh --rom-assets … --candidate …` | 0 compatível · 3 incompatível |
+| **G-rollout** | posso instalar o próximo módulo? | `rollout_gate.sh start/record/status` | 0 liberado · 3 bloqueado |
+| **G-cache** | o artefato testado é o artefato usado? | `cache_manager.sh put/get/verify` | 0 ok · 3 miss/divergente |
+| **G-rollback** | o backup é byte-idêntico à ROM oficial? | `guard4_verify.sh --boot … --backup …` | 0 verificado · 3 ausente · 4 divergente |
+
+Regras curtas:
+
+1. **Kernel** só entra com `model=pong`, API 36, **KMI igual** ao da ROM, mesma base `major.minor`
+   e suporte declarado à build exata. "Funciona em A16" não é suporte.
+2. **Um módulo por vez**: `start` → instalar só ele → reiniciar → `record` com evidência
+   (`boot.ok=true`, `crashes=0`, `uptime ≥ 10 min`). Módulo `FAILED` trava o próximo até `reset`.
+3. **Cache**: toda fase verde deixa artefato endereçável por SHA-256; ≤ 25 MB vai para o repo,
+   acima disso vira referência externa. `verify` recomputa tudo — cache corrompido não passa.
+4. **Rollback**: antes de qualquer flash, `guard4_verify.sh` tem que devolver `VERIFIED`
+   (backup existe, `.sha256` confere e é igual ao `boot.img` do pacote oficial).
+
+Referências detalhadas: [`references/kernel-selection-gate.md`](references/kernel-selection-gate.md)
+(tríade kernel × ROM × device, escolha da versão estável, matriz de compatibilidade de módulo) e
+[`references/rollout-and-cache.md`](references/rollout-and-cache.md) (canário, ondas, política de cache).
+
 ## VII. Referencias e assets embarcados
 
 | Caminho | Funcao |
@@ -267,7 +293,18 @@ Diagnóstico único: `./scripts/preflight_deps.sh --hints` e, para exigir só o 
 | `references/external-engines-arbitration.md` | Regras `R01..R09` (MaxManager, Duck-ToolBox, GenieX, DroidSpaces, persist, priv-app, SELinux) |
 | `references/pong-hardware-matrix.md` | Matriz PASS/FAIL do Nothing Phone 2 (`pong`) — absorve a antiga skill `evox-pong-ci-architect` |
 | `references/ci-cost-locks.md` | As 4 travas de custo (concurrency, timeout 25/10, poweroff 1800 s) |
+| `references/kernel-selection-gate.md` | **Gate 1**: tríade kernel × ROM × device, escolha da versão estável, compatibilidade de módulo, estratégia para o `pong` |
+| `references/rollout-and-cache.md` | **Gates 3–5**: rollout canário (1 módulo por vez), ondas, cache versionado por SHA-256, política de tamanho |
+| `scripts/extract_rom_assets.sh` | Fecha a L4 pelo `.zip` oficial (kernel/KMI + hashes), sem depender do aparelho |
+| `scripts/kernel_compat_check.sh` | Gate 1 executável: `COMPATIBLE`/`INCOMPATIBLE` com motivos |
+| `scripts/rollout_gate.sh` | Ledger canário: recusa 2 módulos abertos e módulo seguinte sem PASS |
+| `scripts/cache_manager.sh` | Cache versionado das fases verdes (inline ≤25 MB, externo acima) |
+| `scripts/guard4_verify.sh` | Prova de rollback: backup idêntico ao `boot.img` da ROM + `.sha256` |
 | `tests/test_scanner_rules.sh` | Regressão das 13 regras do scanner (fixtures sintéticas, exit code contratual) |
+| `tests/test_extract_rom_assets.sh` | 15 cenários: L4 pelo pacote, exits 3/4/5/6 |
+| `tests/test_kernel_compat_check.sh` | 10 cenários: modelo, API, KMI, base, build, suporte declarado |
+| `tests/test_rollout_gate.sh` | 13 cenários: módulo único, FAILED trava, onda não regride |
+| `tests/test_cache_and_guard4.sh` | 13 cenários: cache íntegro/corrompido/externo + rollback VERIFIED |
 | `references/archive/evox-ci-v2.0-canonical-drive-export.md` | Documento canonico v2.0 (33 KB, export do Google Drive) |
 | `references/archive/evox-ci-v2.0-SKILL.md` | Resumo v2.0 empacotado (T01–T10) |
 | `assets/watchdog_anti_bootloop_service.sh` | Auto-desativacao de modulos se `boot_completed != 1` em 120s |

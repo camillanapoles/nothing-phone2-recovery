@@ -141,6 +141,9 @@ Atalho de descoberta: `.claude/skills -> ../skills` (o `.claude/` é gitignored)
 | Regressão das 9 regras | `make -C skills test-core` | **13 PASS / 0 FAIL** |
 | Preflight de dependências | `make -C skills test-core` | **8 PASS / 0 FAIL** |
 | Coletor de evidência (stub de adb) | `make -C skills test-guard` | **8 PASS / 0 FAIL** |
+| Gate kernel × ROM × device | `test_kernel_compat_check.sh` | **10 PASS / 0 FAIL** |
+| Rollout canário (1 módulo/vez) | `test_rollout_gate.sh` | **13 PASS / 0 FAIL** |
+| Cache versionado + rollback Guard-4 | `test_cache_and_guard4.sh` | **13 PASS / 0 FAIL** |
 | Cenário negativo manual | 2 módulos em `audio_effects.xml` | `CONFLICT` exit 1 + veto |
 | Snapshot/estado | `snapshot_branch_manager.sh` | `[OK] Snapshot registrado` |
 | Segredos / links / nome↔dir | `tools/validate_skills.py` | 0 violações |

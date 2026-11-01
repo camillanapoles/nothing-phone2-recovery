@@ -150,6 +150,9 @@ O `preflight_deps.sh` não instala nada: diz o que falta e o comando (exit 1 se 
 | A6 | Pós-flash com evidência | `test_collect_evidence.sh` → **8 PASS** |
 | A7 | Estado do workspace limpo | `state_reset.sh` → `clean` · 0 linhas no DB do FSM |
 | A8 | Instrução de abertura e pergunta obrigatória | `SKILL.md` §VI-A + `AGENTS.md` §2 |
+| A9 | Kernel só com tríade fechada | `test_kernel_compat_check.sh` → **10 PASS** |
+| A10 | Um módulo por vez, com evidência | `test_rollout_gate.sh` → **13 PASS** |
+| A11 | Cache das fases verdes + rollback provado | `test_cache_and_guard4.sh` → **13 PASS** |
 
 ---
 
@@ -163,6 +166,53 @@ O `preflight_deps.sh` não instala nada: diz o que falta e o comando (exit 1 se 
 
 Respondidos 1–4, a próxima sessão executa as fases 0→9 sem tocar no aparelho e devolve o pacote
 pré-USB com gate 10. O flash continua sendo decisão sua, com o cabo na sua mão.
+
+---
+
+## 11. Cobertura dos 6 requisitos que você pediu (validado item por item)
+
+| # | Requisito seu | Estava? | O que foi acrescentado | Prova |
+|---|---|---|---|---|
+| **1** | Kernel compatível com a **versão exata da ROM** e com o **modelo** (Pong); conferir versão do Android e se o desenvolvedor suporta a base | **parcial** (só citava GKI/kallsyms) | `references/kernel-selection-gate.md` + `scripts/kernel_compat_check.sh`: compara `model=pong`, SoC, API 36, KMI, base `major.minor` e `supported_rom_builds`; exige `developer_support.declared` | **10 PASS** |
+| **3** | No CI/CD, instalar **um módulo por vez** e testar antes do próximo | **não explícito** (só "5 ondas") | `references/rollout-and-cache.md` + `scripts/rollout_gate.sh`: ledger canário, recusa 2 módulos abertos, exige `boot.ok=true`, `crashes=0`, `uptime ≥ 10 min`; `FAILED` trava o próximo | **13 PASS** |
+| **4** | Manter **cache das partes bem-sucedidas** no repositório, para continuidade | **parcial** (`workspace/` é gitignored) | `scripts/cache_manager.sh`: `put/get/list/verify`, manifesto com SHA-256; ≤ 25 MB versionado, acima vira referência externa com hash | **13 PASS** (junto ao item 5) |
+| **5** | Sempre ter **backup do `boot.img`** para bootloop | **sim** (Guard-4 já copiava) | `scripts/guard4_verify.sh`: exige backup existente, `.sha256` conferindo **e** byte-idêntico ao `boot.img` do pacote oficial | **13 PASS** (mesmo teste) |
+| **6** | Instalar a **versão estável atualizada**; checar **compatibilidade módulo × Android × kernel**; decidir com base no `pong`, estabilidade e eficiência | **parcial** (matriz 5W1H, sem critério de versão) | §2 do `kernel-selection-gate.md` (5 critérios em ordem, pinned `20260915`, "estabilidade > novidade") + tabela de campos obrigatórios por módulo (`android_api`, `kmi`, `arch`, `root_engine`, `susqs/zygisk`, `url+sha256`) | documentado + gate 1 executável |
+
+Resumo: **1 e 6** ganharam gate executável e referência; **3 e 4** não existiam e agora existem com
+teste; **5** existia, mas passou a ter prova de integridade contra o pacote oficial.
+
+### Onde cada regra vive (para não virar texto solto)
+
+```text
+AGENTS.md §3 (invariantes 9–15)           regra de bolso, sempre lida
+skills/BOOT.md §5 (fluxo 4b/4c/6/7b/7c)   ordem obrigatória na execução
+SKILL.md §VI-D                            contrato + exit codes
+references/kernel-selection-gate.md       req 1 e 6
+references/rollout-and-cache.md           req 3 e 4
+scripts/{kernel_compat_check,rollout_gate,cache_manager,guard4_verify}.sh
+tests/test_{kernel_compat_check,rollout_gate,cache_and_guard4}.sh
+```
+
+---
+
+## 12. Pendências completas da sessão (o que só você pode responder)
+
+| # | Pendência | Tipo | O que destrava | Se não responder |
+|---|---|---|---|---|
+| **P1** | **Vanilla ou GAPPS** | decisão | escolha da build + `workspace/decision.json` | nada é baixado/extraído |
+| **P2** | **`.zip` da ROM acessível** (o sandbox não alcança `cdn.evolution-x.org`) | insumo | caminho local do arquivo | L4 não fecha; Wave 1 não começa |
+| **P3** | **Autorizar instalação** de `payload-dumper-go`, `kptools`, `magiskboot`, `adb` | permissão | `go install`/release/apt | só a L4 roda; patch e estágio B ficam bloqueados |
+| **P4** | **Kernel: stock + patch APatch ou kernel de terceiro?** | decisão | define se o gate 1 roda contra candidato externo | padrão = stock + APatch (menor risco) |
+| **P5** | **Lista final de módulos** que entram em W2–W4 (MaxManager, GenieX, GCam, Duck-ToolBox, DroidSpaces, SAF, free-form, rede) | escopo | ledger de rollout | fica a matriz 5W1H completa como proposta |
+| **P6** | **Janela de canário** (10 min por módulo) e critério de AVC denial aceitável | decisão | `--min-uptime` e baseline | padrão 10 min, baseline 0 novos AVC |
+| **P7** | **Retenção de cache** (o que fica versionado; quanto tempo) | política | `cache_manager put` por fase | padrão: manifestos sempre, binários > 25 MB externos |
+| **P8** | **Quando o cabo USB entra** (gate 10 = 10/10 PASS) | autorização | flash assistido | nada é gravado no aparelho |
+| **P9** | **Abrir PR** com esta preparação? | autorização | PR da branch atual | fica só no commit local/remoto da branch |
+| **P10** | **L4 na prática**: rodar `extract_rom_assets.sh` com o zip e confirmar kernel/KMI | execução | arquivo + permissão P3 | L4 permanece "procedimento pronto, dado ausente" |
+
+> P1–P3 são bloqueantes para começar. P4–P7 refinam a execução. P8–P9 são autorizações.
+> P10 é o primeiro comando real da próxima sessão.
 
 ---
 

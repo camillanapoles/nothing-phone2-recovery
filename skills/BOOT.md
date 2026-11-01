@@ -69,9 +69,12 @@ Esperado: `[harness] OK (0 falhas)` · `[core] make check OK` · `13 PASS` (regr
 3. instrucao    module-matrix-5w1h           → módulo, onda, gate
 4. preflight    scripts/preflight_deps.sh    → binários externos antes de começar
 4b. lacuna L4   scripts/extract_rom_assets.sh→ hashes+kernel do .zip oficial (não do device)
+4c. gate kernel kernel_compat_check.sh       → COMPATIBLE? senão não patcheia boot
 5. estatico     make scan / make audit       → CLEAN? senão VETO
-6. estagio A    make extract → make forge    → Guard-4 + KMI
+6. estagio A    make extract → make forge    → Guard-4 + KMI + guard4_verify.sh VERIFIED
 7. estagio B    make runtime-test            → boot_completed, logcat, RescueParty
+7b. rollout     rollout_gate start/record     → 1 módulo por vez, PASS antes do próximo
+7c. cache       cache_manager put/verify     → fase verde endereçável por SHA-256
 8. estado       make snapshot                → snapshot/<camada>/<tag> + manifesto
 9. release      gate 10 (pre-USB)            → só com 10/10 PASS
 10. pos-flash   collect_evidence.sh          → evidence.json + MANIFEST.sha256
