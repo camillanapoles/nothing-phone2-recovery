@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# root_engine_gate.py — a escolha motor × kernel × módulos é executável? (18 casos)
+# root_engine_gate.py — a escolha motor × kernel × módulos é executável? (23 casos)
 # O gate não opina: ele recusa (incompatível), espera (pendente) ou libera (compatível).
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; G="$HERE/../scripts/root_engine_gate.py"; ROOT="$(cd "$HERE/../../.." && pwd)"
@@ -83,6 +83,21 @@ rc_bom=$(python3 "$G" --root "$T" --engine kernelsu --candidate bom >/dev/null 2
 rc_medio=$(python3 "$G" --root "$T" --engine kernelsu --candidate sem_susfs >/dev/null 2>&1; echo $?)
 ck "fixture: SUSFS sem patch no kernel fica PENDENTE" "exit" "$rc_medio" "3"
 ck "fixture: SUSFS com KernelSU certificado libera" "exit" "$rc_bom" "0"
+
+# 4) M05/DroidSpaces obedece a instrução do app dentro do gate
+rc_magisk=$(run --engine magisk)
+ck "DroidSpaces não roda sobre Magisk → INCOMPATÍVEL" "exit" "$rc_magisk" "1"
+cond_m05=$(python3 "$G" --root "$ROOT" --engine apatch --json |
+  python3 -c 'import json,sys;c=[x for x in json.load(sys.stdin)["checks"] if x["check"]=="m05_kernel_configs"];print(c[0]["verdict"] if c else "ausente")')
+ck "configs de kernel não provadas viram CONDIÇÃO" "condicao" "$cond_m05" "condicao"
+printf '{"kmi":"android13-5.10","kernel_base":"5.10","configs":{"CONFIG_SYSVIPC":"y","CONFIG_POSIX_MQUEUE":"y","CONFIG_NAMESPACES":"y","CONFIG_UTS_NS":"y","CONFIG_IPC_NS":"y","CONFIG_PID_NS":"y","CONFIG_NET_NS":"y","CONFIG_USER_NS":"y","CONFIG_CGROUPS":"y","CONFIG_CGROUP_PIDS":"y","CONFIG_CGROUP_FREEZER":"y","CONFIG_SECCOMP":"y"}}\n' > "$T/evok.json"
+printf '{"kmi":"android13-5.10","kernel_base":"5.10","configs":{"CONFIG_POSIX_MQUEUE":"y"}}\n' > "$T/evno.json"
+rc_evok=$(python3 "$G" --root "$ROOT" --engine apatch --kernel-evidence "$T/evok.json" >/dev/null 2>&1; echo $?)
+ck "evidência completa do kernel libera o M05" "exit" "$rc_evok" "0"
+rc_evno=$(python3 "$G" --root "$ROOT" --engine apatch --kernel-evidence "$T/evno.json" >/dev/null 2>&1; echo $?)
+ck "evidência sem SYSVIPC deixa PENDENTE" "exit" "$rc_evno" "3"
+rc_evo=$(python3 "$G" --root "$ROOT" --engine apatch --kernel-evidence "$T/nao-existe.json" >/dev/null 2>&1; echo $?)
+ck "evidência apontada e ausente deixa PENDENTE" "exit" "$rc_evo" "3"
 
 printf '%s\n' "-----------------------------------------------------------------------"
 printf 'TOTAL: %d PASS / %d FAIL\n' "$P" "$F"

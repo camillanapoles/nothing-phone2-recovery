@@ -52,7 +52,7 @@ mas **não** empilhe spoofers concorrentes (regra R04: um único dono da escrita
 
 | Módulo | Exige antes | Se faltar |
 |---|---|---|
-| M05 | M01 (root) | daemon não sobe / seccomp bloqueia |
+| M05 | M01 (root) — **ordem do app**, ver §4.1 | daemon não sobe / seccomp bloqueia |
 | M07 | M03 | sem base Google, props não têm efeito |
 | M08 | M03 + M07 | atestação sem chave coerente |
 | M12A/M12B | M01 (root) | sem escrita em `sysfs`/NPU |
@@ -62,6 +62,33 @@ mas **não** empilhe spoofers concorrentes (regra R04: um único dono da escrita
 
 `rollout_gate.sh` recusa onda decrescente e módulo seguinte sem PASS — a tabela acima é a política;
 o ledger é a trava.
+
+### 4.1 M05 DroidSpaces — o momento é ditado pela documentação do app
+
+O contrato vive em `references/droidspaces-requirements.json` e é verificado por
+`scripts/droidspaces_preflight.py`. Nada aqui é prosa: cada linha vira check.
+
+| Item | Valor fixado | Como é provado |
+|---|---|---|
+| App | `ravindu644/Droidspaces-OSS` **v7.1.0** (2026-10-27) | `--static`: versão semântica, data ISO |
+| Artefato | `Droidspaces-universal-v7.1.0-4344dc5.apk` — 13 356 637 B · `sha256:36ab4466…930b6` | `--static`: 64 hex + tamanho > 0 + URL `https://github.com/` |
+| Quando | **F0 / onda 1, posição 2 — logo depois do M01 (root)**, antes de M03/M07/M08/M12A/M12B | `--static`: `after` contém `M01`, `before` contém `M03`, `phase=F0` |
+| Instalação | `apd module install /sdcard/modules/Droidspaces.zip` | passo em `install` do contrato |
+| Kernel | `CONFIG_SYSVIPC`, `CONFIG_POSIX_MQUEUE`, namespaces (uts/ipc/pid/net/user/mnt), `CONFIG_CGROUPS`, `CGROUP_PIDS`, `CGROUP_FREEZER`, `CONFIG_SECCOMP` | `--kernel-evidence kernel.json` (12 CONFIG_* presentes) |
+| Runtime | `/proc/sysvipc/{shm,sem,msg}`, `/proc/sys/kernel/posix-mqueue/qsize` | `--device`: cada caminho legível |
+| Caminhos | `/data/local/Droidspaces/bin`, `/data/adb/modules/droidspaces_kernel`, `/data/adb/service.d` | `--device --expect-installed` |
+| R03 | `mount_hide_global=false` — **proibido** mount-hide global do SUSFS | `--static` + `root_engine_gate.py` (condição) |
+| Motor | `apatch`, `kernelsu`, `sukisu` — **Magisk não é suportado** | `root_engine_gate.py --engine magisk` → INCOMPATÍVEL (1) |
+| Rollback | remover o módulo e reiniciar (não consome `boot_stock_rollback.img`) | declarado em `rollback` |
+| Proibições do app | nunca reiniciar com o daemon ainda subindo; incompatível com Shamiko / Mountify / LSPosed-Riru | `constraints` do contrato |
+
+A ordem da documentação do aparelho (`install-guide` Step 6) fecha com a mesma conclusão:
+ZygiskNext → TrickyStore → PIFork → LSPosed → **Droidspaces por último**; "DO NOT reboot until
+Droidspaces boots safely" é o mesmo aviso do contrato, em outra fonte.
+
+Onde o DroidSpaces fica **PENDENTE** (exit 3, não "ok"): falta a evidência de kernel da build
+pinada. `--static` já está PRONTO (26 asserções verdes); o que falta é o arquivo de configs — que sai
+da L4 (`extract_rom_assets.sh`) ou de um candidato certificado, nunca de suposição.
 
 ## 5. O que entra em cada fase (com critério de saída)
 

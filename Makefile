@@ -1,7 +1,7 @@
 # Raiz do workspace — atalhos de prova. A verdade está em AGENTS.md.
 SHELL := /usr/bin/env bash
 
-.PHONY: help state state-reset test-state test-wrappers arch skills test prove
+.PHONY: help m05 state state-reset test-state test-wrappers arch skills test prove
 
 help:
 	@echo "make state        -> dry-run da higiene de estado (nada é alterado)"
@@ -13,6 +13,7 @@ help:
 	@echo "make mutation     -> falseabilidade: 102 mutantes têm de ser mortos por asserção"
 	@echo "make vacuity       -> análise estática de testes viciados (V1–V6)"
 	@echo "make skills       -> harness completo das 8 skills (validate+testes+eval)"
+	@echo "make m05          -> DroidSpaces: contrato estático + gate motor × kernel (M05)"
 	@echo "make prove        -> tudo: test-state + skills"
 
 state:
@@ -26,6 +27,10 @@ test-state:
 
 test-wrappers:
 	@tests/test_wrapper_stages.sh
+
+m05:
+	@python3 skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py --root . --static
+	@python3 skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py --root . --engine apatch
 
 arch:
 	@python3 skills/evox-rom-ci-optimizer/scripts/architecture_guard.py

@@ -9,9 +9,12 @@ nunca com opinião:
   - Módulo com requisito de motor explícito tem de casar com o motor escolhido.
   - Candidato marcado `rejected_eol` nunca passa (release parado não é "mais estável").
   - DroidSpaces (M05) + mount-hide global do SUSFS violam R03 → condição obrigatória.
+  - DroidSpaces segue a instrução do próprio app: motor na lista suportada, instalação depois
+    do root (M01) e configs de kernel provadas por `--kernel-evidence` (senão, condição/pendente).
 
 Uso:
-  root_engine_gate.py --engine apatch [--candidate stock-evolutionx] [--modules F] [--json]
+  root_engine_gate.py --engine apatch [--candidate stock-evolutionx] [--modules F]
+                                [--kernel-evidence F] [--json]
   root_engine_gate.py --list-engines
 
 Exit: 0 COMPATÍVEL · 3 PENDENTE (falta dado/certificação) · 1 INCOMPATÍVEL · 2 uso · 4 entrada inválida
@@ -26,6 +29,7 @@ SK = "skills/evox-rom-ci-optimizer"
 ENGINES = f"{SK}/references/root-engines.json"
 CANDIDATES = f"{SK}/references/kernel-candidates.json"
 MODULES = f"{SK}/references/module-requirements.json"
+DROID = f"{SK}/references/droidspaces-requirements.json"
 
 
 def load(path: str) -> dict:
@@ -125,6 +129,50 @@ def main(argv: list[str]) -> int:
     if engine.get("supports_susfs") and any(m.get("mount_hide_global") for m in modules):
         add("r03_mount_hide", "condicao",
             "SUSFS só com mount-hide GLOBAL desabilitado (DroidSpaces/M05 no escopo)")
+
+    # 4b. DroidSpaces (M05): ordem e motor vêm da instrução do próprio app
+    droid_p = os.path.join(root, DROID)
+    if any(m.get("id") == "M05" for m in modules) and os.path.exists(droid_p):
+        try:
+            droid = load(droid_p)
+        except Exception as exc:
+            add("m05_contrato", "incompativel", f"droidspaces-requirements.json inválido: {exc}")
+            droid = None
+        if droid:
+            supported = (droid.get("constraints") or {}).get("supported_engines") or []
+            version = (droid.get("app") or {}).get("version", "?")
+            if supported and engine["id"] not in supported:
+                add("m05_motor", "incompativel",
+                    f"M05/DroidSpaces {version} exige motor em {supported}, escolhido={engine['id']}")
+            else:
+                add("m05_motor", "ok", f"DroidSpaces {version} roda sobre {engine['id']}")
+            after = (droid.get("install") or {}).get("after") or []
+            if "M01" in after:
+                add("m05_ordem", "ok",
+                    "M05 instalado depois de M01 (root), fase "
+                    f"{(droid.get('install') or {}).get('phase', '?')}, "
+                    f"posição {(droid.get('install') or {}).get('position', '?')}")
+            else:
+                add("m05_ordem", "incompativel", "M05 sem dependência declarada do M01 (root)")
+            ev_path = argv[argv.index("--kernel-evidence") + 1] if "--kernel-evidence" in argv else ""
+            cfgs = (droid.get("kernel") or {}).get("configs_required") or []
+            if not ev_path:
+                add("m05_kernel_configs", "condicao",
+                    f"{len(cfgs)} CONFIG_* do kernel ainda não provadas — rodar "
+                    "droidspaces_preflight.py --kernel-evidence <arquivo>")
+            elif not os.path.exists(ev_path):
+                add("m05_kernel_configs", "pendente", f"evidência de kernel ausente: {ev_path}")
+            else:
+                try:
+                    ev_cfgs = (load(ev_path) or {}).get("configs") or {}
+                except Exception:
+                    ev_cfgs = {}
+                missing = [c for c in cfgs if str(ev_cfgs.get(c, "n")) not in ("y", "m")]
+                if missing:
+                    add("m05_kernel_configs", "pendente",
+                        "kernel sem " + ", ".join(missing) + " — DroidSpaces não sobe")
+                else:
+                    add("m05_kernel_configs", "ok", f"{len(cfgs)} CONFIG_* presentes na evidência")
 
     # 5. módulos que exigem root mas o motor não dá root
     if any(m.get("root_required") for m in modules) and engine.get("mechanism", "").startswith("none"):

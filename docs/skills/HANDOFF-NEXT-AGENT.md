@@ -67,7 +67,7 @@ pergunta de novo; ele **verifica** com `session_open.py check` antes de agir.
 
 ## 5. Regras que não podem ser afrouxadas
 
-- **Teste que passa com a lógica removida é falha** (`make -s mutation`: 102 mutantes, 0 vivo).
+- **Teste que passa com a lógica removida é falha** (`make -s mutation`: 115 mutantes, 0 vivo).
 - **Timeout não é cobertura**: mutante morto por travar é classificado `timeout` e o harness
   reprova (`--allow-timeout` só com justificativa explícita).
 - **Ausência de insumo não é sucesso**: scripts de estágio saem `3` (PENDENTE) ou `4` (ferramenta

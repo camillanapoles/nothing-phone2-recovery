@@ -1,0 +1,90 @@
+{
+  "schema": "evox-droidspaces/1",
+  "module_id": "M05",
+  "name": "DroidSpaces (containers Linux nativos)",
+  "role": "container runtime LXC-like sobre o kernel do pong; não é app, é runtime + daemon",
+  "app": {
+    "project": "ravindu644/Droidspaces-OSS",
+    "version": "v7.1.0",
+    "released_at": "2026-10-27",
+    "apk": {
+      "name": "Droidspaces-universal-v7.1.0-4344dc5.apk",
+      "size_bytes": 13356637,
+      "sha256": "36ab4466c732dc6d47136013ebab9a6c1742f38ced41a3d2acf0f7f155b930b6",
+      "url": "https://github.com/ravindu644/Droidspaces-OSS/releases/download/v7.1.0/Droidspaces-universal-v7.1.0-4344dc5.apk"
+    },
+    "cli_tarball": {
+      "name": "droidspaces-v7.1.0-4344dc5.tar.gz",
+      "size_bytes": 1148795,
+      "sha256": "910d4ab3846a1c81a80414f3e391d9695f3e88c8f1ae8243dcf80e1b9425f192",
+      "url": "https://github.com/ravindu644/Droidspaces-OSS/releases/download/v7.1.0/droidspaces-v7.1.0-4344dc5.tar.gz"
+    },
+    "sha256sums_url": "https://github.com/ravindu644/Droidspaces-OSS/releases/download/v7.1.0/SHA256SUMS",
+    "manager": "apd (APatch) / app Droidspaces"
+  },
+  "install": {
+    "phase": "F0",
+    "wave": "W1",
+    "position": 2,
+    "after": ["M01"],
+    "before": ["M03", "M07", "M08", "M12A", "M12B"],
+    "method": "apd module install /sdcard/modules/Droidspaces.zip",
+    "never": [
+      "instalar antes do root (M01) estar com PASS no ledger",
+      "reiniciar com o daemon ainda subindo (aguardar boot estável)",
+      "instalar Shamiko, Mountify ou LSPosed-Riru junto (conflito declarado)"
+    ]
+  },
+  "kernel": {
+    "configs_required": [
+      "CONFIG_SYSVIPC",
+      "CONFIG_POSIX_MQUEUE",
+      "CONFIG_NAMESPACES",
+      "CONFIG_UTS_NS",
+      "CONFIG_IPC_NS",
+      "CONFIG_PID_NS",
+      "CONFIG_NET_NS",
+      "CONFIG_USER_NS",
+      "CONFIG_CGROUPS",
+      "CONFIG_CGROUP_PIDS",
+      "CONFIG_CGROUP_FREEZER",
+      "CONFIG_SECCOMP"
+    ],
+    "evidence_source": "L4 (payload.bin -> boot.img -> /proc/config.gz ou IKCONFIG extraído) ou kernel candidato certificado",
+    "min_kernel_base": "5.10"
+  },
+  "runtime": {
+    "namespaces": ["pid", "net", "uts", "ipc", "user", "mnt"],
+    "proc_checks": [
+      "/proc/sysvipc/shm",
+      "/proc/sysvipc/sem",
+      "/proc/sysvipc/msg",
+      "/proc/sys/kernel/posix-mqueue/qsize"
+    ],
+    "paths": [
+      "/data/local/Droidspaces/bin",
+      "/data/adb/modules/droidspaces_kernel",
+      "/data/adb/service.d"
+    ],
+    "daemon": "service.d/droidspaces.sh (sobe o daemon no boot, sem bloquear post-fs-data)",
+    "root_required": true
+  },
+  "constraints": {
+    "mount_hide_global": false,
+    "reason": "R03: mount-hide global do SUSFS esconde o próprio rootfs dos containers (DroidSpaces quebra)",
+    "selinux": "Enforcing",
+    "supported_engines": ["apatch", "kernelsu", "sukisu"],
+    "unsupported_engines": ["magisk"],
+    "unsupported_reason": "caminho validado é APatch/ksu; Magisk não é o motor escolhido na matriz"
+  },
+  "rollback": {
+    "disable": "remover /data/adb/modules/droidspaces_kernel e reiniciar (containers param; sistema intacto)",
+    "boot": "boot_stock_rollback.img (não é necessário para desinstalar o módulo)"
+  },
+  "sources": [
+    "https://github.com/ravindu644/Droidspaces-OSS/releases/tag/v7.1.0",
+    "zeroharcoderd/knowledge/modules/droidspaces.md",
+    "zeroharcoderd/knowledge/config-map/apatch-evolutionx-droidspaces.md",
+    "skills/evox-rom-ci-optimizer/references/module-rollout-order.md"
+  ]
+}

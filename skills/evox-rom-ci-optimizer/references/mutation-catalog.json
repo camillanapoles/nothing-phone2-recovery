@@ -994,6 +994,87 @@
       "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
       "strength": "semantic",
       "rationale": "SUSFS exige motor e kernel que realmente suportem"
+    },
+    {
+      "id": "M107",
+      "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
+      "find": "    add(\"apk_sha256\", bool(HEX64.fullmatch(str(apk.get(\"sha256\", \"\")))), \"hash de 64 hex\")",
+      "replace": "    add(\"apk_sha256\", True, \"hash de 64 hex\")",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
+      "strength": "semantic",
+      "rationale": "hash do APK tem de ser 64 hex, nao um campo sempre-verde"
+    },
+    {
+      "id": "M108",
+      "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
+      "find": "    add(\"r03_mount_hide_desligado\", cons.get(\"mount_hide_global\") is False,",
+      "replace": "    add(\"r03_mount_hide_desligado\", True,",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
+      "strength": "semantic",
+      "rationale": "mount-hide global ligado viola R03 e nao pode passar"
+    },
+    {
+      "id": "M109",
+      "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
+      "find": "        if val not in (\"y\", \"m\"):",
+      "replace": "        if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
+      "strength": "semantic",
+      "rationale": "CONFIG_* ausente no kernel tem de reprovar o M05"
+    },
+    {
+      "id": "M110",
+      "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
+      "find": "    add(\"selinux\", enforcing == droid[\"constraints\"][\"selinux\"], f\"getenforce={enforcing or '(vazio)'}\")",
+      "replace": "    add(\"selinux\", True, f\"getenforce={enforcing or '(vazio)'}\")",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
+      "strength": "semantic",
+      "rationale": "SELinux Permissive invalida o runtime do DroidSpaces"
+    },
+    {
+      "id": "M111",
+      "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
+      "find": "    add(\"namespaces\", not missing_ns,",
+      "replace": "    add(\"namespaces\", True,",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
+      "strength": "semantic",
+      "rationale": "namespace ausente no device tem de reprovar"
+    },
+    {
+      "id": "M112",
+      "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
+      "find": "    add(\"ordem_depois_de_M01\", \"M01\" in (inst.get(\"after\") or []), f\"after={inst.get('after')}\")",
+      "replace": "    add(\"ordem_depois_de_M01\", True, f\"after={inst.get('after')}\")",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
+      "strength": "contract",
+      "rationale": "instalar o M05 antes do root quebra a instrucao do app"
+    },
+    {
+      "id": "M113",
+      "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
+      "find": "            (m05.get(\"app\") or {}).get(\"version\") == app.get(\"version\"),",
+      "replace": "            True,",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
+      "strength": "contract",
+      "rationale": "versao do M05 no contrato de modulos tem de casar com o app"
+    },
+    {
+      "id": "M114",
+      "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+      "find": "            if supported and engine[\"id\"] not in supported:",
+      "replace": "            if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+      "strength": "semantic",
+      "rationale": "motor fora da lista suportada pelo DroidSpaces nao pode ser liberado"
+    },
+    {
+      "id": "M115",
+      "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+      "find": "                if missing:",
+      "replace": "                if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+      "strength": "semantic",
+      "rationale": "evidencia de kernel sem CONFIG_* obrigatoria tem de deixar PENDENTE"
     }
   ]
 }

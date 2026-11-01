@@ -86,6 +86,11 @@ Legenda: **=** igual, **Δ** muda de forma, **✗** deixa de existir, **+** pass
 | M15 Release pre-USB | = | **Δ** o artefato precisa incluir o ZIP do kernel e o `boot_stock_rollback.img` |
 | — | — | **+** gerenciador do fork (SukiSU/ReSukiSU) e **+** ferramenta `ksu_susfs` (userspace do SUSFS) |
 
+Duas linhas do M05 acima deixaram de ser texto e viraram gate: o `droidspaces_preflight.py` prova
+(a) a **ordem do próprio app** — F0/W1, posição 2, depois do M01 — e (b) que o motor escolhido está
+na lista suportada pelo DroidSpaces (`apatch`, `kernelsu`, `sukisu`; **Magisk não**). Com isso,
+`root_engine_gate.py --engine magisk` sai **INCOMPATÍVEL (1)**, e não mais "compatível".
+
 Consequência de arquitetura: trocar o motor **não é** “instalar um módulo a mais” — muda o **M01**,
 adiciona um artefato de kernel ao **M15** e cria uma condição no **M05**. Por isso a onda 1 do
 ledger é a mesma nos dois casos: *um artefato por vez, com PASS antes do próximo*.
@@ -98,8 +103,9 @@ ledger é a mesma nos dois casos: *um artefato por vez, com PASS antes do próxi
 | `references/kernel-candidates.json` | candidatos com data, hash, suporte declarado e status (`baseline`, `candidate_unverified`, `rejected_eol`) |
 | `references/module-requirements.json` | contrato dos 15 módulos (root, motor exigido, SUSFS, Zygisk, mount-hide, kernel-level) |
 | `scripts/root_engine_gate.py` | cruza motor × kernel × módulos → **COMPATÍVEL / PENDENTE / INCOMPATÍVEL** com motivos |
-| `tests/test_root_engine_gate.sh` | 18 casos (inclui fixtures que provam que o gate sabe dizer **não**) |
-| `references/mutation-catalog.json` | 4 mutantes novos (M103–M106), todos mortos por asserção |
+| `tests/test_root_engine_gate.sh` | 23 casos (inclui fixtures que provam que o gate sabe dizer **não**, e o M05 recusando Magisk) |
+| `scripts/droidspaces_preflight.py` | Gate do **M05**: contrato estático, evidência de kernel e checagem no device — detalhado em [DROIDSPACES-VALIDATION.md](DROIDSPACES-VALIDATION.md) |
+| `references/mutation-catalog.json` | 13 mutantes do motor (M103–M106, M114–M115) e do M05 (M107–M113), todos mortos por asserção |
 
 Comandos:
 
