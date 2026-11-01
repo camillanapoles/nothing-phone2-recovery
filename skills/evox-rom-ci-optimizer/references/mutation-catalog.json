@@ -1129,6 +1129,24 @@
       "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
       "strength": "semantic",
       "rationale": "M05 tem de exigir o motor ratificado, nao qualquer motor suportado"
+    },
+    {
+      "id": "M122",
+      "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
+      "find": "        all(c in cfgs for c in (\"CONFIG_USER_NS\", \"CONFIG_PID_NS\"))",
+      "replace": "        True",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
+      "strength": "semantic",
+      "rationale": "isolamento exige USER_NS e PID_NS no kernel do pacote"
+    },
+    {
+      "id": "M123",
+      "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
+      "find": "        ker.get(\"source\") == \"stock-rom\" and ker.get(\"custom_kernel_allowed\") is False,",
+      "replace": "        True,",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
+      "strength": "semantic",
+      "rationale": "M05 nao pode aceitar kernel compilado sob a Decisao A"
     }
   ]
 }

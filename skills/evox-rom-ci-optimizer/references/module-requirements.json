@@ -91,7 +91,11 @@
       "requires_susfs": false,
       "mount_hide_global": false,
       "needs_zygisk": false,
-      "kernel_level": false
+      "kernel_level": false,
+      "compliance_base": [
+        "PlayIntegrityFork (custom.pif.json)"
+      ],
+      "compliance_role": "fingerprint/props de identidade"
     },
     {
       "id": "M08",
@@ -101,7 +105,17 @@
       "requires_susfs": false,
       "mount_hide_global": false,
       "needs_zygisk": true,
-      "kernel_level": false
+      "kernel_level": false,
+      "zygisk_base": "Zygisk Next",
+      "compliance_base": [
+        "Zygisk Next",
+        "Tricky Store",
+        "PlayIntegrityFork"
+      ],
+      "compliance_role": "atestação/KeyMint + Play Integrity (MEETS_DEVICE_INTEGRITY)",
+      "not_approved": [
+        "Zygisk Assistant (fork de Shamiko; conflito não descartado com APatch kallsyms)"
+      ]
     },
     {
       "id": "M09",

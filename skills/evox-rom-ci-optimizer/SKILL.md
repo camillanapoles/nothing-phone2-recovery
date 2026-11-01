@@ -356,7 +356,7 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `references/kernel-candidates.json` | candidatos de kernel com data, hash, suporte declarado à build pinada e `origin` (`stock-rom` × `third-party`) |
 | `references/module-requirements.json` | contrato dos 15 módulos (root, motor, SUSFS, Zygisk, mount-hide) |
 | `references/droidspaces-requirements.json` | **M05 inteiro em dados**: app v7.1.0 + sha256 do APK, instalação em F0/W1 posição 2 depois do M01, 12 `CONFIG_*` de kernel, `proc_checks`, caminhos, R03, motores (`apatch/kernelsu/sukisu`), rollback |
-| `references/mutation-catalog.json` | 121 mutantes (≥2 semânticos por arquivo, com `strength` declarada; timeout não conta como kill) |
+| `references/mutation-catalog.json` | 123 mutantes (≥2 semânticos por arquivo, com `strength` declarada; timeout não conta como kill) |
 | `scripts/contradiction_scan.py` | Varredura de contradições (C1–C13): instrução ativa que ainda manda fazer o abandonado ou usa vocabulário ambíguo (`Gate 4`, `gate 10`, `init_boot` sem fonte) |
 | `scripts/coverage_matrix.py` | Cobertura fechada: todo script tem teste ou isenção declarada (`references/audit-exemptions.json`) |
 | `scripts/audit_loop.sh` | Harness de convergência: AG + scan + cobertura + suíte, em loop até estabilizar |
@@ -374,7 +374,7 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `scripts/ci_workflow_lint.py` | Lint das travas de custo/segurança do workflow (11 regras) |
 | `tests/test_session_open.sh` | 18 cenários: decisão incompleta trava, completa libera; P1 exige `flavor_source=user` e `auto` nunca herda variante |
 | `tests/test_sandbox_rollout.sh` | 12 cenários com stub de `adb` (boot, crash, ordem, ledger) |
-| `tests/test_root_decision.sh` | 34 cenários: decisão A ratificada vira trava — motor único, kernel só da ROM, SUSFS fora, isonomia de metodologia de kernel, casos isolados por trava |
+| `tests/test_root_decision.sh` | 38 cenários: decisão A ratificada vira trava — motor único, kernel só da ROM, SUSFS fora, isonomia de metodologia de kernel, casos isolados por trava |
 | `tests/test_root_engine_gate.sh` | 31 cenários: motor × kernel × módulos (inclui EOL recusado, módulo que exige outro motor e Magisk recusado pelo DroidSpaces) |
 | `tests/test_droidspaces_preflight.sh` | 26 cenários: contrato completo, fixtures que reprovam (sha inválido, sem M01, mount-hide global, placeholder, versão divergente), evidência de kernel e device via stub de `adb` |
 | `tests/test_stage_logic.sh` | 54 cenários **semânticos** dos estágios A/B e do bundle, com fixtures e stubs (nenhum insumo ausente vira sucesso) |

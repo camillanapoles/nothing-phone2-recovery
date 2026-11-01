@@ -1,5 +1,9 @@
 # Ordem incremental ratificada dos módulos (15 itens)
 
+> **Sequência executável sob a Decisão A** (motor único APatch, kernel da ROM, sem SUSFS), com a
+> camada de conformidade mapeada (Zygisk Next / Tricky Store / PIFork) e o que está fora da decisão:
+> `docs/skills/APPROVED-INSTALL-SEQUENCE.md`.
+
 > Sua lista é a **intenção**; esta é a **ordem de execução** com dependência explícita.
 >
 > **M01 é dependente do motor de root** (`references/module-requirements.json`): com APatch ele é o

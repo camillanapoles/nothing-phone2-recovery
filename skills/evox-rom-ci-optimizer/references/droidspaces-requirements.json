@@ -26,8 +26,16 @@
     "phase": "F0",
     "wave": "W1",
     "position": 2,
-    "after": ["M01"],
-    "before": ["M03", "M07", "M08", "M12A", "M12B"],
+    "after": [
+      "M01"
+    ],
+    "before": [
+      "M03",
+      "M07",
+      "M08",
+      "M12A",
+      "M12B"
+    ],
     "method": "apd module install /sdcard/modules/Droidspaces.zip",
     "never": [
       "instalar antes do root (M01) estar com PASS no ledger",
@@ -51,10 +59,21 @@
       "CONFIG_SECCOMP"
     ],
     "evidence_source": "L4 (payload.bin -> boot.img -> /proc/config.gz ou IKCONFIG extraído) ou kernel candidato certificado",
-    "min_kernel_base": "5.10"
+    "min_kernel_base": "5.10",
+    "source": "stock-rom",
+    "custom_kernel_allowed": false,
+    "custom_kernel_path": "forbidden_by_decision_A",
+    "note": "Decisão A: o kernel é o do pacote. A receita de kernel próprio do knowledge (droidspaces-android14-5.10, patch sysvipc) está PROIBIDA — se o kernel stock não tiver as CONFIG_*, o M05 fica BLOQUEADO, não vira kernel compilado."
   },
   "runtime": {
-    "namespaces": ["pid", "net", "uts", "ipc", "user", "mnt"],
+    "namespaces": [
+      "pid",
+      "net",
+      "uts",
+      "ipc",
+      "user",
+      "mnt"
+    ],
     "proc_checks": [
       "/proc/sysvipc/shm",
       "/proc/sysvipc/sem",
@@ -73,8 +92,14 @@
     "mount_hide_global": false,
     "reason": "R03: mount-hide global do SUSFS esconde o próprio rootfs dos containers (DroidSpaces quebra)",
     "selinux": "Enforcing",
-    "supported_engines": ["apatch", "kernelsu", "sukisu"],
-    "unsupported_engines": ["magisk"],
+    "supported_engines": [
+      "apatch",
+      "kernelsu",
+      "sukisu"
+    ],
+    "unsupported_engines": [
+      "magisk"
+    ],
     "unsupported_reason": "caminho validado é APatch/ksu; Magisk não é o motor escolhido na matriz"
   },
   "rollback": {
@@ -86,5 +111,18 @@
     "zeroharcoderd/knowledge/modules/droidspaces.md",
     "zeroharcoderd/knowledge/config-map/apatch-evolutionx-droidspaces.md",
     "skills/evox-rom-ci-optimizer/references/module-rollout-order.md"
-  ]
+  ],
+  "isolation": {
+    "purpose": "containers com isolamento completo, sem hooks de terceiros (Decisão A: sem SUSFS, sem kernel próprio)",
+    "required_configs": [
+      "CONFIG_USER_NS",
+      "CONFIG_PID_NS"
+    ],
+    "required_namespaces": [
+      "user",
+      "pid"
+    ],
+    "why": "USER_NS é o que dá identidade de root dentro do container; PID_NS é o que separa os processos. Sem os dois, o DroidSpaces sobe 'pela metade' e o isolamento é só cosmeticamente diferente.",
+    "if_absent": "M05 = BLOQUEADO (exit 3 no preflight); a saída permitida é nova decisão sua, nunca kernel compilado"
+  }
 }

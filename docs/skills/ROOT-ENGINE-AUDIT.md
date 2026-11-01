@@ -105,7 +105,7 @@ ledger é a mesma nos dois casos: *um artefato por vez, com PASS antes do próxi
 | `scripts/root_engine_gate.py` | cruza motor × kernel × módulos → **COMPATÍVEL / PENDENTE / INCOMPATÍVEL** com motivos |
 | `tests/test_root_engine_gate.sh` | 23 casos (inclui fixtures que provam que o gate sabe dizer **não**, e o M05 recusando Magisk) |
 | `scripts/droidspaces_preflight.py` | Gate do **M05**: contrato estático, evidência de kernel e checagem no device — detalhado em [DROIDSPACES-VALIDATION.md](DROIDSPACES-VALIDATION.md) |
-| `references/mutation-catalog.json` | 13 mutantes do motor (M103–M106, M114–M115) e do M05 (M107–M113), todos mortos por asserção |
+| `references/mutation-catalog.json` | 13 mutantes do motor (M103–M106, M114–M123) e do M05 (M107–M113), todos mortos por asserção |
 
 Comandos:
 
@@ -159,8 +159,11 @@ O que a decisão fixa, em termos executáveis:
    `kernel_evidence: rom_package` + `kernel_gate: kernel_compat_check.sh` — uma prova só, do mesmo
    pacote. Nada de "caminho paralelo" com kernel compilado.
 
-**Provas:** `tests/test_root_decision.sh` (28 casos) + `tests/test_root_engine_gate.sh` (31) +
-`tests/test_droidspaces_preflight.sh` (28). Revisão só com nova decisão explícita e kernel
+**Sequência executável:** `docs/skills/APPROVED-INSTALL-SEQUENCE.md` (fila aprovada, camada de
+conformidade e o que está fora da decisão).
+
+**Provas:** `tests/test_root_decision.sh` (38 casos) + `tests/test_root_engine_gate.sh` (35) +
+`tests/test_droidspaces_preflight.sh` (32). Revisão só com nova decisão explícita e kernel
 **declarado e certificado** à build 2026-09-15 (`revisit_if` no JSON).
 
 Enquanto a L4 não fechar, o estado correto continua **nada de `fastboot flash`**.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# droidspaces_preflight.py — M05 só entra com contrato completo e requisitos provados (28 casos)
+# droidspaces_preflight.py — M05 só entra com contrato completo e requisitos provados (32 casos)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; D="$HERE/../scripts/droidspaces_preflight.py"; ROOT="$(cd "$HERE/../../.." && pwd)"
 P=0; F=0
@@ -57,6 +57,18 @@ fixture "kernel.configs_required" '["CONFIG_SYSVIPC"]'
 rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
 ck "fixture: menos de 8 configs reprova" "exit" "$rc" "3"; restore
 
+fixture "kernel.configs_required" '["CONFIG_SYSVIPC","CONFIG_POSIX_MQUEUE","CONFIG_NAMESPACES","CONFIG_UTS_NS","CONFIG_IPC_NS","CONFIG_PID_NS","CONFIG_NET_NS","CONFIG_CGROUPS","CONFIG_CGROUP_PIDS","CONFIG_CGROUP_FREEZER","CONFIG_SECCOMP"]'
+rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
+ck "fixture: sem CONFIG_USER_NS reprova isolamento" "exit" "$rc" "3"; restore
+
+fixture "runtime.namespaces" '["pid","net","uts","ipc","cgroup","mnt"]'
+rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
+ck "fixture: sem namespace user reprova isolamento" "exit" "$rc" "3"; restore
+
+fixture "kernel.source" '"custom-build"'
+rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
+ck "fixture: kernel compilado reprova (Decisão A)" "exit" "$rc" "3"; restore
+
 fixture "install.method" '"TODO definir"'
 out=$(python3 "$D" --root "$T" --static --json)
 rc=$?
@@ -101,6 +113,10 @@ rc=$?
 ck "config faltando reprova" "exit" "$rc" "3"
 has=$(printf '%s' "$out" | python3 -c 'import json,sys;print("sim" if "CONFIG_SYSVIPC" in json.dumps(json.load(sys.stdin)) else "nao")')
 ck "motivo nomeia o CONFIG ausente" "sim" "$has" "sim"
+
+printf '{"kmi":"android13-5.10","kernel_base":"5.10","configs":{"CONFIG_SYSVIPC":"y","CONFIG_POSIX_MQUEUE":"y","CONFIG_NAMESPACES":"y","CONFIG_UTS_NS":"y","CONFIG_IPC_NS":"y","CONFIG_PID_NS":"y","CONFIG_NET_NS":"y","CONFIG_CGROUPS":"y","CONFIG_CGROUP_PIDS":"y","CONFIG_CGROUP_FREEZER":"y","CONFIG_SECCOMP":"y"}}\n' > "$T/k4.json"
+rc=$(python3 "$D" --root "$ROOT" --kernel-evidence "$T/k4.json" >/dev/null 2>&1; echo $?)
+ck "evidência sem CONFIG_USER_NS fica PENDENTE" "exit" "$rc" "3"
 
 printf '{"kmi":"android13-6.1","kernel_base":"6.1","configs":{"CONFIG_SYSVIPC":"y","CONFIG_POSIX_MQUEUE":"y","CONFIG_NAMESPACES":"y","CONFIG_UTS_NS":"y","CONFIG_IPC_NS":"y","CONFIG_PID_NS":"y","CONFIG_NET_NS":"y","CONFIG_USER_NS":"y","CONFIG_CGROUPS":"y","CONFIG_CGROUP_PIDS":"y","CONFIG_CGROUP_FREEZER":"y","CONFIG_SECCOMP":"y"}}\n' > "$T/k3.json"
 rc=$(python3 "$D" --root "$ROOT" --kernel-evidence "$T/k3.json" >/dev/null 2>&1; echo $?)

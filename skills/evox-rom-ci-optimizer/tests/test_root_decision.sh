@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # test_root_decision.sh — decisão A ratificada: UM motor (APatch), UM kernel (o da ROM)
 # Nenhum outro método de root pode ser usado no projeto; e a metodologia de kernel é a mesma
-# para todo módulo. Se qualquer um desses invariantes cair, esta suíte falha. (34 casos)
+# para todo módulo. Se qualquer um desses invariantes cair, esta suíte falha. (38 casos)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; ROOT="$(cd "$HERE/../../.." && pwd)"
 SK="skills/evox-rom-ci-optimizer"; G="$HERE/../scripts/root_engine_gate.py"
@@ -154,6 +154,28 @@ iso3_why=$(python3 "$G" --root "$T" --engine kernelsu --candidate bom --json 2>/
   python3 -c 'import json,sys;d=json.load(sys.stdin);print(",".join(c["check"] for c in d["checks"] if c["verdict"]=="incompativel"))')
 ck "SUSFS proibido reprova mesmo com motor/permissões ok" "exit" "$rc_iso3" "1"
 ck "SUSFS proibido: motivo é decisao_susfs" "decisao_susfs" "$iso3_why" "decisao_susfs"
+
+# ---------- 3c. a camada de conformidade está mapeada no contrato -----------
+stack=$(python3 - "$ROOT/$SK/references/module-requirements.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+m07 = next(m for m in d["modules"] if m["id"] == "M07")
+m08 = next(m for m in d["modules"] if m["id"] == "M08")
+print("|".join([m08.get("zygisk_base", "-"), ",".join(m07.get("compliance_base") or []),
+               ",".join(m08.get("compliance_base") or [])]))
+PY
+)
+ck "M08 declara base Zygisk Next" "sim" "$(case "$stack" in "Zygisk Next|"*) echo sim;; *) echo nao;; esac)" "sim"
+ck "M07 cobre PIFork" "sim" "$(case "$stack" in *"PlayIntegrityFork"*) echo sim;; *) echo nao;; esac)" "sim"
+ck "M08 cobre Tricky Store" "sim" "$(case "$stack" in *"Tricky Store"*) echo sim;; *) echo nao;; esac)" "sim"
+nao_aprov=$(python3 - "$ROOT/$SK/references/module-requirements.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+m08 = next(m for m in d["modules"] if m["id"] == "M08")
+print("sim" if any("Zygisk Assistant" in x for x in m08.get("not_approved") or []) else "nao")
+PY
+)
+ck "Zygisk Assistant está marcado como não aprovado" "sim" "$nao_aprov" "sim"
 
 # ---------- 4. a decisão está escrita nos documentos que valem ---------------
 grep -q "Decisão A ratificada" "$ROOT/docs/skills/ARCHITECTURE-DECISION.md" &&

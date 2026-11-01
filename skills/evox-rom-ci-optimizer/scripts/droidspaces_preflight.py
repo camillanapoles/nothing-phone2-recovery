@@ -93,10 +93,25 @@ def check_static(root: str, engine: str) -> list[dict]:
 
     ker = d.get("kernel") or {}
     cfgs = ker.get("configs_required") or []
+    run = d.get("runtime") or {}
+    add("kernel_stock_only",
+        ker.get("source") == "stock-rom" and ker.get("custom_kernel_allowed") is False,
+        f"source={ker.get('source')} custom_kernel_allowed={ker.get('custom_kernel_allowed')} "
+        "(Decisão A: kernel do pacote, sem compilação)")
+
+    iso = d.get("isolation") or {}
+    iso_cfg = iso.get("required_configs") or []
+    iso_ns = iso.get("required_namespaces") or []
+    add("isolation_userns_pidns",
+        all(c in cfgs for c in ("CONFIG_USER_NS", "CONFIG_PID_NS"))
+        and all(n in (run.get("namespaces") or []) for n in ("user", "pid")),
+        f"configs={[c for c in ('CONFIG_USER_NS', 'CONFIG_PID_NS') if c in cfgs]} "
+        f"namespaces={[n for n in ('user', 'pid') if n in (run.get('namespaces') or [])]} "
+        f"(declarado: {iso_cfg} / {iso_ns})")
+
     add("configs_declaradas", len(cfgs) >= 8 and all(c.startswith("CONFIG_") for c in cfgs),
         f"{len(cfgs)} CONFIG_* exigidas")
 
-    run = d.get("runtime") or {}
     add("namespaces", len(run.get("namespaces") or []) >= 6, f"{run.get('namespaces')}")
     add("proc_checks", all(str(p).startswith("/proc/") for p in (run.get("proc_checks") or [])),
         f"{len(run.get('proc_checks') or [])} caminhos /proc")
