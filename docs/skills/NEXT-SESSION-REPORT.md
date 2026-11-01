@@ -3,6 +3,10 @@
 **Data:** 2026-11-01 · **Branch:** `arena/863582fd-nothing-phone2-recovery` · **PR:** não aberto (aguardando sua validação)
 **Pergunta que originou este documento:** a lacuna L4 deve ser fechada com a **imagem da ROM** e não com o aparelho?
 
+> **Atualização 2026-11-01 (retificação de arquitetura):** este relatório descreve a preparação da L4
+> e dos gates. A orquestração final — emulação no GitHub Actions, 3 estágios, ordem F0–F5 dos
+> módulos e checklist de ratificação — está em **[`FINAL-ORCHESTRATION-REPORT.md`](FINAL-ORCHESTRATION-REPORT.md)**.
+
 ---
 
 ## 1. Resposta direta à sua dúvida: **sim, a L4 vem do pacote da ROM**

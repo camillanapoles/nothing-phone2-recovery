@@ -72,7 +72,8 @@ Esperado: `[harness] OK (0 falhas)` · `[core] make check OK` · `13 PASS` (regr
 4c. gate kernel kernel_compat_check.sh       → COMPATIBLE? senão não patcheia boot
 5. estatico     make scan / make audit       → CLEAN? senão VETO
 6. estagio A    make extract → make forge    → Guard-4 + KMI + guard4_verify.sh VERIFIED
-7. estagio B    make runtime-test            → boot_completed, logcat, RescueParty
+7. estagio B    AVD API 36 x86_64 (KVM)      → boot_completed, logcat, RescueParty
+                 (a ROM arm64 do pong NÃO boota em runner; valida a camada de módulos)
 7b. rollout     rollout_gate start/record     → 1 módulo por vez, PASS antes do próximo
 7c. cache       cache_manager put/verify     → fase verde endereçável por SHA-256
 8. estado       make snapshot                → snapshot/<camada>/<tag> + manifesto

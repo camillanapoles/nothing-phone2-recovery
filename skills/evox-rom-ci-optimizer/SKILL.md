@@ -282,6 +282,42 @@ Referências detalhadas: [`references/kernel-selection-gate.md`](references/kern
 (tríade kernel × ROM × device, escolha da versão estável, matriz de compatibilidade de módulo) e
 [`references/rollout-and-cache.md`](references/rollout-and-cache.md) (canário, ondas, política de cache).
 
+## VI-E. Estágio B: emulação no GitHub Actions (o que é real)
+
+**Premissa corrigida:** a ROM do `pong` é arm64 com `vendor` do SM8475 — ela **não inicia** em
+runner x86_64. O que roda é uma **AVD API 36 x86_64 com KVM**, que valida a *camada de módulos*
+(overlay, props, scripts, sepolicy, Zygote), não o vendor do aparelho.
+
+| Estágio | Onde | O que prova |
+|---|---|---|
+| A · forge | runner x86_64 sem KVM | payload → hashes (L4) → gate de kernel → scanner → patch → rollback verificado |
+| B · sandbox | runner x86_64 **com KVM** | boot da AVD → 1 módulo por vez via `adb` → crash/AVC/uptime → evidência |
+| C · release | runner x86_64 | pacote pré-USB com `SHA256SUMS` e `flash_and_rollback.sh` |
+| D · device | **humano, com o cabo** | flash assistido + `collect_evidence.sh` |
+
+Cobertura honesta do Stage B: **6 módulos validam de fato, 5 parcialmente, 4 não** (kernel-space,
+NPU, câmera HAL, `sysfs` do device). A tabela por módulo está em
+[`references/emulation-sandbox.md`](references/emulation-sandbox.md) §3.
+
+Workflow pronto e lintado: [`references/evox-ci-validator.yml`](references/evox-ci-validator.yml)
+· travas verificadas por `scripts/ci_workflow_lint.py` (11 regras; 12 PASS no teste) ·
+injeção sequencial por `scripts/sandbox_rollout.sh` (9 PASS).
+
+## VI-F. Ordem incremental ratificada (15 módulos → 6 fases)
+
+```text
+F0 fundação    M01 APatch/kernel · M05 DroidSpaces
+F1 identidade  M03 GApps · M07 fingerprint · M08 Duck-ToolBox (consolida 7+8)
+F2 desempenho  M12A MaxManager · M12B GenieX
+F3 mídia       M02 Câmera
+F4 sistema     M04 Screen Capture · M06 Free-Form · M09 SAF · M10 rede/socket · M11 port-forward
+F5 entrega     M13 CI · M14 Snapshots · M15 Release pré-USB
+```
+
+A numeração original foi preservada como intenção; o que mudou (câmera de #2 → F3, captura de #4 →
+F4) está justificado em [`references/module-rollout-order.md`](references/module-rollout-order.md)
+§2 e §4. `rollout_gate.sh` recusa módulo fora de ordem e módulo seguinte sem PASS.
+
 ## VII. Referencias e assets embarcados
 
 | Caminho | Funcao |
@@ -294,6 +330,13 @@ Referências detalhadas: [`references/kernel-selection-gate.md`](references/kern
 | `references/pong-hardware-matrix.md` | Matriz PASS/FAIL do Nothing Phone 2 (`pong`) — absorve a antiga skill `evox-pong-ci-architect` |
 | `references/ci-cost-locks.md` | As 4 travas de custo (concurrency, timeout 25/10, poweroff 1800 s) |
 | `references/kernel-selection-gate.md` | **Gate 1**: tríade kernel × ROM × device, escolha da versão estável, compatibilidade de módulo, estratégia para o `pong` |
+| `references/emulation-sandbox.md` | **Estágio B**: restrições reais (arm64 × x86_64, KVM), cobertura por módulo, travas de custo, alternativas avaliadas |
+| `references/evox-ci-validator.yml` | Workflow de 3 estágios (forge → sandbox → release) com cache, timeouts e watchdog |
+| `references/module-rollout-order.md` | **Ordem ratificada** dos 15 módulos em F0–F5, dependências e critério de saída por fase |
+| `scripts/sandbox_rollout.sh` | Stage B: injeta 1 módulo por vez via `adb`, soft-reboot, coleta evidência e chama o ledger |
+| `scripts/ci_workflow_lint.py` | Lint das travas de custo/segurança do workflow (11 regras) |
+| `tests/test_sandbox_rollout.sh` | 9 cenários com stub de `adb` (boot, crash, ordem, ledger) |
+| `tests/test_ci_workflow_lint.sh` | 12 cenários: cada trava removida é detectada |
 | `references/rollout-and-cache.md` | **Gates 3–5**: rollout canário (1 módulo por vez), ondas, cache versionado por SHA-256, política de tamanho |
 | `scripts/extract_rom_assets.sh` | Fecha a L4 pelo `.zip` oficial (kernel/KMI + hashes), sem depender do aparelho |
 | `scripts/kernel_compat_check.sh` | Gate 1 executável: `COMPATIBLE`/`INCOMPATIBLE` com motivos |

@@ -144,6 +144,8 @@ Atalho de descoberta: `.claude/skills -> ../skills` (o `.claude/` é gitignored)
 | Gate kernel × ROM × device | `test_kernel_compat_check.sh` | **10 PASS / 0 FAIL** |
 | Rollout canário (1 módulo/vez) | `test_rollout_gate.sh` | **13 PASS / 0 FAIL** |
 | Cache versionado + rollback Guard-4 | `test_cache_and_guard4.sh` | **13 PASS / 0 FAIL** |
+| Stage B (injeção via adb) | `test_sandbox_rollout.sh` | **9 PASS / 0 FAIL** |
+| Travas de custo do workflow | `test_ci_workflow_lint.sh` | **12 PASS / 0 FAIL** |
 | Cenário negativo manual | 2 módulos em `audio_effects.xml` | `CONFLICT` exit 1 + veto |
 | Snapshot/estado | `snapshot_branch_manager.sh` | `[OK] Snapshot registrado` |
 | Segredos / links / nome↔dir | `tools/validate_skills.py` | 0 violações |

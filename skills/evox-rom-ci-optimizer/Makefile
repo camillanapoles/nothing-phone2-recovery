@@ -15,7 +15,7 @@ LAYER ?= wave1
 TAG ?= v11.11-w1-clean
 SNAPSHOT_SRC ?= ./workspace/out
 
-.PHONY: help check test test-preflight test-rom test-gates scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
+.PHONY: help check test test-preflight test-rom test-gates test-ci scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
 
 help:
 	@echo "======================================================================="
@@ -74,6 +74,10 @@ test-gates:
 	@./tests/test_kernel_compat_check.sh
 	@./tests/test_rollout_gate.sh
 	@./tests/test_cache_and_guard4.sh
+
+test-ci:
+	@./tests/test_sandbox_rollout.sh
+	@./tests/test_ci_workflow_lint.sh
 
 audit:
 	@mkdir -p "$(OUT_DIR)"

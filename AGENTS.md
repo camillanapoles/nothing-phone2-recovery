@@ -83,7 +83,13 @@ Regras de carga: ler **só** a skill que casa com a tarefa (economia de contexto
     e só então o próximo. `rollout_gate.sh` bloqueia o contrário.
 14. **Fase verde vira cache.** `cache_manager.sh put` + `verify`: o artefato testado é o usado.
 15. **Rollback provado antes do flash.** `guard4_verify.sh` → `VERIFIED`, senão não há flash.
-16. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
+16. **Emulação não é o aparelho.** A AVD x86_64 valida a camada de módulos; kernel/KPM, NPU,
+    câmera HAL e `sysfs` só se provam no `pong`. Nunca declarar "pronto para flash" com base só no CI.
+17. **Custo trava o CI, não o contrário.** Todo workflow precisa de `cancel-in-progress`, timeouts
+    (job ≤ 30, emulador ≤ 15), cache por sha256 da ROM, retenção curta e watchdog de boot —
+    `ci_workflow_lint.py` reprova o que faltar.
+18. **Ordem de módulo é contrato.** F0→F5 com um módulo por vez; fora de ordem = `rollout_gate` bloqueia.
+19. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
 
 Sempre que uma regra R01–R09 for tocada, o teste é `skills/evox-rom-ci-optimizer/tests/test_scanner_rules.sh`
 (13 cenários). Gate sem teste é opinião.
@@ -209,6 +215,8 @@ state/                 runtime local (quarentena, relatórios) — fora do Git
 | G3 | FSM confiável | banco limpo antes do run; toda transição com evidência; terminal explícito |
 | G4 | Guardião respeitado | R01–R09 verdes; nenhuma mutação sem estágio A+B e rollback |
 | G5 | Rastreabilidade | `MANIFEST.json` + `SHA256SUMS` de cada limpeza; commit por mudança |
+| G8 | Pipeline em 3 estágios, com custo travado | `ci_workflow_lint.py` → 12 PASS · workflow OK |
+| G9 | Ordem de módulos ratificada e aplicável | `module-rollout-order.md` + `rollout_gate.sh` 13 PASS |
 | G7 | L4 fecha com o pacote oficial | `test_extract_rom_assets.sh` → 15 PASS · `l4_closed: true` |
 | G6 | Portabilidade | `AGENTS.md` + `agente.md` funcionam copiados para outro workspace, sem caminho absoluto |
 

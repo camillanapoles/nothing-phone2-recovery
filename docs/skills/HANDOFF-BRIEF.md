@@ -27,7 +27,7 @@ divergir, vale o que está aqui + `skills/evox-rom-ci-optimizer/references/modul
 ```text
 make -C skills validate    -> [harness] OK (0 falhas) · 8 skills
 make -C skills check-core  -> [core] make check OK
-make -C skills test-core   -> 13 PASS (R00..R09) · 8 PASS (preflight) · 15 PASS (ROM/L4) · 36 PASS (gates)
+make -C skills test-core   -> 13 (R00..R09) · 8 (preflight) · 15 (ROM/L4) · 36 (gates) · 21 (CI/sandbox)
 make -C skills test-guard  -> 8 PASS / 0 FAIL (coletor de evidência, stub de adb)
 make -C skills eval        -> [eval] APROVADO · 8/8 acima do limite da classe
 ```
