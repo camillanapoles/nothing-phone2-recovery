@@ -1,6 +1,8 @@
- PRE-TESTE DE 9 Modules Defined
 
-  1. APatch Root (GUARD 4 confirmation required)
+
+PRE-TESTE DE 9 Modules Defined
+
+  1. APatch Root
   2. Camera (GCam + Garandindo optimization)
   3. Google Unlocked (GApps for Android 16)
   4. Screen Capture
