@@ -65,3 +65,12 @@ downloads/modules/
 downloads/rikkahub-backup
   
 downloads/magisk
+
+# ---- Skills (repo-local, instaladas do Google Drive SKILLS/) ----
+skills/**/workspace/
+skills/**/modules/
+skills/**/kernel_patches/
+skills/**/tweaks/
+skills/**/snapshots/
+skills/**/__pycache__/
+*.pyc

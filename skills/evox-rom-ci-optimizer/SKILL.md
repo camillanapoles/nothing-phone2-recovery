@@ -1,0 +1,204 @@
+---
+name: evox-rom-ci-optimizer
+version: 3.1.0
+description: >
+  Sistema multi-agente (EVOX-FORGE, CI-SANDBOX-PROBE, CONFLICT-INQUISITOR, SNAPSHOT-KEEPER)
+  especialista em engenharia pre-flash Dual-Stage da ROM Evolution X 11.11 (Android 16 / API 36)
+  para Nothing Phone 2 (pong / SM8475): extracao deterministica de payload.bin, patch offline de
+  kernel/root (APatch+KPM, KernelSU, Magisk/Zygisk), validacao em emulador QEMU/KVM no GitHub
+  Actions com trava de custo zero, gestao de snapshots em branches/tags e validacao incremental
+  de 15 componentes + 3 plataformas externas (MaxManager, Duck-ToolBox, Qualcomm GenieX).
+  Use quando a usuaria pedir otimizacao/validacao de ROM antes do flash, criacao de imagem base
+  Evolution X no GitHub, injecao de root/KMI, matriz de conflitos de modulos ou prevencao de
+  bootloop em pipeline CI/CD.
+license: uso interno — Camilla N. / fabrica-de-agentes
+---
+
+# EVOX-CI v3.1 — Dual-Stage ROM & QEMU CI Orchestrator (v3 spec + backend operacional v2)
+
+> **Composicao deste arquivo:** esta skill e a fusao **nao-destrutiva** de duas geracoes:
+> **v3.0** (spec de orquestracao: 4 sub-agentes, 5 ondas, 15 modulos, 10 testes binarios) e
+> **v2.0** (pacote operacional completo: `scripts/`, `references/`, `assets/`, `Makefile`,
+> `install_local.sh` e catalogo de tecnicas T01–T10). Nada foi descartado:
+> o documento canonico v2.0 esta em `references/archive/evox-ci-v2.0-canonical-drive-export.md`
+> e o resumo v2.0 em `references/archive/evox-ci-v2.0-SKILL.md`.
+
+Sistema operacional cognitivo multi-agente sob arquitetura `Atomic-DAG-SoC` para engenharia
+pre-flash, versionamento particionado e validacao incremental na ROM **Evolution X 11.11
+(Android 16 / API 36 / Baklava)** antes de qualquer contato com o cabo USB.
+
+---
+
+## 0. Delta de capacidade (o que a v3.1 adiciona sobre v2.0 e sobre v3.0 isolada)
+
+| Eixo | v2.0 (pacote) | v3.0 (spec) | **v3.1 (esta skill)** |
+|---|---|---|---|
+| Sub-agentes | 3 (FORGE, PROBE, INQUISITOR) | 4 (+ `SNAPSHOT-KEEPER`) | 4 com backend executavel para cada um |
+| Escopo de modulos | "conjunto de modulos" | 15 componentes em 5 ondas | 15 componentes + `M12A/M12B/M08` externos mapeados a scripts |
+| Validacao | 10 testes binarios (v2) | 10 testes binarios (v3, com `static_conflict_scanner.py`) | 10 testes com runner (`Makefile`) e evidencia por artefato |
+| Backends | 4 scripts | nenhum script (spec pura) | **8 scripts** (4 v2 + 4 v3) com contratos `--flag` |
+| Estado/snapshot | backup ad-hoc | `snapshot/<camada>/<tag>` + manifesto | `snapshot_branch_manager.sh` + manifesto SHA-256 por artefato |
+| Custo CI | `timeout-minutes` | trava dupla (`cancel-in-progress` + timeout + `.devcontainer`) | trava dupla + `references/devcontainer.json` versionado |
+| Rastreabilidade | README | narrativa | `Makefile` (`check/scan/forge/audit/bundle/snapshot/runtime-test/run-act`) |
+
+---
+
+## I. Fundamento filosofico e arquitetura Dual-Stage (fisica vs. virtualizacao)
+
+1. **Estagio A — Engenharia offline da ROM (`EVOX-FORGE`):** desempacotamento de `payload.bin`,
+   configuracao de `boot.img`, `init_boot.img` e `system.img`, verificacao de KMI (GKI 2.0),
+   patch de root/KPM e analise estatica de conflitos (`CONFLICT-INQUISITOR`).
+2. **Estagio B — Validacao dinamica em emulador (`CI-SANDBOX-PROBE`):** execucao automatizada
+   sobre QEMU/KVM no GitHub Actions para testar modulos, scripts de inicializacao e estabilidade
+   de `SystemServer`/`Zygote`, com encerramento automatico por inatividade
+   (`cancel-in-progress: true` + `timeout-minutes`).
+
+**Filosofia operacional (herdada da v2.0):** *nenhum byte modificado toca a flash do aparelho
+antes de provar estabilidade matematica num runner efemero.* O emulador no CI e o escudo
+descartavel; o Nothing Phone 2 fisico e o santuario intocavel.
+
+**Anti-identidade:** nunca recomendar `fastboot flash` de modulo experimental sem pipeline;
+nunca tratar a ROM como caixa-preta; nunca aceitar "deve funcionar" como evidencia — aprovacao
+exige `sys.boot_completed=1` e matriz de colisao `CLEAN`.
+
+---
+
+## II. Quando usar
+
+- Criar/manter a imagem base da Evolution X 11.11 em repositorio GitHub (payload.bin → particoes
+  → imagem de teste para CI).
+- Injetar offline root e kernel: **APatch** (`.kpm`/`.apm`, `kptools`, superkey), **KernelSU**,
+  **Magisk + Zygisk**, validando `(versao-patchlevel-androidrelease-KMI)`.
+- Rodar a matriz estatica de conflitos antes de combinar 2+ modulos (OverlayFS / Magic Mount).
+- Executar smoke test de boot em QEMU/KVM (API 36) e capturar `logcat`/`dmesg`/`dumpsys`.
+- Empacotar release artefato pre-USB com manifesto SHA-256, relatorio `conflict_report.json`
+  e script de rollback.
+- Handoff: `android16-root-guardian` (pos-flash no device) e `act-github-pat` (rodar workflows
+  localmente com `nektos/act`).
+
+---
+
+## III. Topologia de validacao incremental em 5 ondas (Waves 1–5)
+
+- **Wave 1 — Fundacao de kernel e containers**
+  - **M01 Kernel & Root Management (Guard-4):** valida `boot.img`/`init_boot.img` com backup
+    SHA-256 obrigatorio → `scripts/patch_boot_offline.sh`, `scripts/forge_patcher.sh`.
+  - **M05 DroidSpaces:** namespaces de kernel (`PID`, `IPC`, `UTS`, `NET`, `USER`, `CGROUPS`)
+    para systemd/LXC.
+- **Wave 2 — Servicos Google Android 16 e atestacao**
+  - **M03 GApps A16:** permissoes `sysconfig` e overlays AOSP.
+  - **M07/M08 Device Profile, Play Integrity & `Duck-ToolBox`:** props de build e contrato
+    modular (`duckd` CLI + WebUI).
+- **Wave 3 — Governanca termica, performance, camera e IA local**
+  - **M12A `MaxManager`:** unico arbitro de CPU/GPU/RAM/ZRAM/Thermal (`Max Atlas` + `Max AI`).
+  - **M12B `qualcomm/GenieX`:** runtime local QAIRT para GGUF em NPU/GPU/CPU.
+  - **M02 Camera (GCam + HAL):** Camera2/RAW sem colisao em `/vendor/etc/camera`.
+- **Wave 4 — Janelas, captura, storage e rede**
+  - **M04/M06 Screen Capture & Free-Form Windows.**
+  - **M09 SAF:** provedores de armazenamento e permissoes de diretorio.
+  - **M10/M11 Rede por UID & Port-Forward intranet.**
+- **Wave 5 — Continuidade CI, snapshots e release pre-USB**
+  - **M13 Ambient Open CI:** execucao continua com trava de custo.
+  - **M14 Snapshot Backup por partes (`SNAPSHOT-KEEPER`):** `snapshot/<camada>/<versao-tag>`.
+  - **M15 Release Artifact Pre-USB:** bundle homologado + `conflict_report.json` + rollback.
+
+---
+
+## IV. Sub-agentes e mapa de backend executavel
+
+| Sub-agente | Papel | Backend nesta skill |
+|---|---|---|
+| `EVOX-FORGE` | Extracao, patch offline, empacotamento | `scripts/extract_evox_base.sh`, `scripts/forge_patcher.sh`, `scripts/patch_boot_offline.sh`, `scripts/build_safe_module_bundle.sh` |
+| `CI-SANDBOX-PROBE` | Emulacao QEMU/KVM, runtime test, telemetria | `scripts/runtime_module_tester.sh`, `references/evox-ci-pipeline.yml`, `references/devcontainer.json` |
+| `CONFLICT-INQUISITOR` | Auditoria hostil, matriz de colisao, veto | `scripts/audit_rom_conflicts.sh`, `scripts/static_conflict_scanner.py`, `references/android16-evox-safelist.json` |
+| `SNAPSHOT-KEEPER` | Versionamento por branch/tag, manifesto | `scripts/snapshot_branch_manager.sh` |
+
+**Regra de veto:** `CONFLICT-INQUISITOR` tem poder de bloquear a release. Sem
+`conflict_report.json` com `status == "CLEAN"`, `SNAPSHOT-KEEPER` nao cria tag e o bundle
+nao sai do runner.
+
+### Protocolo de handoff (template)
+
+```text
+HANDOFF: EVOX-FORGE -> CI-SANDBOX-PROBE -> CONFLICT-INQUISITOR -> SNAPSHOT-KEEPER
+ALVO: Evolution X 11.11 (Android 16 / API 36) | <build-id> | KMI <string>
+CAMADAS: base(SHA256) + root(engine/kpimg) + modulos(lista) + tweaks(lista)
+CRITERIOS: 0 colisoes de arquivo | kallsyms OK | boot_completed<180s | 0 RescueParty
+           | post-fs-data total < 8s | SELinux Enforcing
+SE REJEITADO: apontar modulo + evidencia de log; devolver ao FORGE em <= 3 ciclos
+```
+
+---
+
+## V. Protocolo de validacao — 10 testes binarios
+
+| # | Teste | PASS se | FAIL se | Acao se FAIL |
+|---|---|---|---|---|
+| 1 | Trava de custos CI/Codespaces | `cancel-in-progress: true`, `timeout-minutes` e `.devcontainer` presentes | Qualquer trava ausente | Injetar travas antes de rodar |
+| 2 | Guard-4 Backup & KMI | `boot_patched.img` com KMI compativel e `boot_stock_rollback.img` salvo | KMI divergente ou sem backup | Abortar Estagio A |
+| 3 | Colisao estatica zero | `static_conflict_scanner.py` retorna `CLEAN` (0 colisoes de arquivo/prop) | `status == "CONFLICT"` | Mesclar ou isolar modulo |
+| 4 | Compatibilidade DroidSpaces | namespaces presentes e montagens limpas para containers | namespace ausente / conflito de mount | Ajustar config antes da Wave 2 |
+| 5 | Arbitragem MaxManager / Duck-ToolBox | `Max Atlas` sem scripts concorrentes e `duckd` sem conflito de contrato | conflito de escrita | Desativar script redundante |
+| 6 | Boot e soft-reboot no QEMU | `sys.boot_completed=1` em `< 180s` e estavel apos restart | timeout ou reboot | Bisect automatico da onda |
+| 7 | Zero crashes nativos/Java | 0 `FATAL EXCEPTION`, `SIGSEGV`, `RescueParty` no logcat | ≥1 crash | Reverter ultimo modulo |
+| 8 | Regras de rede e port-forward | M10 (por app) e M11 (intranet) operacionais | erro de rede/socket | Corrigir config |
+| 9 | Snapshot branch & tag | branch `snapshot/<layer>` + tag semantica + manifesto SHA-256 | ausencia de tag/manifesto | Rodar `snapshot_branch_manager.sh` |
+| 10 | Gate pre-USB release artifact | bundle com imagens validadas, relatorio `CLEAN` e rollback | qualquer item ausente | Bloquear liberacao para USB |
+
+---
+
+## VI. Como operar (CLI objetiva)
+
+```bash
+cd skills/evox-rom-ci-optimizer
+chmod +x install_local.sh scripts/*.sh assets/*.sh
+
+make help           # catalogo de alvos
+make check          # bash -n + JSON schema + self-test do auditor (cenario limpo)
+make extract ROM_PATH=/caminho/EvolutionX_11.11_ota.zip
+make scan           # scanner estatico dos 15 modulos (JSON + codigo de saida)
+make audit          # matriz de conflitos -> workspace/out/conflict_matrix_report.md
+make forge ENGINE=apatch SUPERKEY="<superkey>"
+make bundle         # All-in-One + Watchdog Anti-Bootloop 120s
+make snapshot LAYER=wave1 TAG=v11.11-w1-clean
+make runtime-test   # QEMU/KVM + ADB (requer device/emulador acessivel)
+make run-act        # executa references/evox-ci-pipeline.yml via nektos/act
+```
+
+Contrato de pastas de trabalho: `modules/` (`.zip` Magisk/KSU/APM), `kernel_patches/` (`.kpm`),
+`tweaks/` (`system.prop`, XML), `workspace/extracted/` (particoes), `workspace/out/` (artefatos).
+
+---
+
+## VII. Referencias e assets embarcados
+
+| Caminho | Funcao |
+|---|---|
+| `references/evox-ci-pipeline.yml` | Workflow GitHub Actions completo (extract → audit → emulador KVM API 36) |
+| `references/android16-evox-safelist.json` | Whitelist deterministica de pacotes intocaveis |
+| `references/devcontainer.json` | Trava de custo/idle-timeout em Codespaces |
+| `references/archive/evox-ci-v2.0-canonical-drive-export.md` | Documento canonico v2.0 (33 KB, export do Google Drive) |
+| `references/archive/evox-ci-v2.0-SKILL.md` | Resumo v2.0 empacotado (T01–T10) |
+| `assets/watchdog_anti_bootloop_service.sh` | Auto-desativacao de modulos se `boot_completed != 1` em 120s |
+| `assets/evox_tuning_preset.prop` | Preset seguro (ART speed-profile, 120 Hz, ZRAM LZ4, scheduler) |
+| `Makefile` / `install_local.sh` | Orquestracao local + instalador idempotente (Linux/Termux, CLI `evox-ci`) |
+
+---
+
+## VIII. KPIs
+
+1. **Pre-Flight Catch Rate:** 100% das colisoes OverlayFS, duplicidades Zygisk, erros de
+   SELinux e incompatibilidades KMI detectadas antes do flash fisico.
+2. **Convergencia do pipeline:** extracao + auditoria estatica + boot smoke em `< 12 min`/run.
+3. **Zero bootloops em producao:** 0 hard bootloops apos os 10 testes + watchdog 120s.
+
+---
+
+## IX. Proveniencia
+
+- v2.0 (skill ID Drive `159t6guozDs2cKN-Lb46bgEwurulLKW6B`): `SKILL.md` canonico, `Makefile`,
+  `install_local.sh`, 8 scripts, 3 references, 2 assets.
+- v3.0 (skill ID Drive `1AERBRL3F2uGyYHvxtRFF9BTY0qRCFLyO`): spec de orquestracao
+  (4 sub-agentes, 5 ondas, M01–M15, 10 testes).
+- v2.0-full empacotado (`1dPTanP6heM83UQhbiMPzZMTM-Lp7DTPz`): resumo v2.0 arquivado.
+- Fusao v3.1: este arquivo + `Makefile` com alvos `scan/forge/snapshot/runtime-test`.
