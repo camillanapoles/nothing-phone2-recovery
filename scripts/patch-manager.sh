@@ -18,6 +18,11 @@ source "${REPO_ROOT}/config/pong.env"
 KERNEL_DIR="${1:-kernel-source}"
 MANAGER="${2:-apatch}"
 
+if [[ ! -d "${KERNEL_DIR}" ]]; then
+  echo "[PENDENTE] arvore de kernel ausente: ${KERNEL_DIR} — nenhum patch aplicado" >&2
+  exit 3
+fi
+
 echo "=== Applying ${MANAGER} patch to ${KERNEL_DIR} ==="
 
 case "${MANAGER}" in

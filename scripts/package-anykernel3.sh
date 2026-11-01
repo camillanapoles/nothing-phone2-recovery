@@ -22,19 +22,34 @@ RELEASE_DIR="${REPO_ROOT}/${RELEASE_DIR}"
 
 echo "=== Packaging AnyKernel3 ZIP ==="
 
+# Nada é apagado antes de validar as entradas (sem efeito colateral destrutivo)
+if [[ ! -d "${DIST_DIR}" ]]; then
+  echo "  [PENDENTE] diretório de artefatos ausente: ${DIST_DIR} — nada empacotado" >&2
+  exit 3
+fi
+if [[ ! -f "${DIST_DIR}/boot.img" && ! -f "${DIST_DIR}/Image" && ! -f "${DIST_DIR}/Image.gz" ]]; then
+  echo "  [PENDENTE] sem boot.img/Image em ${DIST_DIR} — ZIP não seria flashável" >&2
+  exit 3
+fi
+
 # Prepare release directory
 rm -rf "${RELEASE_DIR}"
 mkdir -p "${RELEASE_DIR}"
 
 # Download/copy AnyKernel3 template
-AK3_TEMPLATE="${REPO_ROOT}/ak3"
+AK3_TEMPLATE="${AK3_TEMPLATE:-${REPO_ROOT}/ak3}"
 if [[ ! -d "${AK3_TEMPLATE}" ]]; then
   echo "  [AK3] Downloading AnyKernel3 template..."
   git clone --depth 1 --branch "${AK3_BRANCH}" "${AK3_REPO}" "${AK3_TEMPLATE}" 2>/dev/null || {
-    echo "  [AK3] Failed to clone — using minimal template"
-    mkdir -p "${AK3_TEMPLATE}/META-INF/com/google/android"
-    echo '# META-INF/com/google/android/update-binary placeholder' > "${AK3_TEMPLATE}/META-INF/com/google/android/updater-script"
+    echo "  [PENDENTE] template AnyKernel3 indisponível e clone falhou — template falso NÃO será inventado" >&2
+    exit 3
   }
+fi
+
+# Copia do template exige rsync: ausência é erro explícito, não cópia parcial
+if ! command -v rsync >/dev/null 2>&1; then
+  echo "  [PENDENTE] rsync ausente — ZIP não será montado pela metade" >&2
+  exit 3
 fi
 
 # Copy AK3 template to release dir

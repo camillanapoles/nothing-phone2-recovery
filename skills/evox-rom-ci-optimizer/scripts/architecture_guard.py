@@ -25,6 +25,7 @@ Regras:
   AG18 todo script tem teste ou isenção declarada
   AG19 todo script testado tem mutante no catálogo
   AG20 nenhum teste viciado (varredura V1–V6)
+  AG21 catálogo de mutação: força declarada e ≥2 mutantes semânticos por arquivo
 
 Uso: architecture_guard.py [--root DIR] [--self-test] [--json]
 Exit: 0 ok · 3 violação · 2 uso
@@ -249,6 +250,31 @@ def check_ag19(root):
     return [f"script testado sem mutante: {m}" for m in missing]
 
 
+def check_ag21(root):
+    cat_p = os.path.join(root, SK, "references", "mutation-catalog.json")
+    if not os.path.exists(cat_p):
+        return ["mutation-catalog.json ausente"]
+    try:
+        mutants = json.load(open(cat_p, encoding="utf-8")).get("mutants") or []
+    except Exception as exc:
+        return [f"catálogo de mutação inválido: {exc}"]
+    if not mutants:
+        return ["catálogo de mutação vazio"]
+    problems = []
+    counts = {}
+    for m in mutants:
+        st = m.get("strength")
+        if st not in ("semantic", "contract"):
+            problems.append(f"{m.get('id', '?')} sem strength válida (semantic|contract): {st!r}")
+        if st == "semantic":
+            counts[m["file"]] = counts.get(m["file"], 0) + 1
+        counts.setdefault(m["file"], 0)
+    for f, n in sorted(counts.items()):
+        if n < 2:
+            problems.append(f"{f}: {n} mutante(s) semântico(s) — mínimo 2 (ou reclassifique a força)")
+    return problems
+
+
 def check_ag20(root):
     rep = _py(root, "test_vacuity_scan.py")
     if rep is None:
@@ -293,8 +319,10 @@ def check_ag16(root):
     for v in vars_:
         if "cdn.evolution-x.org" not in (v.get("url") or ""):
             p.append(f"{v.get('id')}: URL fora do CDN esperado")
-        if not (v.get("url") or "").endswith("/download"):
-            p.append(f"{v.get('id')}: URL sem /download (nao e o link direto)")
+        if not re.search(r"^https://cdn\.evolution-x\.org/Pong/.+\.zip(/download)?$", v.get("url") or ""):
+            p.append(f"{v.get('id')}: URL fora do padrao oficial (.zip ou .zip/download)")
+        if not re.fullmatch(r"[0-9a-f]{64}", v.get("sha256") or ""):
+            p.append(f"{v.get('id')}: sha256 ausente/invalido no manifesto")
     for f, label in (("scripts/rom_artifact_fetch.sh", "coletor"),):
         if not os.path.exists(os.path.join(root, SK, f)):
             p.append(f"{label} ausente: {f}")
@@ -383,7 +411,8 @@ def run(root: str) -> dict:
     problems = check_ag16(root)
     results.append({"rule": "AG16", "ok": not problems, "problems": problems})
     for rid, fn in (("AG17", check_ag17), ("AG18", check_ag18),
-                    ("AG19", check_ag19), ("AG20", check_ag20)):
+                    ("AG19", check_ag19), ("AG20", check_ag20),
+                    ("AG21", check_ag21)):
         problems = fn(root)
         results.append({"rule": rid, "ok": not problems, "problems": problems})
     return {"root": os.path.abspath(root), "ok": all(r["ok"] for r in results),

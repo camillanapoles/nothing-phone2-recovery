@@ -1,15 +1,16 @@
 # Raiz do workspace — atalhos de prova. A verdade está em AGENTS.md.
 SHELL := /usr/bin/env bash
 
-.PHONY: help state state-reset test-state arch skills test prove
+.PHONY: help state state-reset test-state test-wrappers arch skills test prove
 
 help:
 	@echo "make state        -> dry-run da higiene de estado (nada é alterado)"
 	@echo "make state-reset  -> aplica a higiene (quarentena + limpa banco do FSM)"
 	@echo "make test-state   -> regressão da higiene (13 casos)"
-	@echo "make arch         -> travas de arquitetura (AG1..AG18)"
+	@echo "make test-wrappers -> wrappers de release: auditoria de ZIP/Cuttlefish/build (34 casos)"
+	@echo "make arch         -> travas de arquitetura (AG1..AG21)"
 	@echo "make audit-loop   -> auditoria em loop até convergir (AG + contradições + cobertura + suítes)"
-	@echo "make mutation     -> falseabilidade: 47 mutantes têm de ser mortos pelos testes"
+	@echo "make mutation     -> falseabilidade: 102 mutantes têm de ser mortos por asserção"
 	@echo "make vacuity       -> análise estática de testes viciados (V1–V6)"
 	@echo "make skills       -> harness completo das 8 skills (validate+testes+eval)"
 	@echo "make prove        -> tudo: test-state + skills"
@@ -22,6 +23,9 @@ state-reset:
 
 test-state:
 	@tests/test_state_reset.sh
+
+test-wrappers:
+	@tests/test_wrapper_stages.sh
 
 arch:
 	@python3 skills/evox-rom-ci-optimizer/scripts/architecture_guard.py
@@ -40,5 +44,5 @@ skills:
 
 test: test-state
 
-prove: test-state arch skills
+prove: test-state test-wrappers arch skills
 	@echo "[workspace] tudo verde"

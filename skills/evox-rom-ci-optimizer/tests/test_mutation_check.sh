@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# mutation_check.py — o harness de falseabilidade funciona E sabe reprovar (5 casos)
+# mutation_check.py — o harness de falseabilidade funciona E sabe reprovar (8 casos)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; M="$HERE/../scripts/mutation_check.py"; ROOT="$(cd "$HERE/../../.." && pwd)"
 P=0; F=0
@@ -39,6 +39,24 @@ ck "teste viciado faz o mutante sobreviver (exit 3)" "exit" \
   "$(python3 "$M" --root "$T/w" >/dev/null 2>&1; echo $?)" "3"
 ck "sobrevivente é reportado como survived" "survived" \
   "$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["results"][0]["status"])' "$T/w/workspace/audit/mutation.json")" "survived"
+
+# harness honesto: teste que TRAVA não é cobertura semântica (timeout ≠ kill)
+cat > "$T/w/skills/evox-rom-ci-optimizer/tests/test_trava.sh" <<'S'
+#!/usr/bin/env bash
+tail -f /dev/null   # trava de propósito (timeout do harness é o que mata)
+S
+cat > "$T/w/skills/evox-rom-ci-optimizer/references/mutation-catalog.json" <<'J'
+{"schema":"evox-mutation-catalog/1","mutants":[
+ {"id":"X9","file":"skills/evox-rom-ci-optimizer/scripts/logica.sh",
+  "find":"exit 7","replace":"exit 0","strength":"semantic",
+  "test":"skills/evox-rom-ci-optimizer/tests/test_trava.sh","rationale":"trava em vez de asserção"}]}
+J
+ck "mutante que só mata por timeout NÃO conta" "exit" \
+  "$(MUTATION_TEST_TIMEOUT=1 python3 "$M" --root "$T/w" >/dev/null 2>&1; echo $?)" "3"
+ck "timeout é classificado como timeout" "timeout" \
+  "$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["results"][0]["status"])' "$T/w/workspace/audit/mutation.json")" "timeout"
+ck "--allow-timeout aceita explicitamente" "exit" \
+  "$(MUTATION_TEST_TIMEOUT=1 python3 "$M" --root "$T/w" --allow-timeout >/dev/null 2>&1; echo $?)" "0"
 
 echo "-----------------------------------------------------------------------"
 echo "TOTAL: $P PASS / $F FAIL"; [ "$F" -eq 0 ] || exit 1

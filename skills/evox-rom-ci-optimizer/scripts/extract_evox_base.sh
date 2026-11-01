@@ -65,13 +65,16 @@ fi
 if command -v payload-dumper-go >/dev/null 2>&1; then
   payload-dumper-go -p "$PARTITIONS" -o "$OUT_DIR" "$PAYLOAD_PATH"
 else
-  echo "[AVISO] payload-dumper-go nao instalado no PATH. Instale-o para extrair as particoes reais."
+  echo "[ERRO] payload-dumper-go ausente: particoes NAO extraidas (manifesto nao sera gerado)" >&2
+  exit 3
 fi
 
 echo "[4/4] Extraindo assinatura de Kernel KMI e gerando evox_base_manifest.json..."
 KMI_DETECTED="unknown"
 if [ -f "$OUT_DIR/boot.img" ]; then
-  KMI_DETECTED="$(strings "$OUT_DIR/boot.img" | grep -oE "Linux version [0-9]+\.[0-9]+\.[0-9]+-android[0-9]+-[0-9]+[^\ ]*" | head -n 1 || echo "gki-2.0-detected")"
+  KMI_MATCH="$(strings "$OUT_DIR/boot.img" | grep -oE "Linux version [0-9]+\.[0-9]+\.[0-9]+-android[0-9]+-[0-9]+[^\ ]*" | head -n 1 || true)"
+  # nunca inventar KMI: sem match real, o campo permanece "unknown"
+  [ -n "$KMI_MATCH" ] && KMI_DETECTED="$KMI_MATCH"
 fi
 
 python3 - "$OUT_DIR" "$ROM_SHA256" "$KMI_DETECTED" << 'PYEOF'

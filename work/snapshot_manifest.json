@@ -1,0 +1,12 @@
+{
+  "layer": "x",
+  "tag": "v11.11-w1-clean",
+  "branch": "snapshot/x",
+  "timestamp_utc": "2026-11-01T21:15:06Z",
+  "artifacts": {
+    "snapshot_manifest.json": {
+      "sha256": "9f12b0f2eb0c928e93495051e855f832f9ab3d46bfa066fdb410377d12bfcf83",
+      "size_bytes": 283
+    }
+  }
+}

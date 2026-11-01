@@ -11,15 +11,19 @@ fi
 # modulos recem-injetados e reinicia o dispositivo em modo seguro.
 # =============================================================================
 MODDIR=${0%/*}
-TIMEOUT_SEC=120
+# Testavel: os defaults sao os de producao (120s / 2s); os testes reduzem via env
+TIMEOUT_SEC="${EVOX_WATCHDOG_TIMEOUT_SEC:-120}"
+SLEEP_SEC="${EVOX_WATCHDOG_SLEEP_SEC:-2}"
+# Um sleep 0/não numérico faria o watchdog girar sem nunca atingir o timeout
+case "$SLEEP_SEC" in ''|*[!0-9]*|0) SLEEP_SEC=1 ;; esac
 ELAPSED=0
 
 while [ "$(getprop sys.boot_completed)" != "1" ]; do
-  sleep 2
-  ELAPSED=$((ELAPSED + 2))
+  sleep "$SLEEP_SEC"
+  ELAPSED=$((ELAPSED + SLEEP_SEC))
   if [ "$ELAPSED" -ge "$TIMEOUT_SEC" ]; then
     touch "$MODDIR/disable"
-    log -p e -t "EVOX-CI-WATCHDOG" "Timeout de 120s atingido! Desativando modulo $MODDIR para prevenir bootloop."
+    log -p e -t "EVOX-CI-WATCHDOG" "Timeout de ${TIMEOUT_SEC}s atingido! Desativando modulo $MODDIR para prevenir bootloop."
     reboot
     exit 1
   fi

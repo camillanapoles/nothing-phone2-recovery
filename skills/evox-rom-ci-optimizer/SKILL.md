@@ -349,7 +349,7 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `tests/test_rom_artifact_fetch.sh` | 18 cenários: pin, idempotência, drift, sem rede, env, JSON |
 | `scripts/mutation_check.py` | **Falseabilidade (Popper)**: injeta mutação real e exige que o teste falhe; sobrevivente = teste viciado |
 | `scripts/test_vacuity_scan.py` | Análise estática de testes viciados (V1–V6: falha engolida, asserção impossível, suíte só-feliz) |
-| `references/mutation-catalog.json` | 47 mutantes, um por decisão de negócio (e um por script, para 100% do workspace) |
+| `references/mutation-catalog.json` | 102 mutantes (≥2 semânticos por arquivo, com `strength` declarada; timeout não conta como kill) |
 | `scripts/contradiction_scan.py` | Varredura de contradições (C1–C13): instrução ativa que ainda manda fazer o abandonado ou usa vocabulário ambíguo (`Gate 4`, `gate 10`, `init_boot` sem fonte) |
 | `scripts/coverage_matrix.py` | Cobertura fechada: todo script tem teste ou isenção declarada (`references/audit-exemptions.json`) |
 | `scripts/audit_loop.sh` | Harness de convergência: AG + scan + cobertura + suíte, em loop até estabilizar |
@@ -365,8 +365,9 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `references/module-rollout-order.md` | **Ordem ratificada** dos 15 módulos em F0–F5, dependências e critério de saída por fase |
 | `scripts/sandbox_rollout.sh` | Stage B: injeta 1 módulo por vez via `adb`, soft-reboot, coleta evidência e chama o ledger |
 | `scripts/ci_workflow_lint.py` | Lint das travas de custo/segurança do workflow (11 regras) |
-| `tests/test_session_open.sh` | 10 cenários: decisão incompleta trava, completa libera |
-| `tests/test_sandbox_rollout.sh` | 9 cenários com stub de `adb` (boot, crash, ordem, ledger) |
+| `tests/test_session_open.sh` | 18 cenários: decisão incompleta trava, completa libera; P1 exige `flavor_source=user` e `auto` nunca herda variante |
+| `tests/test_sandbox_rollout.sh` | 12 cenários com stub de `adb` (boot, crash, ordem, ledger) |
+| `tests/test_stage_logic.sh` | 54 cenários **semânticos** dos estágios A/B e do bundle, com fixtures e stubs (nenhum insumo ausente vira sucesso) |
 | `tests/test_ci_workflow_lint.sh` | 12 cenários: cada trava removida é detectada |
 | `references/rollout-and-cache.md` | **Gates 3–5**: rollout canário (1 módulo por vez), ondas, cache versionado por SHA-256, política de tamanho |
 | `scripts/extract_rom_assets.sh` | Fecha a L4 pelo `.zip` oficial (kernel/KMI + hashes), sem depender do aparelho |

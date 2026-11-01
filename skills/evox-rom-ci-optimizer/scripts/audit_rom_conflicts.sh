@@ -38,6 +38,7 @@ trap 'rm -rf "$TMP_AUDIT"' EXIT
 
 FAIL_COUNT=0
 WARN_COUNT=0
+PEND_COUNT=0
 MOD_COUNT=0
 
 cat << 'EOF' > "$REPORT_OUT"
@@ -133,7 +134,8 @@ if [ -d "$KPM_DIR" ]; then
         FAIL_COUNT=$((FAIL_COUNT + 1))
       fi
     else
-      echo "| Estrutura KPM (\`$kpm_name\`) | **PASS** | Validacao binaria basica concluida |" >> "$REPORT_OUT"
+      echo "| Estrutura KPM (\`$kpm_name\`) | **PENDENTE** | kptools ausente: KPM nao verificado (nao e PASS) |" >> "$REPORT_OUT"
+      PEND_COUNT=$((PEND_COUNT + 1))
     fi
   done
 fi
@@ -173,13 +175,21 @@ if [ "$RESCUE_VIOLATIONS" -eq 0 ]; then
 fi
 
 echo "[4/4] Consolidando veredito do CONFLICT-INQUISITOR..."
-echo "| Sumario Final ($MOD_COUNT modulos) | **$( [ "$FAIL_COUNT" -eq 0 ] && echo PASS || echo FAIL )** | Falhas Fatais: $FAIL_COUNT / Avisos: $WARN_COUNT |" >> "$REPORT_OUT"
+VERDICT="PASS"
+[ "$FAIL_COUNT" -gt 0 ] && VERDICT="FAIL"
+[ "$FAIL_COUNT" -eq 0 ] && [ "$PEND_COUNT" -gt 0 ] && VERDICT="PENDENTE"
+echo "| Sumario Final ($MOD_COUNT modulos) | **$VERDICT** | Falhas Fatais: $FAIL_COUNT / Avisos: $WARN_COUNT / Pendencias: $PEND_COUNT |" >> "$REPORT_OUT"
 
 cat "$REPORT_OUT"
 
 if [ "$FAIL_COUNT" -gt 0 ]; then
   echo "[VETO DO INQUISITOR] $FAIL_COUNT conflito(s) fatal(is) detectado(s) antes do boot!"
   exit 1
+fi
+
+if [ "$PEND_COUNT" -gt 0 ]; then
+  echo "[PENDENTE] $PEND_COUNT verificacao(oes) sem ferramenta — auditoria incompleta, sem aprovacao."
+  exit 3
 fi
 
 echo "[APROVADO] Zero conflitos estaticos fatais."

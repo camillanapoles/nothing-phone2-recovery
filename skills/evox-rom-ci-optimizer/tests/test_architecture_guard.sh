@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# architecture_guard.py — trava da arquitetura decidida (6 casos)
+# architecture_guard.py — trava da arquitetura decidida (7 casos)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; G="$HERE/../scripts/architecture_guard.py"; ROOT="$HERE/../../.."
 P=0; F=0
@@ -12,7 +12,7 @@ ck "self-test detecta as 10 violações simuladas" "exit" \
 ck "repositório respeita a arquitetura" "exit" \
   "$(python3 "$G" --root "$ROOT" >/dev/null 2>&1; echo $?)" "0"
 ck "JSON tem todas as regras" "contagem" \
-  "$(python3 "$G" --root "$ROOT" --json | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["results"]))')" "20"
+  "$(python3 "$G" --root "$ROOT" --json | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["results"]))')" "21"
 
 # fixture mínima com violação injetada: o guard tem de reprovar
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
@@ -28,6 +28,16 @@ printf '\n      - run: fastboot flash boot_b boot.img\n' >> "$T/skills/evox-rom-
 ck "cloud com fastboot é reprovado" "exit" "$(python3 "$G" --root "$T" >/dev/null 2>&1; echo $?)" "3"
 ck "violação aponta AG1" "AG1" \
   "$(python3 "$G" --root "$T" --json | python3 -c 'import json,sys;d=json.load(sys.stdin);print([r["rule"] for r in d["results"] if not r["ok"]][0])')" "AG1"
+# AG21: catálogo com um único mutante semântico por arquivo não passa
+T2="$(mktemp -d)"; mkdir -p "$T2/skills/evox-rom-ci-optimizer/references"
+cat > "$T2/skills/evox-rom-ci-optimizer/references/mutation-catalog.json" <<'J'
+{"schema":"evox-mutation-catalog/1","mutants":[
+ {"id":"A1","file":"x.sh","find":"a","replace":"b","test":"t.sh","strength":"semantic","rationale":"único"}]}
+J
+ck "catálogo magro reprova AG21" "AG21" \
+  "$(python3 "$G" --root "$T2" --json | python3 -c 'import json,sys;d=json.load(sys.stdin);print("AG21" if any(not r["ok"] and r["rule"]=="AG21" for r in d["results"]) else "ok")')" "AG21"
+rm -rf "$T2"
+
 ck "sem arquivos obrigatórios reprova AG7" "AG7" \
   "$(rm "$T/AGENTS.md"; python3 "$G" --root "$T" --json | python3 -c 'import json,sys;d=json.load(sys.stdin);print("AG7" if any(not r["ok"] and r["rule"]=="AG7" for r in d["results"]) else "ok")')" "AG7"
 

@@ -53,8 +53,8 @@ fi
 case "$ENGINE" in
   apatch)
     if [ ! -f "$BOOT_IMG" ]; then
-      echo "[AVISO] $BOOT_IMG nao encontrado. Execute 'make extract' primeiro."
-      exit 0
+      echo "[ERRO] $BOOT_IMG nao encontrado. Execute 'make extract' primeiro — nada foi patchado" >&2
+      exit 3
     fi
     if command -v magiskboot >/dev/null 2>&1 && command -v kptools >/dev/null 2>&1 && [ -f "./kpimg" ]; then
       WORK_BOOT="$(mktemp -d)"
@@ -74,7 +74,8 @@ case "$ENGINE" in
       sha256sum "$OUT_DIR/boot_evox_apatch_patched.img" > "$OUT_DIR/boot_evox_apatch_patched.img.sha256"
       echo "[OK] Imagem APatch gerada: $OUT_DIR/boot_evox_apatch_patched.img"
     else
-      echo "[MODO DRY-RUN] Ferramentas binarias (magiskboot/kptools/kpimg) ausentes localmente; etapa sera executada no runner do GitHub Actions."
+      echo "[PENDENTE] magiskboot/kptools/kpimg ausentes: imagem APatch NAO gerada (dry-run nao conta como sucesso)" >&2
+      exit 4
     fi
     ;;
   kernelsu|magisk)
@@ -91,7 +92,12 @@ case "$ENGINE" in
     ;;
 esac
 
-# Gerar script automatico de Flash e Rollback via Fastboot
+# Flash/Rollback so existe se houver imagem real para aplicar (sem imagem = nada a empacotar)
+if [ ! -f "$OUT_DIR/boot_evox_apatch_patched.img" ]; then
+  echo "[PENDENTE] nenhuma imagem patcheada em $OUT_DIR — flash_and_rollback.sh NAO gerado" >&2
+  exit 4
+fi
+
 cat << 'EOF' > "$OUT_DIR/flash_and_rollback.sh"
 #!/usr/bin/env bash
 set -euo pipefail

@@ -2,7 +2,7 @@
 
 **Status:** aceito em 2026-11-01 · **Decisor:** usuária · **Executor:** agente de sessão
 **Fonte de verdade de conteúdo:** `skills/evox-rom-ci-optimizer/references/module-matrix-5w1h.md`
-**Trava executável:** `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` (AG1–AG20)
+**Trava executável:** `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` (AG1–AG21)
 
 > Este documento existe para a **próxima sessão que executa**. Se você é essa sessão: leia
 > este arquivo, rode `make -s arch` e `python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check`.
@@ -14,7 +14,7 @@
 
 | Termo | Significa | **Não** confundir com |
 |---|---|---|
-| `AG1–AG20` | travas de arquitetura executáveis (`architecture_guard.py`) | `G1–G10` (objetivos globais, §9 do `AGENTS.md`) |
+| `AG1–AG21` | travas de arquitetura executáveis (`architecture_guard.py`) | `G1–G10` (objetivos globais, §9 do `AGENTS.md`) |
 | `Guard-4` | 4 condições antes de qualquer mutação: build/kernel pinados · backup stock byte-idêntico (boot **e** `init_boot` quando existir) · rollback exato · confirmação humana | `G4` de outras skills (`github`, `cogni-synapse`, `sci-…`), que significam outra coisa <!-- scan:exempt --> |
 | **GO-USB 10/10** | checklist de 10 itens antes do cabo (antes chamado de "gate 10") <!-- scan:exempt --> | `G10` (objetivo "HIL A/B isolado") |
 | `R01–R09` | regras do scanner de conflito | `C1–C13` (regras da varredura de contradições) |
@@ -38,7 +38,7 @@ com o objetivo `G10`. A varredura (`contradiction_scan.py`, regras C8–C10) rep
 | 8 | Nenhum workflow do GitHub executa `fastboot` | AG13 |
 | 9 | Emulador prova a **camada de módulos**, nunca o boot do pong | AG8 |
 | 10 | Decisão registrada antes de executar (`decision.json`) | `session_open.py check` |
-| 11 | Teste só vale se puder reprovar (mutação) | `make mutation` 47/47 · AG19 |
+| 11 | Teste só vale se puder reprovar (mutação) | `make mutation` 102/102 · AG19/AG21 |
 | 12 | Asserção não pode ser impossível nem engolir falha | `make vacuity` · AG20 |
 
 ## 2. Arquitetura em vigor
@@ -123,9 +123,9 @@ o probe retorna `NO_DEVICE`/`BOOTLOADER` → recuperação manual por botão fí
 ## 5. Verificação em 60 segundos
 
 ```bash
-make -s arch                                  # AG1–AG20
+make -s arch                                  # AG1–AG21
 skills/evox-rom-ci-optimizer/scripts/audit_loop.sh   # AG + scan + cobertura + vacuidade + suítes
-make -s mutation                              # falseabilidade: 47 mutantes, 0 sobreviventes
+make -s mutation                              # falseabilidade: 102 mutantes, 0 sobreviventes
 make -s prove                                 # estado + guard + 15 suítes + eval
 python3 skills/evox-rom-ci-optimizer/scripts/architecture_guard.py --self-test
 python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --file workspace/decision.json --json

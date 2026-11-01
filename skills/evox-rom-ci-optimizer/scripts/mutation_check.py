@@ -6,9 +6,13 @@ pegá-la. Se o teste continua passando, a mutação "sobreviveu" → o teste é 
 
 Um teste verde só vale se o vermelho for possível: o harness transforma isso em número.
 
+Matar por TIMEOUT não conta como cobertura semântica: se o teste só morre porque travou,
+o mutante é classificado "timeout" e o harness falha (a menos que --allow-timeout seja usado).
+Cada mutante declara "strength": "semantic" (mata por asserção) ou "contract" (só CLI/--help).
+
 Uso:
-  mutation_check.py [--root DIR] [--catalog F] [--only M01,M07] [--json] [--keep]
-Exit: 0 todos os mutantes mortos · 3 sobrevivente/inválido · 2 uso
+  mutation_check.py [--root DIR] [--catalog F] [--only M01,M07] [--json] [--keep] [--allow-timeout]
+Exit: 0 todos mortos por asserção · 3 sobrevivente/inválido/timeout · 2 uso
 """
 from __future__ import annotations
 
@@ -21,6 +25,8 @@ import tempfile
 import time
 
 SK = "skills/evox-rom-ci-optimizer"
+# timeout por teste (segundos) — reduzível nos testes do próprio harness
+TEST_TIMEOUT = int(os.environ.get("MUTATION_TEST_TIMEOUT", "300"))
 IGNORE = shutil.ignore_patterns(".git", "__pycache__", "workspace", "work", "*.pyc", "node_modules")
 
 
@@ -42,24 +48,30 @@ def run_mutant(root: str, m: dict, keep: bool = False) -> dict:
     try:
         text = open(target, encoding="utf-8").read()
     except OSError as exc:
-        return {"id": m["id"], "file": m["file"], "test": m["test"], "status": "invalid", "detail": f"arquivo ausente: {exc}"}
+        return {"id": m["id"], "file": m["file"], "test": m["test"], "status": "invalid",
+                "strength": m.get("strength", "semantic"), "detail": f"arquivo ausente: {exc}"}
     n = text.count(m["find"])
     if n != 1:
         return {"id": m["id"], "file": m["file"], "test": m["test"], "status": "invalid",
-                "detail": f"padrão aparece {n}× (precisa ser único)"}
+                "strength": m.get("strength", "semantic"), "detail": f"padrão aparece {n}× (precisa ser único)"}
     open(target, "w", encoding="utf-8").write(text.replace(m["find"], m["replace"], 1))
     test = os.path.join(tmp, m["test"])
     if not os.path.exists(test):
-        return {"id": m["id"], "file": m["file"], "test": m["test"], "status": "invalid", "detail": f"teste ausente: {m['test']}"}
+        return {"id": m["id"], "file": m["file"], "test": m["test"], "status": "invalid",
+                "strength": m.get("strength", "semantic"), "detail": f"teste ausente: {m['test']}"}
     try:
         proc = subprocess.run(["bash", test] if test.endswith(".sh") else [sys.executable, test],
-                              cwd=tmp, capture_output=True, text=True, timeout=300)
+                              cwd=tmp, capture_output=True, text=True, timeout=TEST_TIMEOUT)
         rc, out = proc.returncode, (proc.stdout + proc.stderr)
     except subprocess.TimeoutExpired:
         rc, out = 124, "timeout"
-    status = "killed" if rc != 0 else "survived"
+    if rc == 124 or out.strip() == "timeout":
+        status = "timeout"
+    else:
+        status = "killed" if rc != 0 else "survived"
     tail = [l for l in out.splitlines() if "FAIL" in l][:2]
     res = {"id": m["id"], "file": m["file"], "test": m["test"], "status": status,
+           "strength": m.get("strength", "semantic"),
            "test_exit": rc, "seconds": round(time.time() - started, 1),
            "rationale": m.get("rationale", ""), "evidence": tail}
     if not keep:
@@ -85,26 +97,41 @@ def main(argv: list[str]) -> int:
     for m in mutants:
         r = run_mutant(root, m, keep="--keep" in argv)
         results.append(r)
-        mark = {"killed": "MORTO ", "survived": "VIVO  ", "invalid": "INVÁLIDO"}[r["status"]]
+        mark = {"killed": "MORTO ", "survived": "VIVO  ", "invalid": "INVÁLIDO",
+                "timeout": "TIMEOUT"}[r["status"]]
         print(f"  {mark} {r['id']} {os.path.basename(r['file'])} → "
               f"{os.path.basename(r['test'])}" + (f" ({r.get('detail','')})" if r["status"] == "invalid" else ""))
         if r["status"] == "survived":
             print(f"         SOBREVIVEU: o teste passou com a lógica trocada ({r['rationale']})")
+        elif r["status"] == "timeout":
+            print("         TIMEOUT ≠ COBERTURA: o teste travou; sem asserção que mate o mutante")
 
     killed = sum(1 for r in results if r["status"] == "killed")
     survived = [r for r in results if r["status"] == "survived"]
     invalid = [r for r in results if r["status"] == "invalid"]
+    timed_out = [r for r in results if r["status"] == "timeout"]
+    allow_timeout = "--allow-timeout" in argv
     score = round(100.0 * killed / max(1, len(results)), 1)
-    ok = not survived and not invalid
-    rep = {"schema": "evox-mutation-report/1", "root": root, "total": len(results),
+    ok = not survived and not invalid and (allow_timeout or not timed_out)
+    by_strength = {}
+    for r in results:
+        key = r["strength"]
+        by_strength[key] = by_strength.get(key, 0) + 1
+    per_file = {}
+    for m in mutants:
+        per_file[m["file"]] = per_file.get(m["file"], 0) + 1
+    rep = {"schema": "evox-mutation-report/2", "root": root, "total": len(results),
            "killed": killed, "survived": len(survived), "invalid": len(invalid),
+           "timeout_killed": len(timed_out), "allow_timeout": allow_timeout,
            "score_pct": score, "ok": ok, "results": results,
+           "by_strength": by_strength, "mutants_per_file": per_file,
            "catalog_files": sorted({m["file"] for m in mutants})}
     out = os.path.join(root, "workspace", "audit", "mutation.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     json.dump(rep, open(out, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
-    print(f"[mutation] {killed}/{len(results)} mortos · score {score}% · "
-          f"{len(survived)} vivo(s) · {len(invalid)} inválido(s)")
+    print(f"[mutation] {killed}/{len(results)} mortos por asserção · score {score}% · "
+          f"{len(survived)} vivo(s) · {len(invalid)} inválido(s) · {len(timed_out)} só-timeout · "
+          f"força {by_strength}")
     return 0 if ok else 3
 
 

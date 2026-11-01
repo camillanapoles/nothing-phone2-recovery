@@ -26,7 +26,8 @@ import os
 import sys
 
 QUESTIONS = [
-    ("P1", "Vanilla ou GAPPS?", "explicar diferença e recomendar com base nos módulos pedidos"),
+    ("P1", "Vanilla ou GAPPS?", "decisão SÓ dela; apresentar dados oficiais (tamanho, sha256, caminho de "
+                                "instalação) e registrar build.flavor_source=user. Nunca assumir"),
     ("P2", "Caminho completo do .zip da ROM", "só depois da decisão de build"),
     ("P3", "Autorizo instalar (item a item, com justificativa)",
      "payload-dumper-go, kptools, magiskboot, adb"),
@@ -39,6 +40,7 @@ QUESTIONS = [
 
 REQUIRED = {
     "build.flavor": ("build", "flavor"),
+    "build.flavor_source": ("build", "flavor_source"),
     "build.zip_path": ("build", "zip_path"),
     "build.zip_sha256": ("build", "zip_sha256"),
     "installs": ("installs", None),
@@ -52,7 +54,8 @@ REQUIRED = {
 
 SKELETON = {
     "schema": "evox-session/1",
-    "build": {"flavor": None, "rationale": None, "zip_path": None, "zip_sha256": None},
+    "build": {"flavor": None, "flavor_source": None, "rationale": None,
+              "zip_path": None, "zip_sha256": None},
     "installs": [
         {"tool": "payload-dumper-go", "needed_for": "extrair payload.bin (L4 + Wave 1)", "authorized": None},
         {"tool": "kptools", "needed_for": "patch APatch/KPM no boot.img", "authorized": None},
@@ -175,7 +178,7 @@ def main(argv: list[str]) -> int:
         print("Uso: session_open.py {questions|template|auto|check} [--out F] [--file F] [--json]")
         print("  questions  lista as perguntas P1–P8 na ordem")
         print("  template   cria decision.json vazio")
-        print("  auto       preenche P10–P14 (decisão delegada) e mantém P1–P3 pendentes")
+        print("  auto       preenche P10–P14 (decisão delegada); nunca escolhe a variante")
         print("  check      exit 0 completo · 3 pendente · 4 inválido")
         return 0
     if cmd == "questions":
@@ -203,6 +206,11 @@ def main(argv: list[str]) -> int:
             except Exception:
                 doc = json.loads(json.dumps(SKELETON))
         doc = _fill_delegated(doc)
+        # P1 é decisão da usuária: nunca deixar variante "herdada" passar por decisão
+        b = doc.setdefault("build", {})
+        if b.get("flavor") and b.get("flavor_source") != "user":
+            b["flavor"] = None
+            b["flavor_source"] = None
         json.dump(doc, open(out, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
         miss = _pending(doc)
         print(f"[session] auto: {out} preenchido com P10–P14 (decidido por contexto)")
@@ -223,6 +231,9 @@ def main(argv: list[str]) -> int:
             print(f"[ERRO] decisão inválida: {exc}", file=sys.stderr)
             return 4
         miss = _pending(doc)
+        b = doc.get("build") or {}
+        if b.get("flavor") and b.get("flavor_source") != "user":
+            miss.append("build.flavor_source=user (P1 é decisão da usuária)")
         if as_json:
             print(json.dumps({"file": path, "complete": not miss, "pending": miss},
                              indent=2, ensure_ascii=False))

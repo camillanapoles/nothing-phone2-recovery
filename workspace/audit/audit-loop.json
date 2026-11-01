@@ -1,0 +1,1 @@
+{"schema":"evox-audit-loop/1","iterations":2,"max_iter":3,"converged":true,"clean":true,"fingerprints":["guard=0 scan_rc=0 err=0 warn=0 cov=0 gaps=0 vac=0 tests=0","guard=0 scan_rc=0 err=0 warn=0 cov=0 gaps=0 vac=0 tests=0"]}

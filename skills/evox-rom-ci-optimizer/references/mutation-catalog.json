@@ -8,7 +8,9 @@
       "find": "add(\"backup_identico_ao_stock\", hb == hr,",
       "replace": "add(\"backup_identico_ao_stock\", True,",
       "test": "skills/evox-rom-ci-optimizer/tests/test_cache_and_guard4.sh",
-      "rationale": "backup divergente precisa reprovar"
+      "rationale": "backup divergente precisa reprovar",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M02",
@@ -16,7 +18,9 @@
       "find": "elif has_init:",
       "replace": "elif False:",
       "test": "skills/evox-rom-ci-optimizer/tests/test_cache_and_guard4.sh",
-      "rationale": "pacote com init_boot exige par de rollback"
+      "rationale": "pacote com init_boot exige par de rollback",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M03",
@@ -24,7 +28,9 @@
       "find": "ok = bool(txt) and txt[0].lower() == hr",
       "replace": "ok = bool(txt)",
       "test": "skills/evox-rom-ci-optimizer/tests/test_cache_and_guard4.sh",
-      "rationale": ".sha256 do backup precisa casar com o hash real"
+      "rationale": ".sha256 do backup precisa casar com o hash real",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M04",
@@ -32,7 +38,9 @@
       "find": "    if failed:",
       "replace": "    if False:",
       "test": "skills/evox-rom-ci-optimizer/tests/test_rollout_gate.sh",
-      "rationale": "módulo FAILED precisa travar o próximo"
+      "rationale": "módulo FAILED precisa travar o próximo",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M05",
@@ -40,7 +48,9 @@
       "find": "    if sha and sha.lower() != real:",
       "replace": "    if False:",
       "test": "skills/evox-rom-ci-optimizer/tests/test_rollout_gate.sh",
-      "rationale": "sha do artefato divergente precisa reprovar"
+      "rationale": "sha do artefato divergente precisa reprovar",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M06",
@@ -48,7 +58,9 @@
       "find": "    [ -f \"$dir/disable\" ] || : >\"$dir/disable\"",
       "replace": "    :",
       "test": "skills/evox-rom-ci-optimizer/tests/test_slot_router.sh",
-      "rationale": "quarentena precisa criar o marcador disable"
+      "rationale": "quarentena precisa criar o marcador disable",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M07",
@@ -56,7 +68,9 @@
       "find": "    attempts=0                       # slot mudou",
       "replace": "    attempts=attempts               # slot mudou",
       "test": "skills/evox-rom-ci-optimizer/tests/test_slot_router.sh",
-      "rationale": "troca de slot precisa zerar o contador de tentativas"
+      "rationale": "troca de slot precisa zerar o contador de tentativas",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M08",
@@ -64,7 +78,9 @@
       "find": "    classification=\"ABL_FALLBACK\"; code=3",
       "replace": "    classification=\"OK\"; code=0",
       "test": "skills/evox-rom-ci-optimizer/tests/test_abl_probe.sh",
-      "rationale": "fallback do bootloader não pode passar como OK"
+      "rationale": "fallback do bootloader não pode passar como OK",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M09",
@@ -72,7 +88,9 @@
       "find": "    if [ -n \"$marks\" ]; then",
       "replace": "    if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_abl_probe.sh",
-      "rationale": "marca de boot distingue HANG de HANG_EARLY"
+      "rationale": "marca de boot distingue HANG de HANG_EARLY",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M10",
@@ -80,7 +98,9 @@
       "find": "    if sha(origin) != e[\"sha256\"]: emit(",
       "replace": "    if False: emit(",
       "test": "skills/evox-rom-ci-optimizer/tests/test_cache_and_guard4.sh",
-      "rationale": "get com hash divergente precisa falhar"
+      "rationale": "get com hash divergente precisa falhar",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M11",
@@ -88,7 +108,9 @@
       "find": "        if sha(p) != e[\"sha256\"]: bad.append(",
       "replace": "        if False: bad.append(",
       "test": "skills/evox-rom-ci-optimizer/tests/test_cache_and_guard4.sh",
-      "rationale": "verify precisa detectar corrupção"
+      "rationale": "verify precisa detectar corrupção",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M12",
@@ -96,7 +118,9 @@
       "find": "add(\"build_suportada\", match,",
       "replace": "add(\"build_suportada\", True,",
       "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_compat_check.sh",
-      "rationale": "kernel sem suporte à build exata precisa reprovar"
+      "rationale": "kernel sem suporte à build exata precisa reprovar",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M13",
@@ -104,7 +128,9 @@
       "find": "add(\"kmi_igual_rom\", bool(rom_kmi) and cand.get(\"kmi\") == rom_kmi,",
       "replace": "add(\"kmi_igual_rom\", True,",
       "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_compat_check.sh",
-      "rationale": "KMI diferente precisa reprovar"
+      "rationale": "KMI diferente precisa reprovar",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M14",
@@ -112,7 +138,9 @@
       "find": "def _pending(doc: dict) -> list[str]:\n    miss = []",
       "replace": "def _pending(doc: dict) -> list[str]:\n    return []",
       "test": "skills/evox-rom-ci-optimizer/tests/test_session_open.sh",
-      "rationale": "decisão incompleta precisa sair 3"
+      "rationale": "decisão incompleta precisa sair 3",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M15",
@@ -120,7 +148,9 @@
       "find": "        if val is None or val == \"\" or val == []:",
       "replace": "        if False:",
       "test": "skills/evox-rom-ci-optimizer/tests/test_session_open.sh",
-      "rationale": "campo vazio precisa contar como pendente"
+      "rationale": "campo vazio precisa contar como pendente",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M16",
@@ -128,7 +158,9 @@
       "find": "command -v unzip >/dev/null 2>&1 || die 3 \"unzip ausente (apt install -y unzip)\"",
       "replace": "command -v unzip >/dev/null 2>&1 || true",
       "test": "skills/evox-rom-ci-optimizer/tests/test_extract_rom_assets.sh",
-      "rationale": "sem unzip precisa sair 3, nunca fingir"
+      "rationale": "sem unzip precisa sair 3, nunca fingir",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M17",
@@ -136,7 +168,9 @@
       "find": "            if SELINUX_PERMISSIVE.search(text):",
       "replace": "            if False:",
       "test": "skills/evox-rom-ci-optimizer/tests/test_scanner_rules.sh",
-      "rationale": "R08 precisa achar setenforce 0"
+      "rationale": "R08 precisa achar setenforce 0",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M18",
@@ -144,7 +178,9 @@
       "find": "    if re.search(r\"fastboot\\s+flash\", c):",
       "replace": "    if False:",
       "test": "skills/evox-rom-ci-optimizer/tests/test_architecture_guard.sh",
-      "rationale": "AG1 precisa reprovar fastboot flash no CI"
+      "rationale": "AG1 precisa reprovar fastboot flash no CI",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M19",
@@ -152,7 +188,9 @@
       "find": "    (\"C1\", \"erro\", re.compile(r\"^\\s*mount\\s+--bind|^\\s*mount\\s+-o\\s+bind\")),",
       "replace": "    (\"C1\", \"erro\", re.compile(r\"(?!)a\")),",
       "test": "skills/evox-rom-ci-optimizer/tests/test_contradiction_scan.sh",
-      "rationale": "C1 precisa achar mount --bind"
+      "rationale": "C1 precisa achar mount --bind",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M20",
@@ -160,7 +198,9 @@
       "find": "    (\"C10\", \"erro\", re.compile(r\"\\bgate\\s*10\\b\", re.I)),",
       "replace": "    (\"C10\", \"erro\", re.compile(r\"(?!)a\")),",
       "test": "skills/evox-rom-ci-optimizer/tests/test_contradiction_scan.sh",
-      "rationale": "C10 precisa achar 'gate 10'"
+      "rationale": "C10 precisa achar 'gate 10'",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M21",
@@ -168,7 +208,9 @@
       "find": "        elif s in ex:",
       "replace": "        else:",
       "test": "skills/evox-rom-ci-optimizer/tests/test_coverage_matrix.sh",
-      "rationale": "script sem teste precisa virar GAP"
+      "rationale": "script sem teste precisa virar GAP",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M22",
@@ -176,7 +218,9 @@
       "find": "[ \"$converged\" -eq 1 ] && [ \"$clean\" -eq 1 ] && exit 0 || exit 3",
       "replace": "exit 0",
       "test": "skills/evox-rom-ci-optimizer/tests/test_audit_loop.sh",
-      "rationale": "loop com contradição não pode sair 0"
+      "rationale": "loop com contradição não pode sair 0",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M23",
@@ -184,7 +228,9 @@
       "find": "  if [ -n \"$have\" ] && [ -n \"$pin\" ] && [ \"$have\" != \"$pin\" ]; then",
       "replace": "  if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_rom_artifact_fetch.sh",
-      "rationale": "arquivo adulterado precisa dar drift"
+      "rationale": "arquivo adulterado precisa dar drift",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M24",
@@ -192,7 +238,9 @@
       "find": "  [ -n \"$pin\" ] || pin_put \"$id\" \"$got\" \"$size\" \"$url\"",
       "replace": "  :",
       "test": "skills/evox-rom-ci-optimizer/tests/test_rom_artifact_fetch.sh",
-      "rationale": "primeiro fetch precisa gravar o pin"
+      "rationale": "primeiro fetch precisa gravar o pin",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M25",
@@ -200,7 +248,9 @@
       "find": "if [ \"$ROLLBACK\" -eq 1 ] && { [ \"$classification\" = \"HANG\" ] || [ \"$classification\" = \"HANG_EARLY\" ]; }; then",
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_abl_probe.sh",
-      "rationale": "--rollback precisa executar set-active"
+      "rationale": "--rollback precisa executar set-active",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M26",
@@ -208,7 +258,9 @@
       "find": "if [ \"${1:-}\" = \"-h\" ] || [ \"${1:-}\" = \"--help\" ]; then",
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
-      "rationale": "--help não pode executar o script"
+      "rationale": "--help não pode executar o script",
+      "note": null,
+      "strength": "contract"
     },
     {
       "id": "M27",
@@ -216,7 +268,8 @@
       "find": "  if [ \"$APPLY\" -eq 0 ]; then",
       "replace": "  if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
-      "rationale": "sem --apply precisa ser dry-run"
+      "rationale": "sem --apply precisa ser dry-run",
+      "strength": "contract"
     },
     {
       "id": "M28",
@@ -225,7 +278,7 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "auditoria de conflitos não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract"
     },
     {
       "id": "M29",
@@ -234,7 +287,7 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "empacotador não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract"
     },
     {
       "id": "M30",
@@ -243,7 +296,7 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "extrator não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract"
     },
     {
       "id": "M31",
@@ -252,7 +305,7 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "patch offline não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract"
     },
     {
       "id": "M32",
@@ -261,7 +314,7 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "patcher não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract"
     },
     {
       "id": "M33",
@@ -270,7 +323,7 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "runner de AVD não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract"
     },
     {
       "id": "M34",
@@ -279,7 +332,7 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "serviço de device não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract"
     },
     {
       "id": "M35",
@@ -288,7 +341,8 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "auditor de zip não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract",
+      "note": "contrato CLI (--help sem efeito)"
     },
     {
       "id": "M36",
@@ -297,7 +351,8 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "build de kernel não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract",
+      "note": "contrato CLI (--help sem efeito)"
     },
     {
       "id": "M37",
@@ -306,7 +361,8 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "empacotador AK3 não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract",
+      "note": "contrato CLI (--help sem efeito)"
     },
     {
       "id": "M38",
@@ -315,7 +371,8 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "patcher de manager não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract",
+      "note": "contrato CLI (--help sem efeito)"
     },
     {
       "id": "M39",
@@ -324,7 +381,8 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "resolver de fonte não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract",
+      "note": "contrato CLI (--help sem efeito)"
     },
     {
       "id": "M40",
@@ -333,7 +391,8 @@
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_script_contracts.sh",
       "rationale": "validador cuttlefish não pode rodar em --help",
-      "strength": "contrato CLI (--help sem efeito)"
+      "strength": "contract",
+      "note": "contrato CLI (--help sem efeito)"
     },
     {
       "id": "M41",
@@ -341,7 +400,9 @@
       "find": "if [ \"$files_total\" -eq 0 ] && [ \"$rows_total\" -eq 0 ]; then",
       "replace": "if false; then",
       "test": "tests/test_state_reset.sh",
-      "rationale": "estado ja limpo precisa sair 3 (idempotencia)"
+      "rationale": "estado ja limpo precisa sair 3 (idempotencia)",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M42",
@@ -349,7 +410,9 @@
       "find": "    echo \"[ERRO] '$ADB' nao encontrado no PATH (use --local ou instale android-tools-adb)\" >&2\n    exit 3",
       "replace": "    echo \"seguindo sem adb\" >&2\n    exit 0",
       "test": "skills/android16-root-guardian/tests/test_collect_evidence.sh",
-      "rationale": "sem adb precisa sair 3, nunca fingir coleta"
+      "rationale": "sem adb precisa sair 3, nunca fingir coleta",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M43",
@@ -357,7 +420,9 @@
       "find": "(\"R8\", \"watchdog boot\", lambda t: \"sys.boot_completed\" in t and \"timeout\" in t.lower()),",
       "replace": "(\"R8\", \"watchdog boot\", lambda t: True),",
       "test": "skills/evox-rom-ci-optimizer/tests/test_ci_workflow_lint.sh",
-      "rationale": "R8 precisa reprovar workflow sem watchdog"
+      "rationale": "R8 precisa reprovar workflow sem watchdog",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M44",
@@ -365,7 +430,9 @@
       "find": "    status = \"killed\" if rc != 0 else \"survived\"",
       "replace": "    status = \"killed\"",
       "test": "skills/evox-rom-ci-optimizer/tests/test_mutation_check.sh",
-      "rationale": "harness precisa reconhecer sobrevivente"
+      "rationale": "harness precisa reconhecer sobrevivente",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M45",
@@ -373,7 +440,9 @@
       "find": "if [[ -n \"$missing_req_list\" ]]; then",
       "replace": "if false; then",
       "test": "skills/evox-rom-ci-optimizer/tests/test_preflight_deps.sh",
-      "rationale": "dependencia exigida ausente precisa bloquear"
+      "rationale": "dependencia exigida ausente precisa bloquear",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M46",
@@ -381,7 +450,9 @@
       "find": "    echo \"[BLOQUEADO] rollout_gate recusou $name (módulo anterior sem PASS ou FAILED pendente)\"\n    exit 3",
       "replace": "    echo \"[sandbox] seguindo apesar do gate\"",
       "test": "skills/evox-rom-ci-optimizer/tests/test_sandbox_rollout.sh",
-      "rationale": "gate recusando precisa parar o lote"
+      "rationale": "gate recusando precisa parar o lote",
+      "note": null,
+      "strength": "semantic"
     },
     {
       "id": "M47",
@@ -389,7 +460,504 @@
       "find": "    (\"V4\", \"erro\", re.compile(r'\\bck\\s+\"[^\"]*\"\\s+\"([^\"]+)\"\\s+\"\\1\"')),",
       "replace": "    (\"V4\", \"erro\", re.compile(r'(?!)a')),",
       "test": "skills/evox-rom-ci-optimizer/tests/test_vacuity_scan.sh",
-      "rationale": "V4 precisa achar comparacao com literal identico"
+      "rationale": "V4 precisa achar comparacao com literal identico",
+      "note": null,
+      "strength": "semantic"
+    },
+    {
+      "id": "M48",
+      "file": "skills/evox-rom-ci-optimizer/scripts/forge_patcher.sh",
+      "find": "echo \"[ERRO] boot.img ausente em $ROM_DIR — nada foi patchado (não é sucesso)\" >&2\n  exit 3",
+      "replace": "exit 0",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "ausência de boot.img tem de falhar, não 'concluir'"
+    },
+    {
+      "id": "M49",
+      "file": "skills/evox-rom-ci-optimizer/scripts/forge_patcher.sh",
+      "find": "if ! command -v kptools >/dev/null 2>&1 || [ ! -f \"${HOME}/bin/kpimg\" ]; then",
+      "replace": "if false; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "sem ferramentas o patch não pode passar por concluído"
+    },
+    {
+      "id": "M50",
+      "file": "skills/evox-rom-ci-optimizer/scripts/forge_patcher.sh",
+      "find": "if cmp -s kernel kernel_stock_extracted; then",
+      "replace": "if false; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "patch que não altera o kernel precisa ser rejeitado"
+    },
+    {
+      "id": "M51",
+      "file": "skills/evox-rom-ci-optimizer/scripts/patch_boot_offline.sh",
+      "find": "echo \"[ERRO] $BOOT_IMG nao encontrado. Execute 'make extract' primeiro — nada foi patchado\" >&2\n      exit 3",
+      "replace": "exit 0",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "T03 sem boot.img não pode sair 0"
+    },
+    {
+      "id": "M52",
+      "file": "skills/evox-rom-ci-optimizer/scripts/patch_boot_offline.sh",
+      "find": "if [ ! -f \"$OUT_DIR/boot_evox_apatch_patched.img\" ]; then",
+      "replace": "if false; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "flash_and_rollback.sh sem imagem seria pacote vazio"
+    },
+    {
+      "id": "M53",
+      "file": "skills/evox-rom-ci-optimizer/scripts/patch_boot_offline.sh",
+      "find": "if command -v magiskboot >/dev/null 2>&1 && command -v kptools >/dev/null 2>&1 && [ -f \"./kpimg\" ]; then",
+      "replace": "if true; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "sem binários não há imagem APatch para gerar"
+    },
+    {
+      "id": "M54",
+      "file": "skills/evox-rom-ci-optimizer/scripts/extract_evox_base.sh",
+      "find": "  echo \"[ERRO] payload-dumper-go ausente: particoes NAO extraidas (manifesto nao sera gerado)\" >&2\n  exit 3",
+      "replace": "exit 0",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "extração sem dumper não pode terminar em sucesso"
+    },
+    {
+      "id": "M55",
+      "file": "skills/evox-rom-ci-optimizer/scripts/extract_evox_base.sh",
+      "find": "  [ -n \"$KMI_MATCH\" ] && KMI_DETECTED=\"$KMI_MATCH\"",
+      "replace": "  KMI_DETECTED=\"${KMI_MATCH:-gki-2.0-detected}\"",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "KMI não pode ser inventado quando não há match"
+    },
+    {
+      "id": "M56",
+      "file": "skills/evox-rom-ci-optimizer/scripts/extract_evox_base.sh",
+      "find": "            h.update(chunk)",
+      "replace": "            pass",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "manifesto precisa de sha256 real da partição"
+    },
+    {
+      "id": "M57",
+      "file": "skills/evox-rom-ci-optimizer/scripts/audit_rom_conflicts.sh",
+      "find": "if [ \"$FAIL_COUNT\" -gt 0 ]; then",
+      "replace": "if false; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "conflito fatal precisa vetar (exit 1)"
+    },
+    {
+      "id": "M58",
+      "file": "skills/evox-rom-ci-optimizer/scripts/audit_rom_conflicts.sh",
+      "find": "if [ \"$ZYGISK_PROVIDERS\" -gt 1 ]; then",
+      "replace": "if [ \"$ZYGISK_PROVIDERS\" -gt 9 ]; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "dois provedores Zygisk já colidem"
+    },
+    {
+      "id": "M59",
+      "file": "skills/evox-rom-ci-optimizer/scripts/audit_rom_conflicts.sh",
+      "find": "if grep -qE \"sleep [0-9]{2,}|while true|until .*boot_completed\" \"$mod_work/post-fs-data.sh\"; then",
+      "replace": "if grep -qE \"sleep [0-9]{5,}|while true|until .*boot_completed\" \"$mod_work/post-fs-data.sh\"; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "sleep 30 em post-fs-data continua bloqueante"
+    },
+    {
+      "id": "M60",
+      "file": "skills/evox-rom-ci-optimizer/scripts/audit_rom_conflicts.sh",
+      "find": "if [ \"$PEND_COUNT\" -gt 0 ]; then",
+      "replace": "if false; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "auditoria incompleta não pode se declarar aprovada"
+    },
+    {
+      "id": "M61",
+      "file": "skills/evox-rom-ci-optimizer/scripts/build_safe_module_bundle.sh",
+      "find": "  if [ ! -f \"$req\" ]; then",
+      "replace": "  if false; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "bundle sem watchdog/prop é inútil e precisa falhar"
+    },
+    {
+      "id": "M62",
+      "file": "skills/evox-rom-ci-optimizer/scripts/build_safe_module_bundle.sh",
+      "find": "cp \"$WATCHDOG_FILE\" \"$BUILD_TMP/service.sh\"",
+      "replace": ":",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "watchdog obrigatório tem de estar embarcado no zip"
+    },
+    {
+      "id": "M63",
+      "file": "skills/evox-rom-ci-optimizer/scripts/build_safe_module_bundle.sh",
+      "find": "id=${MOD_ID}",
+      "replace": "id=evox-11-11-camilla-prevalidada",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "module.prop usa o id solicitado"
+    },
+    {
+      "id": "M64",
+      "file": "skills/evox-rom-ci-optimizer/assets/watchdog_anti_bootloop_service.sh",
+      "find": "if [ \"$ELAPSED\" -ge \"$TIMEOUT_SEC\" ]; then",
+      "replace": "if [ \"$ELAPSED\" -ge 100000 ]; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "timeout do watchdog precisa disparar"
+    },
+    {
+      "id": "M65",
+      "file": "skills/evox-rom-ci-optimizer/assets/watchdog_anti_bootloop_service.sh",
+      "find": "    touch \"$MODDIR/disable\"",
+      "replace": "    :",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "watchdog precisa desativar o módulo no timeout"
+    },
+    {
+      "id": "M66",
+      "file": "skills/evox-rom-ci-optimizer/assets/watchdog_anti_bootloop_service.sh",
+      "find": "rm -f \"$MODDIR/boot_attempt_count\"",
+      "replace": ":",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "boot ok precisa zerar o contador de tentativas"
+    },
+    {
+      "id": "M67",
+      "file": "skills/evox-rom-ci-optimizer/assets/watchdog_anti_bootloop_service.sh",
+      "find": "case \"$SLEEP_SEC\" in ''|*[!0-9]*|0) SLEEP_SEC=1 ;; esac",
+      "replace": ":",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "sleep 0 faria o watchdog girar sem atingir o timeout"
+    },
+    {
+      "id": "M68",
+      "file": "skills/evox-rom-ci-optimizer/scripts/runtime_module_tester.sh",
+      "find": "if [ -n \"$CRASHES\" ]; then",
+      "replace": "if false; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "crash de Zygote precisa reprovar o estágio B"
+    },
+    {
+      "id": "M69",
+      "file": "skills/evox-rom-ci-optimizer/scripts/runtime_module_tester.sh",
+      "find": "grep -E 'FATAL EXCEPTION|SIGSEGV|SIGABRT|RescueParty'",
+      "replace": "grep -E 'NUNCA-ACONTECE'",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "filtro de crash não pode ser vazio"
+    },
+    {
+      "id": "M70",
+      "file": "skills/evox-rom-ci-optimizer/scripts/snapshot_branch_manager.sh",
+      "find": "    arena/*) echo \"[ERRO] branch protegida ($CURRENT_BRANCH): snapshot fora dela\" >&2; exit 4 ;;",
+      "replace": "    branch-nao-protegida/*) exit 4 ;;",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "branch da arena não pode receber snapshot"
+    },
+    {
+      "id": "M71",
+      "file": "skills/evox-rom-ci-optimizer/scripts/snapshot_branch_manager.sh",
+      "find": "if [ \"$ALLOW_DIRTY\" -eq 0 ] && [ -n \"$(git status --porcelain)\" ]; then",
+      "replace": "if false; then",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "worktree sujo não pode ser engolido pelo snapshot"
+    },
+    {
+      "id": "M72",
+      "file": "skills/evox-rom-ci-optimizer/scripts/snapshot_branch_manager.sh",
+      "find": "git add -- \"$SOURCE_DIR/snapshot_manifest.json\" 2>/dev/null || true",
+      "replace": "git add -A || true",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_stage_logic.sh",
+      "strength": "semantic",
+      "rationale": "snapshot commita só o manifesto, nunca git add -A"
+    },
+    {
+      "id": "M73",
+      "file": "skills/evox-rom-ci-optimizer/scripts/session_open.py",
+      "find": "        b = doc.setdefault(\"build\", {})\n        if b.get(\"flavor\") and b.get(\"flavor_source\") != \"user\":",
+      "replace": "        b = doc.setdefault(\"build\", {})\n        if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_session_open.sh",
+      "strength": "semantic",
+      "rationale": "auto não pode manter variante herdada como decisão"
+    },
+    {
+      "id": "M74",
+      "file": "skills/evox-rom-ci-optimizer/scripts/session_open.py",
+      "find": "        b = doc.get(\"build\") or {}\n        if b.get(\"flavor\") and b.get(\"flavor_source\") != \"user\":",
+      "replace": "        b = doc.get(\"build\") or {}\n        if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_session_open.sh",
+      "strength": "semantic",
+      "rationale": "check precisa exigir flavor_source=user"
+    },
+    {
+      "id": "M75",
+      "file": "skills/evox-rom-ci-optimizer/scripts/ci_workflow_lint.py",
+      "find": "(\"R8\", \"watchdog boot\", lambda t: \"sys.boot_completed\" in t and \"timeout\" in t.lower()),",
+      "replace": "(\"R8\", \"watchdog boot\", lambda t: \"sys.boot_completed\" in t or \"timeout\" in t.lower()),",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_ci_workflow_lint.sh",
+      "strength": "semantic",
+      "rationale": "R8 precisa exigir as DUAS marcas (prop + timeout)"
+    },
+    {
+      "id": "M76",
+      "file": "skills/evox-rom-ci-optimizer/scripts/architecture_guard.py",
+      "find": "if r[\"status\"] == \"tested\" and r[\"script\"] not in files and r[\"script\"] not in ex]",
+      "replace": "if r[\"status\"] == \"tested\"]",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_architecture_guard.sh",
+      "strength": "semantic",
+      "rationale": "AG19 precisa cobrar mutante de todo script testado"
+    },
+    {
+      "id": "M77",
+      "file": "skills/evox-rom-ci-optimizer/scripts/audit_loop.sh",
+      "find": "case \"$last\" in *\"cov=0\"*) ;; *) clean=0 ;; esac",
+      "replace": "case \"$last\" in *\"cov=0\"*) ;; *) ;; esac",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_audit_loop.sh",
+      "strength": "semantic",
+      "rationale": "cobertura quebrada tem de marcar o loop como sujo"
+    },
+    {
+      "id": "M78",
+      "file": "skills/evox-rom-ci-optimizer/scripts/coverage_matrix.py",
+      "find": "rows.append({\"script\": s, \"status\": \"GAP\"})",
+      "replace": "rows.append({\"script\": s, \"status\": \"tested\"})",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_coverage_matrix.sh",
+      "strength": "semantic",
+      "rationale": "script sem teste não pode contar como testado"
+    },
+    {
+      "id": "M79",
+      "file": "skills/evox-rom-ci-optimizer/scripts/sandbox_rollout.sh",
+      "find": "echo \"[BLOQUEADO] rollout_gate recusou $name (módulo anterior sem PASS ou FAILED pendente)\"",
+      "replace": ": \"segue o lote\"",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_sandbox_rollout.sh",
+      "strength": "semantic",
+      "rationale": "gate recusando precisa interromper o lote"
+    },
+    {
+      "id": "M80",
+      "file": "skills/evox-rom-ci-optimizer/scripts/mutation_check.py",
+      "find": "ok = not survived and not invalid and (allow_timeout or not timed_out)",
+      "replace": "ok = True",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_mutation_check.sh",
+      "strength": "semantic",
+      "rationale": "harness não pode aprovar com sobrevivente"
+    },
+    {
+      "id": "M81",
+      "file": "scripts/audit-flashable-zip.sh",
+      "find": "  echo \"  [PENDENTE] Auditoria NÃO executada — gere o sha256 na origem (build), não aqui\"\n  exit 3",
+      "replace": "  exit 0",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "hash ausente não pode virar auditoria aprovada"
+    },
+    {
+      "id": "M82",
+      "file": "scripts/audit-flashable-zip.sh",
+      "find": "if missing:",
+      "replace": "if False:",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "ZIP sem updater-script precisa ser vetado"
+    },
+    {
+      "id": "M83",
+      "file": "scripts/audit-flashable-zip.sh",
+      "find": "if ! (cd \"$(dirname \"${ZIP_PATH}\")\" && sha256sum -c \"$(basename \"${ZIP_PATH}\").sha256\"); then",
+      "replace": "if false; then",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "hash divergente tem de reprovar"
+    },
+    {
+      "id": "M84",
+      "file": "scripts/validate-cuttlefish.sh",
+      "find": "  echo \"  [PENDENTE] Cuttlefish (cvd) ausente — validação NÃO executada (skip não é aprovação)\"\n  echo \"  [INFO] Install: https://source.android.com/docs/devices/cuttlefish/get-started\"\n  exit 3",
+      "replace": "  exit 0",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "skip de Cuttlefish não é aprovação"
+    },
+    {
+      "id": "M85",
+      "file": "scripts/validate-cuttlefish.sh",
+      "find": "if [[ -z \"${BOOT_IMG}\" ]] || [[ ! -f \"${BOOT_IMG}\" ]]; then",
+      "replace": "if false; then",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "sem boot.img não há validação"
+    },
+    {
+      "id": "M86",
+      "file": "skills/evox-rom-ci-optimizer/scripts/extract_rom_assets.sh",
+      "find": "  die 5 \"hash do zip não confere: esperado ${EXPECT:0:12}… obtido ${ZIP_SHA:0:12}…\"",
+      "replace": "  true",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_extract_rom_assets.sh",
+      "strength": "semantic",
+      "rationale": "hash divergente do zip esperado precisa abortar"
+    },
+    {
+      "id": "M87",
+      "file": "skills/evox-rom-ci-optimizer/scripts/preflight_deps.sh",
+      "find": "  command -v \"$bin\" >/dev/null 2>&1 || missing_req_list=\"${missing_req_list:+$missing_req_list,}$bin\"",
+      "replace": "  true",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_preflight_deps.sh",
+      "strength": "semantic",
+      "rationale": "dependência obrigatória ausente tem de aparecer"
+    },
+    {
+      "id": "M88",
+      "file": "skills/evox-rom-ci-optimizer/scripts/test_vacuity_scan.py",
+      "find": "    (\"V5\", \"erro\", re.compile(r'grep\\s+-q\\s+\"\"')),",
+      "replace": "    (\"V5\", \"erro\", re.compile(r'(?!)a')),",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_vacuity_scan.sh",
+      "strength": "semantic",
+      "rationale": "V5 precisa pegar grep -q vazio"
+    },
+    {
+      "id": "M89",
+      "file": "skills/evox-rom-ci-optimizer/scripts/static_conflict_scanner.py",
+      "find": "                        rule=\"R06_PERSIST_WRITE\",",
+      "replace": "                        rule=\"R00_OVERLAY\",",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_scanner_rules.sh",
+      "strength": "semantic",
+      "rationale": "escrita em persist tem regra própria (R06)"
+    },
+    {
+      "id": "M90",
+      "file": "scripts/patch-manager.sh",
+      "find": "    echo \"::error::Unknown manager: ${MANAGER}\"\n    exit 1",
+      "replace": "    exit 0",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "manager desconhecido não pode passar"
+    },
+    {
+      "id": "M91",
+      "file": "scripts/patch-manager.sh",
+      "find": "if [[ ! -d \"${KERNEL_DIR}\" ]]; then\n  echo \"[PENDENTE] arvore de kernel ausente: ${KERNEL_DIR} — nenhum patch aplicado\" >&2\n  exit 3\nfi",
+      "replace": ":",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "sem árvore de kernel não há patch aplicado"
+    },
+    {
+      "id": "M92",
+      "file": "scripts/generate-build-matrix.sh",
+      "find": "echo \"::error::Unsupported toolchain: ${TOOLCHAIN}\"\n    exit 1",
+      "replace": "    exit 0",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "toolchain inválido precisa abortar"
+    },
+    {
+      "id": "M93",
+      "file": "scripts/resolve-kernel-source.sh",
+      "find": "echo \"::error::Unknown kernel source: ${KERNEL_SOURCE}\"\n    exit 1",
+      "replace": "    exit 0",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "fonte de kernel desconhecida precisa abortar"
+    },
+    {
+      "id": "M94",
+      "file": "scripts/state_reset.sh",
+      "find": "if [ \"$APPLY\" -eq 0 ]; then",
+      "replace": "if false; then",
+      "test": "tests/test_state_reset.sh",
+      "strength": "semantic",
+      "rationale": "dry-run não pode alterar o estado (só --apply)"
+    },
+    {
+      "id": "M95",
+      "file": "skills/android16-root-guardian/scripts/collect_evidence.sh",
+      "find": "\"boot\": {\"sys_boot_completed\": boot, \"ok\": boot == \"1\"},",
+      "replace": "\"boot\": {\"sys_boot_completed\": boot, \"ok\": True},",
+      "test": "skills/android16-root-guardian/tests/test_collect_evidence.sh",
+      "strength": "semantic",
+      "rationale": "boot incompleto não pode sair como ok"
+    },
+    {
+      "id": "M96",
+      "file": "scripts/package-anykernel3.sh",
+      "find": "  echo \"  [PENDENTE] diretório de artefatos ausente: ${DIST_DIR} — nada empacotado\" >&2\n  exit 3",
+      "replace": "  :",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "sem dist não há o que empacotar (e nada é apagado antes)"
+    },
+    {
+      "id": "M97",
+      "file": "scripts/package-anykernel3.sh",
+      "find": "  echo \"  [PENDENTE] sem boot.img/Image em ${DIST_DIR} — ZIP não seria flashável\" >&2\n  exit 3",
+      "replace": "  :",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "ZIP sem imagem de boot não é flashável"
+    },
+    {
+      "id": "M98",
+      "file": "scripts/package-anykernel3.sh",
+      "find": "  echo \"  [PENDENTE] rsync ausente — ZIP não será montado pela metade\" >&2\n  exit 3",
+      "replace": "  :",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "montagem parcial do ZIP não pode passar"
+    },
+    {
+      "id": "M99",
+      "file": "scripts/build-kernel-pong.sh",
+      "find": "  echo \"  [PENDENTE] Kernel source not found at ${KERNEL_DIR} — nada foi compilado\"",
+      "replace": "  echo \"  [OK] usando artefato prebuilt (nada compilado)\"",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "sem árvore não se anuncia sucesso"
+    },
+    {
+      "id": "M100",
+      "file": "scripts/build-kernel-pong.sh",
+      "find": "  exit 3\nfi\n\n# Determine build method",
+      "replace": "  exit 0\nfi\n\n# Determine build method",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "PENDENTE de kernel precisa sair 3"
+    },
+    {
+      "id": "M101",
+      "file": "scripts/generate-build-matrix.sh",
+      "find": "LABEL=\"${MANAGER}-${KERNEL_SOURCE}-${ACTIVE_TOOLCHAIN}-lto${LTO}\"",
+      "replace": "LABEL=\"${MANAGER}-lto${LTO}\"",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "a matriz precisa identificar toolchain/kernel no label"
+    },
+    {
+      "id": "M102",
+      "file": "scripts/resolve-kernel-source.sh",
+      "find": "  echo \"SOURCE_TYPE=${SOURCE_TYPE}\"",
+      "replace": "  echo \"SOURCE_TYPE=none\"",
+      "test": "tests/test_wrapper_stages.sh",
+      "strength": "semantic",
+      "rationale": "resolução precisa exportar o tipo real da fonte"
     }
   ]
 }

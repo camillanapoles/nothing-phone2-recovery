@@ -13,7 +13,7 @@ Complementos: [`ARCHITECTURE-DECISION.md`](ARCHITECTURE-DECISION.md) (contrato) 
 
 | Verificação | Comando | Resultado |
 |---|---|---|
-| Trava de arquitetura | `make -s arch` | **AG1–AG20 OK** (0 violações) |
+| Trava de arquitetura | `make -s arch` | **AG1–AG21 OK** (0 violações) |
 | Auto-teste da trava | `architecture_guard.py --self-test` | 10 violações simuladas detectadas |
 | Sintaxe de shell | `bash -n` em **35** scripts | OK |
 | Compilação Python | `py_compile` em **6** módulos | OK |
@@ -24,23 +24,22 @@ Complementos: [`ARCHITECTURE-DECISION.md`](ARCHITECTURE-DECISION.md) (contrato) 
 
 | Suíte | PASS | Suíte | PASS |
 |---|---|---|---|
-| `test_state_reset.sh` | 13 | `test_session_open.sh` | 15 |
+| `test_state_reset.sh` | 13 | `test_session_open.sh` | **18** |
 | `test_scanner_rules.sh` | 13 | `test_slot_router.sh` | 13 |
-| `test_preflight_deps.sh` | 8 | `test_abl_probe.sh` | **12** (novo) |
-| `test_extract_rom_assets.sh` | 15 | `test_architecture_guard.sh` | 6 |
-| `test_rom_artifact_fetch.sh` | 18 |
-| `test_script_contracts.sh` | **55** (novo) |
-| `test_contradiction_scan.sh` | **7** (novo) |
-| `test_coverage_matrix.sh` | **6** (novo) |
-| `test_audit_loop.sh` | **5** (novo) |
-| `test_mutation_check.sh` | **5** (novo) |
-| `test_vacuity_scan.sh` | **5** (novo) |
-| `test_kernel_compat_check.sh` | 10 | `test_sandbox_rollout.sh` | 9 |
-| `test_rollout_gate.sh` | 13 | `test_ci_workflow_lint.sh` | 15 |
-| `test_cache_and_guard4.sh` | **20** | `test_collect_evidence.sh` (guardian) | 8 |
+| `test_preflight_deps.sh` | 8 | `test_abl_probe.sh` | 13 |
+| `test_extract_rom_assets.sh` | **16** | `test_architecture_guard.sh` | **7** |
+| `test_rom_artifact_fetch.sh` | 18 | `test_script_contracts.sh` | 55 |
+| `test_contradiction_scan.sh` | 7 | `test_coverage_matrix.sh` | 6 |
+| `test_audit_loop.sh` | **7** | `test_mutation_check.sh` | **8** |
+| `test_vacuity_scan.sh` | **6** | `test_kernel_compat_check.sh` | 10 |
+| `test_sandbox_rollout.sh` | **12** | `test_rollout_gate.sh` | 13 |
+| `test_ci_workflow_lint.sh` | **17** | `test_cache_and_guard4.sh` | **21** |
+| `test_stage_logic.sh` | **54** (novo) | `test_wrapper_stages.sh` | **34** (novo) |
+| `test_collect_evidence.sh` (guardian) | 8 | | |
 
-**Total executado por `make -s prove`: 271 casos** (258 na skill de ROM + 13 de estado), 0 falhas.
-Falseabilidade: `make mutation` → **47/47 mortos, 0 sobreviventes** · `make vacuity` → 0 erro, 0 aviso
+**Total dos testes diretos: 377 casos** (322 na skill da ROM + 8 no guardian + 13 de estado + 34 nos
+wrappers de release), 0 falhas. `make -s prove` roda tudo isso + `arch` + harness das 8 skills.
+Falseabilidade: `make mutation` → **102/102 mortos por asserção, 0 sobreviventes, 0 timeout** · `make vacuity` → 0 erro, 0 aviso
 (ver `FALSIFIABILITY-REPORT.md`).
 Loop de convergência: `audit_loop.sh` → `guard=0 scan=0 cov=0 tests=0` em 2 iterações.
 
@@ -49,12 +48,12 @@ Loop de convergência: `audit_loop.sh` → `guard=0 scan=0 cov=0 tests=0` em 2 i
 | Arquivo | Correção aplicada | Prova |
 |---|---|---|
 | `skills/evox-rom-ci-optimizer/assets/00_slot_router.sh` | quarentena por marcador, **marcas de boot** (`marks/<slot>_<n>.mark` com `uptime`), lock, 20 marcas, sem `mount`/`rm -rf` | `test_slot_router.sh` 13 PASS · AG3/AG10 |
-| `…/scripts/abl_fallback_probe.sh` | classifica `OK`/`ABL_FALLBACK`/`HANG`/`HANG_EARLY`/`BOOTLOADER`/`NO_DEVICE`, coleta pstore/dmesg/logcat, `--rollback` | `test_abl_probe.sh` 12 PASS · AG4 |
-| `…/scripts/architecture_guard.py` | trava AG1–AG20 sobre o repositório | `test_architecture_guard.sh` 6 PASS · `make arch` |
+| `…/scripts/abl_fallback_probe.sh` | classifica `OK`/`ABL_FALLBACK`/`HANG`/`HANG_EARLY`/`BOOTLOADER`/`NO_DEVICE`, coleta pstore/dmesg/logcat, `--rollback` | `test_abl_probe.sh` 13 PASS · AG4 |
+| `…/scripts/architecture_guard.py` | trava AG1–AG21 sobre o repositório | `test_architecture_guard.sh` 7 PASS · `make arch` |
 | `…/scripts/rom_artifact_fetch.sh` | coleta determinística das duas variantes: pin sha256, atômico, retomável, drift exit 4, env absoluto | `test_rom_artifact_fetch.sh` 18 PASS · AG16 |
 | `…/references/rom-artifacts.json` | manifesto pinado (Vanilla + GApps, build 2026-09-15), URLs com `/download` | AG16 |
-| `…/scripts/session_open.py` | novo `auto` preenche P10–P14 (`decided_by: agent-context`) e mantém P1/P2/P3 bloqueantes | `test_session_open.sh` 15 PASS |
-| `workflows-local/pong-ab-hil.yml` | quarentena → gate de slot → ledger `passed` → `promote`; `bootctl` removido, agora exige `sys.boot_completed=1` **e** slot esperado | AG2/AG14 · `test_ci_workflow_lint.sh` 15 PASS |
+| `…/scripts/session_open.py` | novo `auto` preenche P10–P14 (`decided_by: agent-context`) e mantém P1/P2/P3 bloqueantes | `test_session_open.sh` 18 PASS |
+| `workflows-local/pong-ab-hil.yml` | quarentena → gate de slot → ledger `passed` → `promote`; `bootctl` removido, agora exige `sys.boot_completed=1` **e** slot esperado | AG2/AG14 · `test_ci_workflow_lint.sh` 17 PASS |
 | `…/references/evox-ci-validator.yml` | AVD API 36, cache por sha256, timeouts, sem `fastboot flash` | AG1 · lint R00–R13 |
 | `…/references/archive/evox-ci-pipeline.yml` | pipeline antigo movido para `archive/` com cabeçalho SUPERSEDIDO; refs atualizadas (SKILL, Makefile, `install_local.sh`, `ci-cost-locks.md`) | AG15 |
 | `…/scripts/runtime_module_tester.sh` | “QEMU/KVM” → “AVD (API 36)”, declara que não prova boot do pong | grep sem “QEMU/KVM” |

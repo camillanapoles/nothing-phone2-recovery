@@ -28,6 +28,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 mkdir -p "$OUT_DIR"
+
+for req in "$PROP_FILE" "$WATCHDOG_FILE"; do
+  if [ ! -f "$req" ]; then
+    echo "[ERRO] dependencia obrigatoria ausente: $req — bundle NAO gerado" >&2
+    exit 3
+  fi
+done
 BUILD_TMP="$(mktemp -d)"
 trap 'rm -rf "$BUILD_TMP"' EXIT
 
@@ -40,14 +47,9 @@ author=Camilla Napoles & EVOX-CI Architect
 description=Camada unificada e pre-validada em emulador GitHub Actions para Evolution X 11.11 (Android 16 / API 36) com Watchdog Anti-Bootloop de 120s.
 EOF
 
-if [ -f "$PROP_FILE" ]; then
-  cp "$PROP_FILE" "$BUILD_TMP/system.prop"
-fi
-
-if [ -f "$WATCHDOG_FILE" ]; then
-  cp "$WATCHDOG_FILE" "$BUILD_TMP/service.sh"
-  chmod +x "$BUILD_TMP/service.sh"
-fi
+cp "$PROP_FILE" "$BUILD_TMP/system.prop"
+cp "$WATCHDOG_FILE" "$BUILD_TMP/service.sh"
+chmod +x "$BUILD_TMP/service.sh"
 
 cat << 'EOF' > "$BUILD_TMP/post-fs-data.sh"
 #!/system/bin/sh
@@ -68,11 +70,30 @@ fi
 EOF
 chmod +x "$BUILD_TMP/post-fs-data.sh"
 
-BUNDLE_ZIP="$OUT_DIR/${MOD_ID}.zip"
+OUT_DIR_ABS="$(cd "$OUT_DIR" && pwd)"
+BUNDLE_ZIP="$OUT_DIR_ABS/${MOD_ID}.zip"
 if command -v zip >/dev/null 2>&1; then
-  (cd "$BUILD_TMP" && zip -r -q "$OLDPWD/$BUNDLE_ZIP" .)
+  (cd "$BUILD_TMP" && zip -r -q "$BUNDLE_ZIP" .)
 else
-  python3 -m zipfile -c "$BUNDLE_ZIP" "$BUILD_TMP"/*
+  python3 - "$BUILD_TMP" "$BUNDLE_ZIP" << 'PYBUNDLE'
+import os, sys, zipfile
+src, dst = sys.argv[1], sys.argv[2]
+with zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED) as z:
+    for name in sorted(os.listdir(src)):
+        z.write(os.path.join(src, name), arcname=name)
+PYBUNDLE
+fi
+
+if ! python3 - "$BUNDLE_ZIP" << 'PYCHECK'
+import sys, zipfile
+names = set(zipfile.ZipFile(sys.argv[1]).namelist())
+missing = [m for m in ("module.prop", "system.prop", "service.sh", "post-fs-data.sh") if m not in names]
+if missing:
+    print("[ERRO] bundle sem: " + ", ".join(missing), file=sys.stderr)
+    raise SystemExit(1)
+PYCHECK
+then
+  exit 5
 fi
 sha256sum "$BUNDLE_ZIP" > "${BUNDLE_ZIP}.sha256"
 

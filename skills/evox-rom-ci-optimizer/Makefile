@@ -15,7 +15,7 @@ LAYER ?= wave1
 TAG ?= v11.11-w1-clean
 SNAPSHOT_SRC ?= ./workspace/out
 
-.PHONY: help check test test-preflight test-rom test-gates test-ci scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
+.PHONY: help check test test-preflight test-rom test-gates test-stage test-ci scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
 
 help:
 	@echo "======================================================================="
@@ -26,6 +26,7 @@ help:
 	@echo " make test-preflight -> dependencias externas (8 cenarios, PATH controlado)"
 	@echo " make test-rom     -> extracao da ROM + L4 (15 cenarios, stub, sem device)"
 	@echo " make test-gates   -> kernel x ROM x device (10) + rollout (13) + cache/guard4 (13)"
+	@echo " make test-stage   -> logica dos estagios A/B e bundle (54 casos, stubs, sem device)"
 	@echo " make scan         -> [M15/T3] scanner estatico dos 15 modulos (v3)"
 	@echo " make audit        -> matriz de conflitos -> $(OUT_DIR)/conflict_matrix_report.md"
 	@echo " make extract      -> payload.bin da Evolution X 11.11 + manifesto SHA-256"
@@ -70,6 +71,9 @@ test-preflight:
 test-rom:
 	@./tests/test_extract_rom_assets.sh
 
+test-stage:
+	@./tests/test_stage_logic.sh
+
 test-gates:
 	@./tests/test_kernel_compat_check.sh
 	@./tests/test_rollout_gate.sh
@@ -80,6 +84,7 @@ test-gates:
 	@./tests/test_architecture_guard.sh
 	@./tests/test_rom_artifact_fetch.sh
 	@./tests/test_script_contracts.sh
+	@./tests/test_stage_logic.sh
 	@./tests/test_contradiction_scan.sh
 	@./tests/test_coverage_matrix.sh
 	@./tests/test_audit_loop.sh

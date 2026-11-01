@@ -1,0 +1,37 @@
+{
+  "schema": "evox-mutation-report/2",
+  "root": "/home/user/nothing-phone2-recovery",
+  "total": 1,
+  "killed": 1,
+  "survived": 0,
+  "invalid": 0,
+  "timeout_killed": 0,
+  "allow_timeout": false,
+  "score_pct": 100.0,
+  "ok": true,
+  "results": [
+    {
+      "id": "M01",
+      "file": "skills/evox-rom-ci-optimizer/scripts/guard4_verify.sh",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_cache_and_guard4.sh",
+      "status": "killed",
+      "strength": "semantic",
+      "test_exit": 1,
+      "seconds": 0.8,
+      "rationale": "backup divergente precisa reprovar",
+      "evidence": [
+        "FAIL  backup diferente = MISMATCH                      exit (esperado '4', obtido '0')",
+        "TOTAL: 20 PASS / 1 FAIL"
+      ]
+    }
+  ],
+  "by_strength": {
+    "semantic": 1
+  },
+  "mutants_per_file": {
+    "skills/evox-rom-ci-optimizer/scripts/guard4_verify.sh": 1
+  },
+  "catalog_files": [
+    "skills/evox-rom-ci-optimizer/scripts/guard4_verify.sh"
+  ]
+}
