@@ -67,17 +67,17 @@ skills/
 | L1 | `fabrica-de-agentes` citada e inexistente | **FECHADA** | skill instalada v2.0.0, dividida em 4 arquivos; `registry.json` registra "resolve L1" |
 | L2 | `android16-root-guardian` sem scripts | **FECHADA** | `scripts/collect_evidence.sh` (exit 0/3/4) + `evidence.json` + `MANIFEST.sha256`; `8 PASS` |
 | L3 | Binários externos não verificados | **FECHADA** | `scripts/preflight_deps.sh` (`--json/--require/--hints`, exit 0/1/2), catálogo de 12 binários; `8 PASS` |
-| L4 | Kernel exato / hashes da build da usuária | **BLOQUEADA (usuária)** | falta `android-boot-hashs.txt` ou `fastboot getvar` do device |
+| L4 | Kernel exato / hashes da build | **PRONTA, aguarda o .zip** | `extract_rom_assets.sh` (15 PASS) fecha pelo pacote oficial: kernel/KMI + sha256 de `boot`/`vendor_boot`/`vbmeta`/`init_boot`/`dtbo` |
 | L5 | Sem harness de eval das próprias skills | **FECHADA** | `tools/eval_skills.py`, 7 eixos falseáveis, `[eval] APROVADO` |
 | L6 | `docs/` legado divergente | **FECHADA** | `docs/skills/LEGACY-INDEX.md` marca o legado e fixa a regra de precedência |
 
-**Único débito aberto: L4.** Não é código — é dado que só existe no aparelho / no Drive da usuária.
+**Único débito aberto: L4.** Não é código — é o `.zip` oficial da Evolution X 11.11 (o sandbox não
+alcança `cdn.evolution-x.org`). Procedimento e teste já estão prontos; ver `NEXT-SESSION-REPORT.md`.
 
 ## 5. Duas frentes prontas para executar (decisão da usuária)
 
-1. **Fechar L4:** obter de `android-boot-hashs.txt` (Drive) ou `fastboot getvar` (device) a versão de
-   kernel da Evolution X 11.11 instalada e os hashes de `boot_b`/`vendor_boot_b`/`vbmeta_b` →
-   gerar `references/pong-device-profile.json` + defaults seguros em `forge_patcher.sh`.
+1. **Fechar L4 a partir da ROM** (não do device): `./scripts/extract_rom_assets.sh --zip <oficial>    --expect-sha256 <hash> --out ./workspace/rom_assets` → `rom_assets.json` com `l4_closed: true`.
+   Só depois alimentar `pong-device-profile.json` e os defaults de `forge_patcher.sh`.
 2. **Bootstrap do GitHub** (`scripts/bootstrap_github_repo.sh`) — **não executar** até liberação.
 
 ## 6. Regras que não mudam

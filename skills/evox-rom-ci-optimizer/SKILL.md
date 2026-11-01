@@ -188,6 +188,74 @@ Contrato de pastas de trabalho: `modules/` (`.zip` Magisk/KSU/APM), `kernel_patc
 
 ---
 
+## VI-A. Abertura de sessão: briefing obrigatório + pergunta Vanilla × GAPPS
+
+Antes de qualquer Wave 1, o agente **explica e pergunta** — não decide sozinho qual build usar.
+A pergunta só é legítima se vier com o trade-off explícito:
+
+| Critério | Vanilla (`16_vanilla/…-11.11-Vanilla-Official.zip`) | GAPPS (`16/…-11.11-Official.zip`) |
+|---|---|---|
+| O que já vem | AOSP + Evolve, sem Google | AOSP + Google Apps + serviços |
+| Play Services / banking | exige flash manual de GApps ou microG | pronto, com conta Google |
+| M03 do escopo | **não satisfeita** até você instalar GApps | satisfeita de origem |
+| Superfície de conflito | menor (menos priv-app, menos `.so`) | maior (GMS, sysconfig, permissões) |
+| Tamanho / boot | menor, mais rápido | maior, mais serviços em background |
+| Controle de identidade | total (você escolhe o pacote e o fingerprint) | fingerprint do build Evolve + Duck-ToolBox |
+| Play Integrity | caminho mais longo (props manuais) | caminho mais curto (build já certificada) |
+| Recomendado quando | mínimo, privacidade, laboratório, GApps própria | uso diário completo com IA/Google já funcionando |
+
+**Regra:** registrar a escolha + a justificativa no `workspace/decision.json` (versão, URL, sha256
+esperado) e só então baixar/extrair. Sem decisão registrada, o pipeline para (exit 2).
+
+## VI-B. Fechar a lacuna L4 com o pacote da ROM (não com o aparelho)
+
+L4 (kernel/KMI + hashes de `boot`/`vendor_boot`/`vbmeta`) **vem do `.zip` oficial**, porque é o
+pacote que será gravado. O device não é fonte de hash — ele só confirma slot/fingerprint (read-only).
+
+```bash
+# 1. binário que desempacota payload.bin (única dependência dura da L4)
+go install github.com/ssut/payload-dumper-go@latest   # ou o release pré-compilado
+
+# 2. extrair e fechar L4 (hash do zip como trava anti-ROM-trocada)
+./scripts/extract_rom_assets.sh \
+  --zip EvolutionX-16.0-20260915-Pong-11.11-Official.zip \
+  --expect-sha256 <sha256 publicado/baixado> \
+  --out ./workspace/rom_assets --json
+
+# 3. conferir (exit 0 = L4 fechada)
+jq '{kernel_version, kmi, l4_closed, l4_missing, images}' ./workspace/rom_assets/rom_assets.json
+```
+
+Contrato: `exit 0` L4 fechada · `2` uso · `3` falta `payload-dumper-go` (nada é inventado) ·
+`4` zip inválido/sem `payload.bin` · `5` hash do zip não confere · `6` extraiu mas L4 não fecha.
+Regressão: `./tests/test_extract_rom_assets.sh` (15 cenários, stub, sem rede e sem device).
+
+O que cada imagem entrega depois:
+
+| Imagem | Uso |
+|---|---|
+| `boot.img` | base do patch (APatch/KernelSU-Next) e leitura do kernel/KMI |
+| `boot_stock_rollback.img` | cópia **byte-idêntica** do `boot.img` da ROM, com `.sha256` (Guard-4) |
+| `vendor_boot.img` | módulos vendor/KMI, base do módulo de watchdog |
+| `vbmeta.img` | referência de AVB/verity para saber o que o patch vai invalidar |
+| `init_boot.img` · `dtbo.img` | initramfs e overlay de device tree (contexto do estágio A) |
+
+## VI-C. Binários externos: o que instalar e por quê
+
+| Binário | Necessário para | Instalação |
+|---|---|---|
+| `payload-dumper-go` | **L4** e Wave 1 (extrair payload.bin) | `go install github.com/ssut/payload-dumper-go@latest` ou release em `github.com/ssut/payload-dumper-go/releases` |
+| `strings` (binutils) | ler `Linux version`/KMI do `boot.img` | `apt install -y binutils` |
+| `unzip` · `python3` · `sha256sum` | manifesto, hashes, scanner | `apt install -y unzip python3 coreutils` |
+| `kptools` | patch APatch/KPM (M01) | release `github.com/bmax121/KernelPatch/releases` |
+| `magiskboot` | unpack/repack de `boot.img` | `github.com/topjohnwu/Magisk` (MagiskBoot) |
+| `abootimg` | fallback de unpack legado | `apt install -y abootimg` |
+| `adb` | estágio B no device e coleta pós-flash | `apt install -y android-tools-adb` |
+| `qemu-system-x86_64` | estágio B emulador (opcional) | `apt install -y qemu-system-x86` |
+
+Diagnóstico único: `./scripts/preflight_deps.sh --hints` e, para exigir só o da L4:
+`./scripts/preflight_deps.sh --require payload-dumper-go,unzip,python3,sha256sum`.
+
 ## VII. Referencias e assets embarcados
 
 | Caminho | Funcao |

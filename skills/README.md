@@ -40,7 +40,7 @@ Divergiu? **Corrige-se o script**, não a instrução.
 ```bash
 make -C skills validate     # contrato: front matter, name==dir, links, segredos, registry
 make -C skills eval         # qualidade: 7 eixos falseáveis, limite por classe+tier
-make -C skills test-core    # R00..R09 (13) + preflight de dependências (8)
+make -C skills test-core    # R00..R09 (13) + preflight (8) + extração da ROM/L4 (15)
 make -C skills test-guard   # coletor de evidência pós-flash (8, com stub de adb)
 make -C skills check-all    # validate + check-core + test-all + eval
 make -C skills registry     # estado do ecossistema (tiers, excluídas, deduplicadas)
@@ -69,7 +69,7 @@ e o scanner reescrito com 9 regras (`R00`–`R09`) + `--strict/--json/--out`.
 |---|---|
 | `make -C skills validate` | `OK` (8 skills, 0 falhas) |
 | `make -C skills eval` | `APROVADO` (8/8 acima do limite) |
-| `make -C skills test-core` | `13 PASS / 0 FAIL` (regras) · `8 PASS` (preflight) |
+| `make -C skills test-core` | `13 PASS` (regras) · `8 PASS` (preflight) · `15 PASS` (ROM/L4) |
 | `make -C skills test-guard` | `8 PASS / 0 FAIL` (evidência) |
 | Cenário negativo manual (2 módulos em `audio_effects.xml`) | `CONFLICT` exit 1 + veto do Inquisidor |
 | `snapshot_branch_manager.sh --layer wave1 --tag v11.11-w1-test` | manifesto registrado |

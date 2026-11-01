@@ -72,8 +72,12 @@ Regras de carga: ler **só** a skill que casa com a tarefa (economia de contexto
 6. **DroidSpaces × SuSFS**: mount-hide global desabilitado (R03).
 7. **Binário ausente = erro explícito.** Nunca simular `adb`, `payload-dumper-go`, `magiskboot`, `act`.
 8. **Sem segredo no repo.** Token/PAT só em variável de ambiente, nunca em arquivo versionado.
-9. **Reversibilidade antes de otimização**: toda mudança declara o comando exato que desfaz.
-10. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
+9. **L4 vem do pacote, não do aparelho.** Kernel/KMI e hashes de `boot`/`vendor_boot`/`vbmeta`
+   saem do `.zip` oficial (`extract_rom_assets.sh`). O device só confirma slot/fingerprint, read-only.
+10. **Abertura com briefing + pergunta.** Antes de baixar qualquer ROM, explicar o plano e perguntar
+   **Vanilla × GAPPS** com prós/contras; registrar `workspace/decision.json`. Sem decisão, parar.
+11. **Reversibilidade antes de otimização**: toda mudança declara o comando exato que desfaz.
+12. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
 
 Sempre que uma regra R01–R09 for tocada, o teste é `skills/evox-rom-ci-optimizer/tests/test_scanner_rules.sh`
 (13 cenários). Gate sem teste é opinião.
@@ -199,6 +203,7 @@ state/                 runtime local (quarentena, relatórios) — fora do Git
 | G3 | FSM confiável | banco limpo antes do run; toda transição com evidência; terminal explícito |
 | G4 | Guardião respeitado | R01–R09 verdes; nenhuma mutação sem estágio A+B e rollback |
 | G5 | Rastreabilidade | `MANIFEST.json` + `SHA256SUMS` de cada limpeza; commit por mudança |
+| G7 | L4 fecha com o pacote oficial | `test_extract_rom_assets.sh` → 15 PASS · `l4_closed: true` |
 | G6 | Portabilidade | `AGENTS.md` + `agente.md` funcionam copiados para outro workspace, sem caminho absoluto |
 
 ---

@@ -15,7 +15,7 @@ LAYER ?= wave1
 TAG ?= v11.11-w1-clean
 SNAPSHOT_SRC ?= ./workspace/out
 
-.PHONY: help check test test-preflight scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
+.PHONY: help check test test-preflight test-rom scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
 
 help:
 	@echo "======================================================================="
@@ -24,6 +24,7 @@ help:
 	@echo " make check        -> bash -n + py_compile + JSON schema + self-test do auditor"
 	@echo " make test         -> regressao das regras R00..R09 do scanner (13 cenarios)"
 	@echo " make test-preflight -> dependencias externas (8 cenarios, PATH controlado)"
+	@echo " make test-rom     -> extracao da ROM + L4 (15 cenarios, stub, sem device)"
 	@echo " make scan         -> [M15/T3] scanner estatico dos 15 modulos (v3)"
 	@echo " make audit        -> matriz de conflitos -> $(OUT_DIR)/conflict_matrix_report.md"
 	@echo " make extract      -> payload.bin da Evolution X 11.11 + manifesto SHA-256"
@@ -64,6 +65,9 @@ test:
 
 test-preflight:
 	@./tests/test_preflight_deps.sh
+
+test-rom:
+	@./tests/test_extract_rom_assets.sh
 
 audit:
 	@mkdir -p "$(OUT_DIR)"

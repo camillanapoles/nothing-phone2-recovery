@@ -57,10 +57,12 @@ skills/                                          8 skills ativas · 8 contratos 
 │   │   ├── build_safe_module_bundle.sh · forge_patcher.sh
 │   │   ├── static_conflict_scanner.py (R00..R09) · snapshot_branch_manager.sh
 │   │   └── runtime_module_tester.sh
-│   ├── scripts/preflight_deps.sh  catálogo de 12 binários (--json/--require/--hints)
+│   ├── scripts/preflight_deps.sh  catálogo de 13 binários (--json/--require/--hints)
+│   ├── scripts/extract_rom_assets.sh  L4 pelo .zip oficial (payload → hashes+kernel)
 │   └── tests/
 │       ├── test_scanner_rules.sh  13 cenários sintéticos, exit code contratual
-│       └── test_preflight_deps.sh 8 cenários com PATH mínimo + stubs
+│       ├── test_preflight_deps.sh 8 cenários com PATH mínimo + stubs
+│       └── test_extract_rom_assets.sh 15 cenários (stub de payload-dumper-go)
 ├── android16-root-guardian/    ★ v2.1
 │   ├── SKILL.md · Makefile
 │   ├── scripts/collect_evidence.sh   evidence.json + MANIFEST.sha256 (exit 0/3/4)
@@ -181,6 +183,6 @@ mediria a categoria, não a qualidade — foi o erro da primeira calibração, c
 | L1 | `fabrica-de-agentes` citada e ausente | **fechada** | skill v2.0.0 instalada e fatiada |
 | L2 | guardian sem scripts | **fechada** | `collect_evidence.sh` + `8 PASS` |
 | L3 | binários externos não verificados | **fechada** | `preflight_deps.sh` + `8 PASS` |
-| L4 | kernel/hashes do device | **bloqueada** (depende da usuária) | — |
+| L4 | kernel/hashes da build | **pronta, aguarda o .zip** | `extract_rom_assets.sh` + 15 PASS (fonte = pacote oficial) |
 | L5 | sem eval das skills | **fechada** | `eval_skills.py` → APROVADO |
 | L6 | `docs/` legado divergente | **fechada** | `docs/skills/LEGACY-INDEX.md` |

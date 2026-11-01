@@ -32,6 +32,7 @@ eval:
 test-core:
 	@$(MAKE) -s -C $(CORE) test
 	@$(MAKE) -s -C $(CORE) test-preflight
+	@$(MAKE) -s -C $(CORE) test-rom
 
 test-guard:
 	@$(MAKE) -s -C $(GUARD) test

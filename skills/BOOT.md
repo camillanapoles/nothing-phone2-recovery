@@ -51,13 +51,24 @@ make -C skills check-all
 Esperado: `[harness] OK (0 falhas)` · `[core] make check OK` · `13 PASS` (regras) ·
 `8 PASS` (preflight) · `8 PASS` (evidência) · `[eval] APROVADO`.
 
+## 4-A. Abertura de sessão (obrigatória antes de qualquer download)
+
+1. Explicar o plano em 1 tela: o que será feito, em que ordem, com quais gates.
+2. **Perguntar qual build**: Vanilla ou GAPPS — com prós/contras (tabela em
+   `evox-rom-ci-optimizer/SKILL.md` §VI-A). Não escolher pela usuária.
+3. Registrar `workspace/decision.json` (versão, URL, sha256 esperado). Sem isso, parar (exit 2).
+4. Fechar **L4** com `scripts/extract_rom_assets.sh --zip <zip> --expect-sha256 <hash>`:
+   kernel/KMI e hashes vêm do **pacote**, não do aparelho. O device só confirma slot/fingerprint.
+
 ## 5. Fluxo canônico de uma tarefa de ROM
 
 ```text
+0. abertura     briefing + pergunta Vanilla × GAPPS + decision.json
 1. epistemica   sci-scientific-mindset      → hipótese + como seria refutada
 2. governanca   agent-governance-orchestrator → DAG, ownership ledger, 5W1H
 3. instrucao    module-matrix-5w1h           → módulo, onda, gate
 4. preflight    scripts/preflight_deps.sh    → binários externos antes de começar
+4b. lacuna L4   scripts/extract_rom_assets.sh→ hashes+kernel do .zip oficial (não do device)
 5. estatico     make scan / make audit       → CLEAN? senão VETO
 6. estagio A    make extract → make forge    → Guard-4 + KMI
 7. estagio B    make runtime-test            → boot_completed, logcat, RescueParty
