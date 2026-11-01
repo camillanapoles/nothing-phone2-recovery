@@ -1174,6 +1174,33 @@
       "test": "skills/evox-rom-ci-optimizer/tests/test_success_guarantee.sh",
       "strength": "semantic",
       "rationale": "zero conflito exige relatorio real; sem relatorio nao e prova"
+    },
+    {
+      "id": "M127",
+      "file": "skills/evox-rom-ci-optimizer/scripts/legacy_scope.py",
+      "find": "        if banner in head:",
+      "replace": "        if True:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_legacy_scope.sh",
+      "strength": "semantic",
+      "rationale": "legado sem carimbo nao pode passar como se estivesse carimbado"
+    },
+    {
+      "id": "M128",
+      "file": "skills/evox-rom-ci-optimizer/scripts/legacy_scope.py",
+      "find": "        add(\"legado_voltou\" if os.path.exists(p) else \"ok\", r[\"path\"],",
+      "replace": "        add(\"ok\", r[\"path\"],",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_legacy_scope.sh",
+      "strength": "semantic",
+      "rationale": "arquivo legado removido que volta ao repo tem de ser detectado"
+    },
+    {
+      "id": "M129",
+      "file": "skills/evox-rom-ci-optimizer/scripts/success_guarantee.py",
+      "find": "    abi_trio = (droid.get(\"kernel\") or {}).get(\"abi_trio_not_in_stock_gki\") or []",
+      "replace": "    abi_trio = []",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_success_guarantee.sh",
+      "strength": "semantic",
+      "rationale": "sem o trio SYSVIPC/MQ/IPC_NS a conclusao tem de ser IMPOSSIVEL sob a Decisao A"
     }
   ]
 }

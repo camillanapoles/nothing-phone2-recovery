@@ -105,7 +105,7 @@ ledger é a mesma nos dois casos: *um artefato por vez, com PASS antes do próxi
 | `scripts/root_engine_gate.py` | cruza motor × kernel × módulos → **COMPATÍVEL / PENDENTE / INCOMPATÍVEL** com motivos |
 | `tests/test_root_engine_gate.sh` | 23 casos (inclui fixtures que provam que o gate sabe dizer **não**, e o M05 recusando Magisk) |
 | `scripts/droidspaces_preflight.py` | Gate do **M05**: contrato estático, evidência de kernel e checagem no device — detalhado em [DROIDSPACES-VALIDATION.md](DROIDSPACES-VALIDATION.md) |
-| `references/mutation-catalog.json` | 13 mutantes do motor (M103–M106, M114–M126) e do M05 (M107–M113), todos mortos por asserção |
+| `references/mutation-catalog.json` | 13 mutantes do motor (M103–M106, M114–M129) e do M05 (M107–M113), todos mortos por asserção |
 
 Comandos:
 

@@ -34,10 +34,34 @@ ainda) · **NÃO APROVADO** (fora da decisão) · **BLOQUEADO** (a decisão atua
 | 2 | **M05** | **DroidSpaces** v7.1.0 (`Droidspaces-universal-v7.1.0-4344dc5.apk`, `sha256:36ab4466…930b6`) | `apd module install /sdcard/modules/Droidspaces.zip` — **sem reiniciar com o daemon subindo** | `/proc/sysvipc/{shm,sem,msg}` e `posix-mqueue/qsize` legíveis · `droidspaces_preflight.py --device --expect-installed` → 0 | **CONDICIONADO** ao P0.6 |
 | — | — | **Isolamento obrigatório do M05** | namespaces nativos do kernel | `CONFIG_USER_NS` + `CONFIG_PID_NS` (`y`) e namespaces `user`/`pid` presentes | **CONDICIONADO** — exigido por contrato; prova na L4 |
 
-**Se o kernel stock não tiver `SYSVIPC`, `POSIX_MQUEUE`, `USER_NS` ou `PID_NS`:**
-o M05 fica **BLOQUEADO** (exit 3). A saída **não** é compilar kernel — é nova decisão sua
-(`custom_kernel_allowed: false` está ratificado). O contrato já registra isso em
-`kernel.custom_kernel_path: forbidden_by_decision_A`.
+### 1.1 O DroidSpaces é possível com kernel stock? **Não.** (documentação oficial)
+
+A doc oficial (`Documentation/Kernel-Configuration.md`) é explícita:
+
+> *"Droidspaces needs kernel features that most stock Android kernels leave out: PID and IPC
+> namespaces, a few networking pieces and devtmpfs."*
+
+E, no caso do GKI (o nosso, 5.10):
+
+> *"Several options Droidspaces needs — `CONFIG_SYSVIPC`, `CONFIG_IPC_NS` e `CONFIG_POSIX_MQUEUE` —
+> add fields to core structures and shift the ABI. (...) **These are not optional.** Without the
+> patch for your kernel version, enabling the IPC options bootloops the device."*
+
+Ou seja: sob a **Decisão A** (kernel stock, `custom_kernel_allowed: false`) o M05 é
+**IMPOSSÍVEL**, não "pendente" — e isso agora é veredito de máquina (`make garantia` → R5 com
+estado `IMPOSSIVEL`, exit 1). Não é falta de CONFIG_USER_NS isolada: é o **trio de ABI**
+(`SYSVIPC`/`POSIX_MQUEUE`/`IPC_NS`) que **não existe** no kernel stock e cuja ativação exige patch
+compilado.
+
+**As três saídas possíveis** (nenhuma delas é "maquiar o gate"):
+
+| Saída | O que muda | Entrega DroidSpaces? | Estado |
+|---|---|---|---|
+| **A2** manter A e desistir do M05 | nada | não | possível hoje |
+| **B** APatch + **kernel próprio sem SUSFS** com os patches do DroidSpaces | `custom_kernel_allowed: true` | **sim** | recomendada (mantém motor único e a proibição de SUSFS) |
+| **C** KernelSU-Next/SukiSU + kernel próprio **com SUSFS** + patches | troca o motor e libera SUSFS | sim, com ocultação de kernel | alternativa "máxima ocultação" |
+
+Matriz completa com releases de 2026 e custo de cada par: `references/kernel-pair-options.json`.
 
 ---
 

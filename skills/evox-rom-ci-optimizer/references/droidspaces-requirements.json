@@ -63,7 +63,25 @@
     "source": "stock-rom",
     "custom_kernel_allowed": false,
     "custom_kernel_path": "forbidden_by_decision_A",
-    "note": "Decisão A: o kernel é o do pacote. A receita de kernel próprio do knowledge (droidspaces-android14-5.10, patch sysvipc) está PROIBIDA — se o kernel stock não tiver as CONFIG_*, o M05 fica BLOQUEADO, não vira kernel compilado."
+    "note": "Decisão A: o kernel é o do pacote. A receita de kernel próprio do knowledge (droidspaces-android14-5.10, patch sysvipc) está PROIBIDA — se o kernel stock não tiver as CONFIG_*, o M05 fica BLOQUEADO, não vira kernel compilado.",
+    "official_source": "https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Kernel-Configuration.md",
+    "official_line": "Droidspaces needs kernel features that most stock Android kernels leave out: PID and IPC namespaces, a few networking pieces and devtmpfs.",
+    "gki_chains_required": {
+      "why": "No GKI, ligar SYSVIPC/IPC_NS/POSIX_MQUEUE desloca o kABI e faz o aparelho bootloopar com os módulos do vendor",
+      "patches_5_10": [
+        "001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch (ou alternativa da pasta)",
+        "002.5.10_or_lower_use_android_abi_padding_for_posix_mqueue.patch"
+      ],
+      "quote": "These are not optional. Without the patch for your kernel version, enabling the IPC options bootloops the device."
+    },
+    "abi_trio_not_in_stock_gki": [
+      "CONFIG_SYSVIPC",
+      "CONFIG_POSIX_MQUEUE",
+      "CONFIG_IPC_NS"
+    ],
+    "stock_rom_verdict": "impossible",
+    "stock_rom_verdict_reason": "O trio que desloca o kABI não existe no kernel stock do GKI 5.10 e habilitá-lo exige patch compilado no kernel. Kernel stock + Decisão A => M05 IMPOSSÍVEL, não pendente.",
+    "check_command": "app Droidspaces > Settings > Requirements > Check Requirements"
   },
   "runtime": {
     "namespaces": [
@@ -123,6 +141,7 @@
       "pid"
     ],
     "why": "USER_NS é o que dá identidade de root dentro do container; PID_NS é o que separa os processos. Sem os dois, o DroidSpaces sobe 'pela metade' e o isolamento é só cosmeticamente diferente.",
-    "if_absent": "M05 = BLOQUEADO (exit 3 no preflight); a saída permitida é nova decisão sua, nunca kernel compilado"
+    "if_absent": "M05 = BLOQUEADO (exit 3 no preflight); a saída permitida é nova decisão sua, nunca kernel compilado",
+    "official_basis": "Documentation/Kernel-Configuration.md: PID/IPC namespaces e CONFIG_USER_NS ('Fix for docker unsafe procfs error')"
   }
 }

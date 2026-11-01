@@ -163,13 +163,14 @@ def main(argv: list[str]) -> int:
     iso = droid.get("isolation") or {}
     cfgs = ker.get("configs") or {}
     lacking = [c for c in cfgs_need if str(cfgs.get(c, "")).lower() not in ("y", "m")]
+    abi_trio = (droid.get("kernel") or {}).get("abi_trio_not_in_stock_gki") or []
     after = (droid.get("install") or {}).get("after") or []
     order_ok = "M01" in after
     if order_ok is False:
         add("R5", "DroidSpaces conforme doc oficial", "FALTA_PROVA",
             f"ordem declarada: after={after}", "corrigir droidspaces-requirements.json")
     elif cfgs and lacking:
-        hard = [c for c in lacking if c in (iso.get("required_configs") or [])]
+        hard = [c for c in lacking if c in ((iso.get("required_configs") or []) + abi_trio)]
         if hard and dec.get("custom_kernel_allowed") is not True:
             add("R5", "DroidSpaces conforme doc oficial", "IMPOSSIVEL",
                 f"kernel stock sem {hard} e kernel próprio proibido pela Decisão A",

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# success_guarantee.py — "garantia prévia" só existe com prova; sem prova é exit 3. (28 casos)
+# success_guarantee.py — "garantia prévia" só existe com prova; sem prova é exit 3. (29 casos)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; S="$HERE/../scripts/success_guarantee.py"; ROOT="$(cd "$HERE/../../.." && pwd)"
 P=0; F=0
@@ -78,6 +78,14 @@ out=$(python3 "$S" --root "$ROOT" --evidence "$T/sem_userns.json" --json); rc=$?
 ck "USER_NS ausente = IMPOSSIVEL sob a decisão" "exit" "$rc" "1"
 ck "veredito impossível (não pendente)" "IMPOSSIVEL_SOB_DECISAO_A" "$(printf '%s' "$out" | q 'd["verdict"]')" "IMPOSSIVEL_SOB_DECISAO_A"
 ck "R5 marcado impossível" "IMPOSSIVEL" "$(printf '%s' "$out" | q 'next(r["state"] for r in d["requirements"] if r["id"]=="R5")')" "IMPOSSIVEL"
+
+python3 - "$T/ok.json" "$T/sem_sysvipc.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); d["kernel"]["configs"]["CONFIG_SYSVIPC"] = "n"
+json.dump(d, open(sys.argv[2], "w"))
+PY
+out=$(python3 "$S" --root "$ROOT" --evidence "$T/sem_sysvipc.json" --json); rc=$?
+ck "sem SYSVIPC no kernel = IMPOSSIVEL sob a decisão" "exit" "$rc" "1"
 
 python3 - "$T/ok.json" "$T/nao_instalado.json" <<'PY'
 import json, sys

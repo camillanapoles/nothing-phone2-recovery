@@ -200,7 +200,7 @@ princípios nem “reinterpretar” a arquitetura. Tudo abaixo é **executável*
 | Validação | [`VALIDATION-REPORT.md`](VALIDATION-REPORT.md) | prova arquivo por arquivo, inclusive o que **não** foi possível validar offline |
 
 **Números deste worktree:** `make -s prove` exit **0** · **18 regras** de arquitetura OK ·
-27 suítes verdes · **510 casos** (455 na skill da ROM + 8 no guardian + 13 de estado + 34 nos wrappers) · `bash -n` em 40 scripts · `py_compile` em 9 módulos · `audit_loop.sh` converge limpo em 2 iterações · **126/126 mutantes mortos por asserção** (`make mutation`, ver `FALSIFIABILITY-REPORT.md`).
+28 suítes verdes · **526 casos** (471 na skill da ROM + 8 no guardian + 13 de estado + 34 nos wrappers) · `bash -n` em 40 scripts · `py_compile` em 9 módulos · `audit_loop.sh` converge limpo em 2 iterações · **129/129 mutantes mortos por asserção** (`make mutation`, ver `FALSIFIABILITY-REPORT.md`).
 
 **Auditoria de contradições:** 57 erros → **0** (`docs/skills/AUDIT-CONTRADICTIONS.md`), incluindo a colisão
 `Gate 4`/`G4`/`gate 10` e a questão do `init_boot` (agora condicional e provada por par de rollback). <!-- scan:exempt -->
