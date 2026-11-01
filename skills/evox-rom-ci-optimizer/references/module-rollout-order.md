@@ -1,6 +1,10 @@
 # Ordem incremental ratificada dos módulos (15 itens)
 
 > Sua lista é a **intenção**; esta é a **ordem de execução** com dependência explícita.
+>
+> **M01 é dependente do motor de root** (`references/module-requirements.json`): com APatch ele é o
+> patch `kptools`/`kpimg` no `boot.img` da ROM; com KernelSU/SukiSU ele vira o flash de um kernel de
+> terceiro já com root embutido. A ordem das ondas não muda — o artefato do M01 muda.
 > Onde eu mudei a ordem, o motivo está na coluna "por que antes/depois". Nada foi removido.
 
 ## 1. Mapa: sua numeração → código → fase

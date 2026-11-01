@@ -263,6 +263,7 @@ Nenhum deles é opcional; cada um tem script e teste próprios.
 | Gate | Pergunta que responde | Script | Exit |
 |---|---|---|---|
 | **G-kernel** | este kernel serve para ESTA build no `pong`? | `kernel_compat_check.sh --rom-assets … --candidate …` | 0 compatível · 3 incompatível |
+| **G-motor** | motor de root × kernel × módulos fecham juntos? | `root_engine_gate.py --engine … [--candidate …]` | 0 compatível · 3 pendente · 1 incompatível |
 | **G-rollout** | posso instalar o próximo módulo? | `rollout_gate.sh start/record/status` | 0 liberado · 3 bloqueado |
 | **G-cache** | o artefato testado é o artefato usado? | `cache_manager.sh put/get/verify` | 0 ok · 3 miss/divergente |
 | **G-rollback** | o backup é byte-idêntico à ROM oficial? | `guard4_verify.sh --boot … --backup …` | 0 verificado · 3 ausente · 4 divergente |
@@ -349,6 +350,9 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `tests/test_rom_artifact_fetch.sh` | 18 cenários: pin, idempotência, drift, sem rede, env, JSON |
 | `scripts/mutation_check.py` | **Falseabilidade (Popper)**: injeta mutação real e exige que o teste falhe; sobrevivente = teste viciado |
 | `scripts/test_vacuity_scan.py` | Análise estática de testes viciados (V1–V6: falha engolida, asserção impossível, suíte só-feliz) |
+| `references/root-engines.json` | fatos por motor de root (mecanismo, kernel próprio, SUSFS, rollback) |
+| `references/kernel-candidates.json` | candidatos de kernel com data, hash e suporte declarado à build pinada |
+| `references/module-requirements.json` | contrato dos 15 módulos (root, motor, SUSFS, Zygisk, mount-hide) |
 | `references/mutation-catalog.json` | 102 mutantes (≥2 semânticos por arquivo, com `strength` declarada; timeout não conta como kill) |
 | `scripts/contradiction_scan.py` | Varredura de contradições (C1–C13): instrução ativa que ainda manda fazer o abandonado ou usa vocabulário ambíguo (`Gate 4`, `gate 10`, `init_boot` sem fonte) |
 | `scripts/coverage_matrix.py` | Cobertura fechada: todo script tem teste ou isenção declarada (`references/audit-exemptions.json`) |
@@ -367,11 +371,13 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `scripts/ci_workflow_lint.py` | Lint das travas de custo/segurança do workflow (11 regras) |
 | `tests/test_session_open.sh` | 18 cenários: decisão incompleta trava, completa libera; P1 exige `flavor_source=user` e `auto` nunca herda variante |
 | `tests/test_sandbox_rollout.sh` | 12 cenários com stub de `adb` (boot, crash, ordem, ledger) |
+| `tests/test_root_engine_gate.sh` | 18 cenários: motor × kernel × módulos (inclui EOL recusado e módulo que exige outro motor) |
 | `tests/test_stage_logic.sh` | 54 cenários **semânticos** dos estágios A/B e do bundle, com fixtures e stubs (nenhum insumo ausente vira sucesso) |
 | `tests/test_ci_workflow_lint.sh` | 12 cenários: cada trava removida é detectada |
 | `references/rollout-and-cache.md` | **Gates 3–5**: rollout canário (1 módulo por vez), ondas, cache versionado por SHA-256, política de tamanho |
 | `scripts/extract_rom_assets.sh` | Fecha a L4 pelo `.zip` oficial (kernel/KMI + hashes), sem depender do aparelho |
 | `scripts/kernel_compat_check.sh` | Gate 1 executável: `COMPATIBLE`/`INCOMPATIBLE` com motivos |
+| `scripts/root_engine_gate.py` | Gate do motor: APatch/Magisk/KernelSU × kernel candidato × requisitos dos 15 módulos |
 | `scripts/rollout_gate.sh` | Ledger canário: recusa 2 módulos abertos e módulo seguinte sem PASS |
 | `scripts/cache_manager.sh` | Cache versionado das fases verdes (inline ≤25 MB, externo acima) |
 | `scripts/guard4_verify.sh` | Prova de rollback: backup idêntico ao `boot.img` da ROM + `.sha256` |

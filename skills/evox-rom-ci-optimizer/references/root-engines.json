@@ -1,0 +1,68 @@
+{
+  "schema": "evox-root-engines/1",
+  "device": "pong",
+  "note": "Fatos verificáveis, não preferência. 'mechanism' descreve ONDE o root vive; 'requires_custom_kernel' diz o custo real.",
+  "engines": [
+    {
+      "id": "apatch",
+      "name": "APatch",
+      "mechanism": "kernel-space (patch de kallsyms no boot.img stock, via kptools/kpimg)",
+      "requires_custom_kernel": false,
+      "kmi_dependency": "baixa (patch no kernel da própria ROM)",
+      "supports_susfs": false,
+      "supports_zygisk": true,
+      "rollback": "boot_stock_rollback.img (sha256 verificado)",
+      "status": "baseline_recommended",
+      "source": "https://github.com/bmax121/APatch",
+      "reason": "Não depende de KMI nem de kernel de terceiro; rollback é a própria imagem stock."
+    },
+    {
+      "id": "magisk",
+      "name": "Magisk",
+      "mechanism": "userspace (magiskd no ramdisk) + patch do boot.img",
+      "requires_custom_kernel": false,
+      "kmi_dependency": "nenhuma",
+      "supports_susfs": false,
+      "supports_zygisk": true,
+      "rollback": "boot_stock_rollback.img",
+      "status": "fallback",
+      "source": "https://github.com/topjohnwu/Magisk",
+      "reason": "Caminho mais batido, mas é root em espaço de usuário: não serve para módulos que exigem primitivas de kernel."
+    },
+    {
+      "id": "kernelsu",
+      "name": "KernelSU / KernelSU-Next",
+      "mechanism": "kernel-space (CONFIG_KSU embutido ou LKM carregado pelo kernel)",
+      "requires_custom_kernel": true,
+      "kmi_dependency": "alta (LKM precisa de KMI idêntico; embutido exige recompilar o kernel)",
+      "supports_susfs": true,
+      "supports_zygisk": true,
+      "rollback": "boot_stock_rollback.img da ROM (volta ao kernel stock)",
+      "status": "second_wave",
+      "source": "https://github.com/KernelSU-Next/KernelSU-Next",
+      "reason": "No pong o kernel stock não tem KSU: exige kernel de terceiro — logo, mais variáveis e perda do kernel oficial."
+    },
+    {
+      "id": "sukisu",
+      "name": "SukiSU-Ultra / ReSukiSU (fork de KernelSU)",
+      "mechanism": "kernel-space (KernelSU fork com KPM + SUSFS)",
+      "requires_custom_kernel": true,
+      "kmi_dependency": "alta (mesma regra do KernelSU)",
+      "supports_susfs": true,
+      "supports_zygisk": true,
+      "rollback": "boot_stock_rollback.img da ROM",
+      "status": "second_wave",
+      "source": "https://github.com/ReSukiSU/ReSukiSU",
+      "reason": "Mesma classe do KernelSU, com KPM; hoje é o que kernels ativos do pong embarcam."
+    }
+  ],
+  "susfs": {
+    "id": "susfs",
+    "name": "SUSFS",
+    "requires_kernel_patch": true,
+    "works_with": ["kernelsu", "sukisu"],
+    "not_compatible_with": ["apatch", "magisk"],
+    "mount_hide_global": "proibido quando DroidSpaces (M05) está no escopo (regra R03)",
+    "source": "https://gitlab.com/simonpunk/susfs4ksu"
+  }
+}

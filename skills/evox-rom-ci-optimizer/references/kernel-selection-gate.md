@@ -3,6 +3,21 @@
 > Vale **antes** de qualquer patch de boot. Kernel errado é a causa nº 1 de bootloop em `pong`.
 > Nada aqui é escolha do agente: ele **verifica**, reporta e pede decisão.
 
+## 0. Antes do kernel: qual motor de root (e a que custo)
+
+O motor de root não é detalhe de instalação — ele decide **se o kernel oficial continua no lugar**:
+
+| Motor | Kernel próprio? | SUSFS | Efeito no escopo |
+|---|---|---|---|
+| APatch | não | não | kernel da ROM permanece; rollback pela imagem stock |
+| Magisk | não | não | idem (root em userspace) |
+| KernelSU / SukiSU | **sim** | **sim** | kernel de terceiro entra no caminho crítico; OTA deixa de valer |
+
+Quem cruza motor × kernel × requisitos dos 15 módulos é `root_engine_gate.py`
+(`references/root-engines.json`, `references/kernel-candidates.json`,
+`references/module-requirements.json`). Ele devolve `COMPATÍVEL` (0), `PENDENTE` (3) — falta dado,
+por exemplo L4 da build — ou `INCOMPATÍVEL` (1). Auditoria completa: `docs/skills/ROOT-ENGINE-AUDIT.md`.
+
 ## 1. Tríade obrigatória: kernel × ROM × device
 
 Um kernel só é candidato se as três igualdades valerem:

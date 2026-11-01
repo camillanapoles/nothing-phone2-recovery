@@ -38,7 +38,7 @@ com o objetivo `G10`. A varredura (`contradiction_scan.py`, regras C8–C10) rep
 | 8 | Nenhum workflow do GitHub executa `fastboot` | AG13 |
 | 9 | Emulador prova a **camada de módulos**, nunca o boot do pong | AG8 |
 | 10 | Decisão registrada antes de executar (`decision.json`) | `session_open.py check` |
-| 11 | Teste só vale se puder reprovar (mutação) | `make mutation` 102/102 · AG19/AG21 |
+| 11 | Teste só vale se puder reprovar (mutação) | `make mutation` 106/106 · AG19/AG21 |
 | 12 | Asserção não pode ser impossível nem engolir falha | `make vacuity` · AG20 |
 
 ## 2. Arquitetura em vigor
@@ -125,7 +125,7 @@ o probe retorna `NO_DEVICE`/`BOOTLOADER` → recuperação manual por botão fí
 ```bash
 make -s arch                                  # AG1–AG21
 skills/evox-rom-ci-optimizer/scripts/audit_loop.sh   # AG + scan + cobertura + vacuidade + suítes
-make -s mutation                              # falseabilidade: 102 mutantes, 0 sobreviventes
+make -s mutation                              # falseabilidade: 106 mutantes, 0 sobreviventes
 make -s prove                                 # estado + guard + 15 suítes + eval
 python3 skills/evox-rom-ci-optimizer/scripts/architecture_guard.py --self-test
 python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --file workspace/decision.json --json

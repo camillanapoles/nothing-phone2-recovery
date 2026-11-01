@@ -958,6 +958,42 @@
       "test": "tests/test_wrapper_stages.sh",
       "strength": "semantic",
       "rationale": "resolução precisa exportar o tipo real da fonte"
+    },
+    {
+      "id": "M103",
+      "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+      "find": "    if \"incompativel\" in verdicts:",
+      "replace": "    if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+      "strength": "semantic",
+      "rationale": "incompatibilidade declarada não pode virar 'pendente'"
+    },
+    {
+      "id": "M104",
+      "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+      "find": "        if cand.get(\"status\") == \"rejected_eol\":",
+      "replace": "        if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+      "strength": "semantic",
+      "rationale": "kernel EOL tem de ser recusado, não esperado"
+    },
+    {
+      "id": "M105",
+      "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+      "find": "        if need and engine[\"id\"] not in need and not m.get(\"is_root_engine\"):",
+      "replace": "        if False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+      "strength": "semantic",
+      "rationale": "módulo com motor obrigatório precisa casar com a escolha"
+    },
+    {
+      "id": "M106",
+      "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+      "find": "            elif cand is None or not cand.get(\"kernel_supports_susfs\") or cand.get(\"status\") != \"certified\":",
+      "replace": "            elif False:",
+      "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+      "strength": "semantic",
+      "rationale": "SUSFS exige motor e kernel que realmente suportem"
     }
   ]
 }

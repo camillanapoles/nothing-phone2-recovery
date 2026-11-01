@@ -1,0 +1,78 @@
+{
+  "schema": "evox-kernel-candidates/1",
+  "note": "Candidatos com data, hash e suporte DECLARADO. 'certified' só existe se o kernel passar kernel_compat_check contra o rom_assets.json da build pinada.",
+  "rom_target": {
+    "build": "EvolutionX-16.0-20260915-Pong-11.11",
+    "android_api": 36,
+    "device": "pong",
+    "soc": "SM8475"
+  },
+  "candidates": [
+    {
+      "id": "stock-evolutionx",
+      "name": "Kernel stock da Evolution X 11.11 (boot.img do payload.bin)",
+      "model": "pong",
+      "soc": "SM8475",
+      "android_api": 36,
+      "android_release": "16",
+      "kmi": "a-extrair-na-L4",
+      "kernel_base": "a-extrair-na-L4",
+      "supported_rom_builds": ["EvolutionX-16.0-20260915-Pong-11.11"],
+      "developer_support": {
+        "declared": true,
+        "source": "https://cdn.evolution-x.org/Pong/16/",
+        "notes": "é o kernel que acompanha a build pinada; risco de terceiro = zero"
+      },
+      "source_url": "https://cdn.evolution-x.org/Pong/16/EvolutionX-16.0-20260915-Pong-11.11-Official.zip",
+      "sha256": "79236f9b4259cf5df124dcd7176f8b4c30de0d755e189e8a4224a03e365422fb",
+      "status": "baseline",
+      "kernel_supports_susfs": false,
+      "kernel_supports_kernelsu": false,
+      "evidence": "kernel_compat_check fecha quando a L4 extrair boot.img/KMI da build."
+    },
+    {
+      "id": "meteoric-v6-pong",
+      "name": "Meteoric Kernel V6-Pong (KernelSU-Next + SUSFS)",
+      "model": "pong",
+      "soc": "SM8475",
+      "android_api": 31,
+      "android_release": "12/13/15 (declarado pelo autor)",
+      "kmi": "android12-5.10",
+      "kernel_base": "5.10",
+      "supported_rom_builds": [],
+      "developer_support": {
+        "declared": false,
+        "source": "https://github.com/HELLBOY017/kernel_nothing_sm8475/releases/tag/V6-Pong",
+        "notes": "último release V6-Pong em 2025-06-19; repo sem push desde 2025-07-02; guia do device marca Meteoric como EOL e sem suporte a NOS 4.0+"
+      },
+      "source_url": "https://github.com/HELLBOY017/kernel_nothing_sm8475/releases/download/V6-Pong/Meteoric-KernelSU-Next-V6-Pong-250620-0846.zip",
+      "sha256": "",
+      "status": "rejected_eol",
+      "kernel_supports_susfs": true,
+      "kernel_supports_kernelsu": true,
+      "evidence": "Não declara suporte à build 2026-09-15 (A16/API 36); release tem ~17 meses e o device guide o classifica como EOL."
+    },
+    {
+      "id": "np2-kernel-lineageos-v3.0.5",
+      "name": "NP² Kernel (ReSukiSU + SUSFS + BaseBandGuard) — variante LineageOS",
+      "model": "pong",
+      "soc": "SM8475",
+      "android_api": 33,
+      "android_release": "13 GKI (5.10.246)",
+      "kmi": "android13-5.10",
+      "kernel_base": "5.10",
+      "supported_rom_builds": [],
+      "developer_support": {
+        "declared": true,
+        "source": "https://github.com/MiguVT/NP2_Kernel/releases/tag/v3.0.5",
+        "notes": "declara 'LineageOS / Custom ROMs' e Linux 5.10.246; NÃO declara a build Evolution X 11.11 (A16) — suporte genérico não é suporte à build"
+      },
+      "source_url": "https://github.com/MiguVT/NP2_Kernel/releases/download/v3.0.5/kernel-LineageOS-NP2-ReSukiSU.zip",
+      "sha256": "b9eb9f75f58a456cfd3f1b9ec858475738cd3844e1b48e533a2d497343aa641d",
+      "status": "candidate_unverified",
+      "kernel_supports_susfs": true,
+      "kernel_supports_kernelsu": true,
+      "evidence": "release ativo (v3.0.5, 2026-08-12) e hash publicado; falta L4 da build pinada (KMI/base) e declaração explícita para a build."
+    }
+  ]
+}

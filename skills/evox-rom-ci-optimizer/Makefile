@@ -73,6 +73,7 @@ test-rom:
 
 test-stage:
 	@./tests/test_stage_logic.sh
+	@./tests/test_root_engine_gate.sh
 
 test-gates:
 	@./tests/test_kernel_compat_check.sh
@@ -85,6 +86,7 @@ test-gates:
 	@./tests/test_rom_artifact_fetch.sh
 	@./tests/test_script_contracts.sh
 	@./tests/test_stage_logic.sh
+	@./tests/test_root_engine_gate.sh
 	@./tests/test_contradiction_scan.sh
 	@./tests/test_coverage_matrix.sh
 	@./tests/test_audit_loop.sh
