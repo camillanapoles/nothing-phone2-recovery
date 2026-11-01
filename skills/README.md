@@ -7,13 +7,16 @@ Instalado a partir do **Google Drive → `SKILLS/`**. Nada aqui passou pelo GitH
 
 ## Índice
 
-| # | Skill | Tier | Superfície de decisão | Entrada |
-|---|---|---|---|---|
-| 1 | `evox-rom-ci-optimizer` **v3.2** | core | ROM Evolution X 11.11 pré-flash, QEMU/KVM CI, snapshots, arbitragem das 3 plataformas | [`SKILL.md`](evox-rom-ci-optimizer/SKILL.md) |
-| 2 | `android16-root-guardian` | core | pós-flash Safe-First: KMI, root, OTA A/B, bootloop | [`SKILL.md`](android16-root-guardian/SKILL.md) |
-| 3 | `agent-governance-orchestrator` | meta | DAG, Ownership Ledger, Guard-4, 5W1H, gates | [`SKILL.md`](agent-governance-orchestrator/SKILL.md) |
-| 4 | `act-github-pat` | support | PAT Classic/Fine-Grained + `nektos/act` | [`SKILL.md`](act-github-pat/SKILL.md) |
-| 5 | `github` | support | `gh`: PR, issue, triage, Copilot, CI | [`SKILL.md`](github/SKILL.md) |
+| # | Skill | Tier | Classe | Superfície de decisão | Entrada |
+|---|---|---|---|---|---|
+| 1 | `evox-rom-ci-optimizer` **v3.2** | core | executable | ROM Evolution X 11.11 pré-flash, QEMU/KVM CI, snapshots, arbitragem R01–R09 | [`SKILL.md`](evox-rom-ci-optimizer/SKILL.md) |
+| 2 | `android16-root-guardian` **v2.1** | core | executable | pós-flash Safe-First + coletor de evidência com manifesto SHA-256 | [`SKILL.md`](android16-root-guardian/SKILL.md) |
+| 3 | `agent-governance-orchestrator` | meta | doctrine | DAG, Ownership Ledger, Guard-4, 5W1H, gates | [`SKILL.md`](agent-governance-orchestrator/SKILL.md) |
+| 4 | `fabrica-de-agentes` **v2.0** | meta | doctrine | criação/validação de skill: 9 fases, 12 testes, economia de contexto | [`SKILL.md`](fabrica-de-agentes/SKILL.md) |
+| 5 | `sci-scientific-mindset` | meta | doctrine | crivo epistêmico: hipótese falseável, contra-argumento, contrafactual | [`SKILL.md`](sci-scientific-mindset/SKILL.md) |
+| 6 | `cogni-synapse` | support | doctrine | entrega executiva: BLUF, escolha de vetor, densidade | [`SKILL.md`](cogni-synapse/SKILL.md) |
+| 7 | `act-github-pat` | support | doctrine | PAT Classic/Fine-Grained + `nektos/act` | [`SKILL.md`](act-github-pat/SKILL.md) |
+| 8 | `github` | support | executable | `gh`: PR, issue, triage, Copilot, CI | [`SKILL.md`](github/SKILL.md) |
 
 **Excluídas por decisão (registradas em [`registry.json`](registry.json)):**
 
@@ -35,11 +38,12 @@ Divergiu? **Corrige-se o script**, não a instrução.
 ## Harness (novo)
 
 ```bash
-make -C skills validate     # front matter, name==dir, links, caminhos em backtick, segredos, registry
-make -C skills check-core   # bash -n + py_compile + JSON schema + self-test do auditor
-make -C skills test         # 13 cenários de regressão das regras R00..R09 do scanner
-make -C skills check-all    # tudo acima em sequência
-make -C skills registry     # imprime o estado do ecossistema
+make -C skills validate     # contrato: front matter, name==dir, links, segredos, registry
+make -C skills eval         # qualidade: 7 eixos falseáveis, limite por classe+tier
+make -C skills test-core    # R00..R09 (13) + preflight de dependências (8)
+make -C skills test-guard   # coletor de evidência pós-flash (8, com stub de adb)
+make -C skills check-all    # validate + check-core + test-all + eval
+make -C skills registry     # estado do ecossistema (tiers, excluídas, deduplicadas)
 ```
 
 O validador (`tools/validate_skills.py`) falha em: `SKILL.md` ausente, `name` ≠ diretório,
@@ -63,9 +67,10 @@ e o scanner reescrito com 9 regras (`R00`–`R09`) + `--strict/--json/--out`.
 
 | Verificação | Resultado |
 |---|---|
-| `make -C skills validate` | `OK` (5 skills, 0 falhas) |
-| `make -C skills check-core` | `OK` |
-| `make -C skills test` | `13 PASS / 0 FAIL` |
+| `make -C skills validate` | `OK` (8 skills, 0 falhas) |
+| `make -C skills eval` | `APROVADO` (8/8 acima do limite) |
+| `make -C skills test-core` | `13 PASS / 0 FAIL` (regras) · `8 PASS` (preflight) |
+| `make -C skills test-guard` | `8 PASS / 0 FAIL` (evidência) |
 | Cenário negativo manual (2 módulos em `audio_effects.xml`) | `CONFLICT` exit 1 + veto do Inquisidor |
 | `snapshot_branch_manager.sh --layer wave1 --tag v11.11-w1-test` | manifesto registrado |
 
@@ -74,3 +79,12 @@ e o scanner reescrito com 9 regras (`R00`–`R09`) + `--strict/--json/--out`.
 `.claude/skills` é symlink para esta pasta (`.claude/` é gitignored): Claude Code e agentes
 compatíveis encontram as skills sem duplicar arquivos no Git. Briefing de retomada em
 [`../docs/skills/HANDOFF-BRIEF.md`](../docs/skills/HANDOFF-BRIEF.md).
+
+## Skills adicionadas em 2026-11-01T17:12 (4º lote do Drive)
+
+| Zip no Drive | Destino | Observação |
+|---|---|---|
+| `fabrica-de-agentes.zip` (77 KB) | `fabrica-de-agentes/` | `SKILL.md` reduzido a 49 KB + 3 `references/` verbatim (limite de 64 KB do contrato). Resolve a lacuna **L1** |
+| `cogni-synapse.zip` (33 KB) | `cogni-synapse/` | camada de saída (BLUF/vetor semiótico) |
+| `sci-scientific-mindset.zip` (4,5 KB) | `sci-scientific-mindset/` | camada epistêmica; virou o crivo do `tools/eval_skills.py` |
+| `github.zip` (13,8 KB) | — | **reupload idêntico** ao já instalado (mesmo conteúdo, verificado por `diff -r`); mantida a versão existente |

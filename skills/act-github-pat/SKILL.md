@@ -160,3 +160,29 @@ act -j <job_id> -s GITHUB_TOKEN="$(gh auth token)" --verbose
 - **GITHUB_TOKEN local vs CI:** No runner do GitHub Actions em nuvem, o `secrets.GITHUB_TOKEN` e gerado dinamicamente para o job. No `act`, ele precisa ser explicitamente fornecido via `-s GITHUB_TOKEN=...`.
 - **Exposicao de Segredos:** Nunca comitar arquivos `.secrets` ou `.actrc` contendo tokens literais em repositorios git.
 - **Rotacao e Revogacao:** Em caso de comprometimento acidental, revogar o token imediatamente em `https://github.com/settings/tokens`.
+
+
+---
+
+## Gates binários, reversibilidade e composição (extensão do harness · 2026-11-01)
+
+> Seção adicionada pela auditoria de qualidade (lacuna E2/E5/E7). Não substitui o texto acima:
+> formaliza o que já era prática em critérios verificáveis.
+
+| # | Gate | **PASS se** | **FAIL se** | Evidência exigida |
+|---|---|---|---|---|
+| G1 | Escopo mínimo de token | escopo bate com a matriz de uso (rate-limit sem escopo; privado `repo`/`Contents: Read`) | escopo amplo "por garantia" | saída de `gh auth status` anexada |
+| G2 | Zero segredo em disco versionado | `.secrets` está no `.gitignore` e `git check-ignore .secrets` retorna caminho | `.secrets` rastreável | `git check-ignore -v .secrets` |
+| G3 | Expiração definida | PAT com expiração ≤ 90 dias registrada | token sem expiração | data no nome/descrição do token |
+| G4 | Injeção sem hardcode | `-s GITHUB_TOKEN="$(gh auth token)"` ou input interativo | token colado em comando versionado | histórico do shell/ARQUIVO |
+
+**Reversibilidade:** todo token criado tem revogação explícita (`gh auth logout`, delete do PAT)
+e o comando de revogação é informado junto da criação. Não existe "token temporário" sem data
+de morte.
+
+**Custo:** respeitar o orçamento de 5.000 req/h do PAT e não deixar `act` em loop — cada
+`act` consome minutos locais e baixa actions; usar `--reuse` e cache de container.
+
+**Composição / handoff:** esta skill é chamada por `evox-rom-ci-optimizer` (alvo `make run-act`)
+e depende de `github` para operações autenticadas de leitura. Ao terminar, o handoff devolve
+"token válido? escopo? expira quando?" antes de qualquer pipeline rodar.

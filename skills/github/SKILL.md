@@ -63,3 +63,24 @@ GitHub operations are successful when:
 - PR/issue state changes are reflected in GitHub UI
 - CI status accurately reflects latest workflow runs
 </success_criteria>
+
+
+---
+
+## Gates, reversibilidade e composição (extensão do harness · 2026-11-01)
+
+| # | Gate | **PASS se** | **FAIL se** |
+|---|---|---|---|
+| G1 | Autenticação real | `gh auth status` OK e `gh api user` responde | 401/403 ou `--hostname` errado |
+| G2 | Evidência de CI | `gh pr checks <n>` consultado **depois** do último push | status stale de run anterior |
+| G3 | Reversão declarada | PR tem plano de revert (`gh pr close`/nova branch) antes do merge | merge sem caminho de volta |
+| G4 | Confirmação humana | merge/approve/close com aprovação explícita | ação destrutiva silenciosa |
+
+**Reversibilidade:** nenhuma operação de escrita (merge, approve, close, delete branch) acontece
+sem caminho de volta documentado; para revert de merge, preferir PR de revert a `force-push`.
+
+**Custo e ruído:** usar `--json` + `--limit` para não paginar o repositório inteiro; um único
+comentário consolidado por review em vez de N comentários.
+
+**Composição / handoff:** `scripts/pr_details.sh` alimenta `evox-rom-ci-optimizer` (gate pre-USB)
+e `act-github-pat` (execução local). Handoff terminal: "PR #N: checks X/Y, mergeable, faltando Z".

@@ -148,6 +148,90 @@
         "act-github-pat"
       ],
       "status": "active"
+    },
+    {
+      "name": "fabrica-de-agentes",
+      "version": "2.0.0",
+      "path": "fabrica-de-agentes/SKILL.md",
+      "tier": "meta",
+      "owner_agents": [
+        "SKILL-FACTORY"
+      ],
+      "triggers": [
+        "criar uma skill nova",
+        "atualizar/incrementar skill existente",
+        "gap analysis de cobertura de skills",
+        "empacotamento e validação em 12 testes da skill gerada"
+      ],
+      "capabilities": [
+        "references",
+        "9-fases",
+        "12-gates"
+      ],
+      "depends_on": [
+        "agent-governance-orchestrator"
+      ],
+      "composes_with": [
+        "evox-rom-ci-optimizer",
+        "cogni-synapse",
+        "sci-scientific-mindset"
+      ],
+      "status": "active",
+      "note": "resolve a lacuna L1: era citada pela governança e agora existe de fato"
+    },
+    {
+      "name": "cogni-synapse",
+      "version": "1.0.0",
+      "path": "cogni-synapse/SKILL.md",
+      "tier": "support",
+      "owner_agents": [
+        "COGNI-SYNAPSE"
+      ],
+      "triggers": [
+        "resposta executiva ultra-condensada (BLUF)",
+        "escolher vetor semiótico (texto/DAG Mermaid/HTML/matriz CSV)",
+        "relatório para tomador de decisão com baixa disponibilidade"
+      ],
+      "capabilities": [
+        "doctrine-only",
+        "vector-selection",
+        "10-gates"
+      ],
+      "depends_on": [
+        "sci-scientific-mindset"
+      ],
+      "composes_with": [
+        "evox-rom-ci-optimizer",
+        "agent-governance-orchestrator"
+      ],
+      "status": "active",
+      "note": "camada de saída: define como entregar o resultado, não o que executar"
+    },
+    {
+      "name": "sci-scientific-mindset",
+      "version": "1.0.0",
+      "path": "sci-scientific-mindset/SKILL.md",
+      "tier": "meta",
+      "owner_agents": [
+        "SCIENTIFIC-MINDSET"
+      ],
+      "triggers": [
+        "debate epistemológico / desafio de consenso",
+        "análise contrafactual (What-If)",
+        "advogado do diabo / deliberação multiperspectiva",
+        "matriz de decisão epistêmica"
+      ],
+      "capabilities": [
+        "doctrine-only",
+        "epistemic-rubric"
+      ],
+      "depends_on": [],
+      "composes_with": [
+        "fabrica-de-agentes",
+        "agent-governance-orchestrator"
+      ],
+      "status": "active",
+      "note": "camada epistêmica: cada gate precisa ser falseável, não apenas declarado"
     }
   ],
   "excluded": [
@@ -158,6 +242,12 @@
     {
       "name": "evox-pong-ci-architect",
       "reason": "absorvida por evox-rom-ci-optimizer/references/pong-hardware-matrix.md (fonte única de verdade)"
+    }
+  ],
+  "deduplicated": [
+    {
+      "name": "github",
+      "reason": "reupload idêntico em 2026-11-01T17:12 (sha256 do zip 32a4cd01…); a versão instalada foi mantida"
     }
   ]
 }

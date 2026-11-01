@@ -1,55 +1,76 @@
 # BOOT — contrato de inicialização do agente neste repositório
 
-> Ler **antes** de qualquer comando. Este arquivo manda mais que o repositório: o repo é
-> evidência histórica; a instrução é o contrato.
+> Ler **antes** de qualquer comando. O repositório é evidência histórica; a instrução é o contrato.
+> Stack atual: **8 skills** (`registry.json` é a fonte de verdade da lista).
 
 ## 1. Ordem de carregamento (nunca pular)
 
 1. `skills/BOOT.md` (este arquivo) — regras de operação.
-2. `skills/registry.json` — quais skills existem, tier, gatilhos.
-3. `skills/<skill>/SKILL.md` — apenas as skills cujo gatilho casar com a tarefa.
-4. Se a tarefa for ROM/kernel/módulos: **obrigatório** abrir, nesta ordem,
-   `skills/evox-rom-ci-optimizer/references/module-matrix-5w1h.md` (a instrução),
-   `.../external-engines-arbitration.md` (regras R01–R09),
-   `.../pong-hardware-matrix.md` (matriz do hardware).
+2. `skills/registry.json` — quais skills existem, tier, classe, gatilhos.
+3. `skills/<skill>/SKILL.md` — só as que casarem com a tarefa.
+4. Tarefa de ROM/kernel/módulos → **obrigatório**, nesta ordem:
+   `evox-rom-ci-optimizer/references/module-matrix-5w1h.md` (a instrução) →
+   `external-engines-arbitration.md` (R01–R09) → `pong-hardware-matrix.md` (hardware).
+5. Tarefa de criar/atualizar skill → `fabrica-de-agentes/SKILL.md` (+
+   `references/geracao-em-9-fases.md` e `references/validacao-12-testes-e-erros-fatais.md`).
 
-## 2. Invariantes (violação = parar e pedir decisão)
+## 2. Camadas da stack (quem manda em quê)
 
-- **Nada físico sem estágio.** Sem aprovação nos 10 gates + `boot_stock_rollback.img` com
-  SHA-256, não existe `fastboot flash`. O Nothing Phone 2 é santuário, o runner é descartável.
-- **`persist` é intocável** (calibração Goodix). O scanner trata escrita como `CONFLICT` (R06).
+| Camada | Skill | Decide |
+|---|---|---|
+| Epistêmica | `sci-scientific-mindset` | o que conta como evidência; hipótese falseável; contra-argumento obrigatório |
+| Governança | `agent-governance-orchestrator` | DAG, ownership ledger, Guard-4, gates binários |
+| Criação | `fabrica-de-agentes` | como uma skill nova nasce e é validada (9 fases, 12 testes) |
+| Domínio | `evox-rom-ci-optimizer` (pré-flash) · `android16-root-guardian` (pós-flash) | o que fazer no Android 16 |
+| Apoio | `github` · `act-github-pat` | operações `gh` e execução local de workflow |
+| Saída | `cogni-synapse` | como o resultado é entregue (BLUF, matriz, vetor semiótico) |
+
+Fluxo: **sci** dá o crivo → **governance** monta o DAG → **domínio** executa → **fabrica** versiona
+o que virou skill → **cogni-synapse** empacota a entrega.
+
+## 3. Invariantes (violação = parar e pedir decisão)
+
+- **Nada físico sem estágio.** Sem 10 gates + `boot_stock_rollback.img` com SHA-256, não existe
+  `fastboot flash`.
+- **`persist` é intocável** (calibração Goodix) — escrita = `CONFLICT` (R06).
 - **SELinux `Enforcing`** é requisito de produto (R08).
 - **MaxManager tem exclusividade de escrita** em CPU/GPU/Thermal/ZRAM/TCP (R01/R02).
-- **Duck-ToolBox consolida M07/M08**: não empilhar spoofers avulsos (R04).
-- **DroidSpaces × SuSFS**: mount-hide global desabilitado para `droidspaces` (R03).
-- **Uma fonte de verdade.** Se código e instrução divergirem, corrige-se o código.
-- **Sem GitHub** enquanto a usuária não liberar explicitamente (hoje: apenas Drive + local).
-- **Sem segredos no repo.** O harness falha em `ghp_*`, `github_pat_*`, chaves privadas.
+- **Duck-ToolBox consolida M07/M08** — não empilhar spoofers avulsos (R04).
+- **DroidSpaces × SuSFS**: mount-hide global desabilitado (R03).
+- **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
+- **Sem GitHub** enquanto a usuária não liberar (hoje: Drive + local).
+- **Sem segredos no repo** — o harness falha em `ghp_*`, `github_pat_*`, chaves privadas.
+- **Skill nova sem `validate` + `eval` verde não entra no `registry.json`.**
 
-## 3. Como provar que está tudo de pé (30 s)
+## 4. Como provar que está tudo de pé (≈40 s)
 
 ```bash
-make -C skills check-all     # validate + make check + 13 testes de regra
+make -C skills check-all
 ```
 
-Saída esperada: `[harness] OK (0 falhas)` · `[core] make check OK` · `13 PASS / 0 FAIL`.
+Esperado: `[harness] OK (0 falhas)` · `[core] make check OK` · `13 PASS` (regras) ·
+`8 PASS` (preflight) · `8 PASS` (evidência) · `[eval] APROVADO`.
 
-## 4. Fluxo canônico de uma tarefa de ROM
+## 5. Fluxo canônico de uma tarefa de ROM
 
 ```text
-1. governança   agent-governance-orchestrator  → DAG, ownership ledger, 5W1H
-2. instrução    module-matrix-5w1h             → qual módulo, qual onda, qual gate
-3. estático     make scan / make audit          → CLEAN? senão VETO
-4. estágio A    make extract → make forge       → Guard-4 + KMI
-5. estágio B    make runtime-test               → boot_completed, logcat, RescueParty
-6. estado       make snapshot                   → snapshot/<camada>/<tag> + manifesto
-7. release      gate 10 (pre-USB)               → só com 10/10 PASS
-8. pós-flash    android16-root-guardian         → OTA A/B, bootloop, telemetria real
+1. epistemica   sci-scientific-mindset      → hipótese + como seria refutada
+2. governanca   agent-governance-orchestrator → DAG, ownership ledger, 5W1H
+3. instrucao    module-matrix-5w1h           → módulo, onda, gate
+4. preflight    scripts/preflight_deps.sh    → binários externos antes de começar
+5. estatico     make scan / make audit       → CLEAN? senão VETO
+6. estagio A    make extract → make forge    → Guard-4 + KMI
+7. estagio B    make runtime-test            → boot_completed, logcat, RescueParty
+8. estado       make snapshot                → snapshot/<camada>/<tag> + manifesto
+9. release      gate 10 (pre-USB)            → só com 10/10 PASS
+10. pos-flash   collect_evidence.sh          → evidence.json + MANIFEST.sha256
+11. entrega     cogni-synapse                → 1 tela: decisão, evidência, o que falta
 ```
 
-## 5. O que ainda não existe (não fingir que existe)
+## 6. O que ainda não existe (não fingir que existe)
 
-- `fabrica-de-agentes` / `skill-updater` (citadas pela governança, **não instaladas**).
-- Coletor de telemetria no device (`android16-root-guardian` é doutrina pura).
-- Binários externos: `payload-dumper-go`, `kptools`, `magiskboot`, `adb`, `act`, `gh`.
-- Kernel exato e hashes da build da usuária (só existem parcialmente no Drive).
+- `skill-updater` (citada pela governança; `fabrica-de-agentes` cobre a criação, não o update
+  incremental automático).
+- Dados do device da usuária (kernel exato, hashes `boot_b`/`vendor_boot_b`/`vbmeta_b`) — **L4**.
+- Binários externos (`payload-dumper-go`, `kptools`, `magiskboot`, `adb`, `act`): o preflight
+  detecta e explica; não instala.

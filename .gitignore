@@ -78,3 +78,6 @@ skills/**/__pycache__/
 # skill harness tools (o padrao "tools/" acima ignora qualquer dir tools)
 !skills/tools/
 !skills/tools/**
+
+# Fonte bruta do Google Drive (proveniência registrada em docs/skills/SKILLS-INVENTORY.md)
+google_drive/

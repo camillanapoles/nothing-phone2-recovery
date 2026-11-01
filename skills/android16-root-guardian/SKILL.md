@@ -1,5 +1,6 @@
 ---
 name: android16-root-guardian
+version: 2.1.0
 description: Sistema multi-agente Safe-First (Sentinel Explorer + Hostile Inquisitor) para diagnostico holistico, auditoria hostil, manutencao, atualizacao OTA e engenharia de root/kernel (APatch, KernelSU, Magisk, KPM/APM, KMI GKI 2.0, Zygisk, SELinux) no Android 16 (API 36) via Termux, ADB/Shizuku ou Root. Use quando o usuario solicitar analise de sistema Android, troubleshooting de bootloop/modulos, patch de kernel/KMI, automacao Termux ou otimizacao segura com verificacao baseada em evidencias.
 ---
 
@@ -179,3 +180,29 @@ CRITERIO_DE_ACEITACAO_HOSTIL: [Testes binarios que o Inquisitor deve validar]
 5. **Uso de `su` sem Namespace Master (`-M` / `--mount-master`):** Modificar montagens dentro da sessao isolada do Termux sem propagar para o namespace global quando necessario, ou vice-versa, poluindo processos monitorados.
 6. **Aplicacao de OTA com `boot`/`init_boot` Modificado no Slot Ativo:** Causa falha de verificacao de hash (`ErrorCode::kDownloadStateInitializationError` / `kNewRootfsVerificationError`) no `update_engine`.
 7. **Modificacao Direta de `/data/adb/` sem Checar Conflito de Modulos:** Manter `Shamiko`, `Zygisk-Next`, `ReZygisk` e `TrickyStore` mal configurados simultaneamente, gerando crash no Zygote64.
+
+
+---
+
+## Coleta de evidência (implementação da lacuna L2 · 2026-11-01)
+
+O Princípio 1 ("Evidência Primária Obrigatória") deixou de depender de digitação manual:
+
+```bash
+./scripts/collect_evidence.sh --out ./evidence             # device via adb (default)
+./scripts/collect_evidence.sh --local --out ./evidence     # no próprio aparelho (Termux/root)
+ADB_BIN=/caminho/adb ./scripts/collect_evidence.sh         # binário alternativo
+```
+
+Produz `raw/*.txt` (getprop, uname, slot, KMI, SELinux, root engine, módulos, dmesg, logcat
+crash, meminfo, df) + `evidence.json` + `MANIFEST.sha256` verificável com `sha256sum -c`.
+
+| Exit | Significado |
+|---|---|
+| 0 | evidência completa, `sys.boot_completed=1` |
+| 3 | adb/device indisponível (nada foi inferido) |
+| 4 | evidência parcial: boot não concluído (registrada, não aprovada) |
+
+Regressão: `./tests/test_collect_evidence.sh` (8 casos, stub de adb, sem device real).
+O `evidence.json` alimenta o handoff: "boot ok? SELinux? crashes? AVC denials?" antes de
+qualquer mutação proposta ao A16-INQUISITOR.

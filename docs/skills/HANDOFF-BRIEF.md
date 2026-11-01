@@ -8,72 +8,77 @@ divergir, vale o que está aqui + `skills/evox-rom-ci-optimizer/references/modul
 
 ## 1. O que foi feito (nesta ordem)
 
-1. **Instalação** das 7 skills do Drive `SKILLS/` → `skills/` (duplicatas descartadas).
-2. **Fusão** `evox-rom-ci-optimizer` v3.0 (spec) ⊕ v2.0 (pacote operacional) → **v3.1**.
-3. **Exclusão de escopo:** `apex-talent-broker` removida (não faz parte do projeto).
-4. **Consolidação:** `evox-pong-ci-architect` absorvida como
-   `references/pong-hardware-matrix.md` (fim das duas fontes de verdade).
-5. **Instrução materializada:** `references/module-matrix-5w1h.md` (Classes 1–6, 15 módulos,
-   3 plataformas, 5W1H, mapa módulo→onda→gate) + `references/external-engines-arbitration.md`
-   (R01–R09) + `references/ci-cost-locks.md`.
-6. **Engine endurecido:** `static_conflict_scanner.py` reescrito (v3.1 → regras R00–R09,
-   `--modules-dir/--out/--strict/--json`, status `CLEAN|WARN|CONFLICT`) + `tests/` com 13 cenários.
-7. **Harness de skills:** `skills/Makefile`, `skills/tools/validate_skills.py`, `skills/registry.json`,
-   `skills/BOOT.md` — descoberta e validação determinísticas.
+1. **Instalação** das skills do Drive `SKILLS/` → `skills/` (duplicatas descartadas).
+2. **Fusão** `evox-rom-ci-optimizer` v3.0 (spec) ⊕ v2.0 (pacote operacional) → **v3.2**.
+3. **Exclusão de escopo:** `apex-talent-broker` removida.
+4. **Consolidação:** `evox-pong-ci-architect` absorvida como `references/pong-hardware-matrix.md`.
+5. **Instrução materializada:** `module-matrix-5w1h.md` (15 módulos, 3 plataformas, 5W1H) +
+   `external-engines-arbitration.md` (R01–R09) + `ci-cost-locks.md`.
+6. **Engine endurecido:** `static_conflict_scanner.py` (R00–R09, `--strict/--json`) + 13 cenários.
+7. **Harness de skills:** `make validate`, `make eval`, `make test-all`, `registry.json`, `BOOT.md`.
+8. **4º lote do Drive (2026-11-01T17:12)** — `fabrica-de-agentes`, `cogni-synapse`,
+   `sci-scientific-mindset`, `github` (reupload idêntico → deduplicado, não reinstalado).
+   Stack passou de 5 → **8 skills**; `fabrica-de-agentes` (77 KB) foi dividida em `SKILL.md`
+   + 3 `references/` para caber no teto de 64 KB.
+9. **Débitos fechados com artefato + teste** (ver §4): L1, L2, L3, L5, L6.
 
 ## 2. Estado verificado (evidência, não promessa)
 
 ```text
-make -C skills validate    -> [harness] OK (0 falhas) · 5 skills
-make -C skills check-core  -> [core] make check OK     (8 scripts bash -n, py_compile, 2 JSONs, auditor)
-make -C skills test        -> 13 PASS / 0 FAIL         (R00..R09)
-snapshot_branch_manager.sh -> [OK] Snapshot registrado
+make -C skills validate    -> [harness] OK (0 falhas) · 8 skills
+make -C skills check-core  -> [core] make check OK
+make -C skills test-core   -> 13 PASS / 0 FAIL (R00..R09) · 8 PASS (preflight de dependências)
+make -C skills test-guard  -> 8 PASS / 0 FAIL (coletor de evidência, stub de adb)
+make -C skills eval        -> [eval] APROVADO · 8/8 acima do limite da classe
 ```
 
-## 3. Estrutura final
+Notas do eval (7 eixos × classe × tier): evox 100 · cogni-synapse 81 · android16 83 ·
+governança 75 · fabrica 75 · sci-mindset 63 · github 58 · act-github-pat 57.
+Limites: `executable` core≥70/meta≥55/support≥55 · `doctrine` core≥60/meta≥50/support≥45.
+
+## 3. Estrutura final (8 skills)
 
 ```text
 skills/
 ├── BOOT.md · README.md · Makefile · registry.json
-├── tools/validate_skills.py
-├── evox-rom-ci-optimizer/            ★ v3.2
+├── tools/validate_skills.py · tools/eval_skills.py
+├── evox-rom-ci-optimizer/            ★ v3.2  (core, executable)
 │   ├── SKILL.md · Makefile · install_local.sh
-│   ├── assets/ (preset .prop, watchdog 120 s)
-│   ├── references/
-│   │   ├── module-matrix-5w1h.md            ← a instrução
-│   │   ├── external-engines-arbitration.md  ← R01..R09
-│   │   ├── pong-hardware-matrix.md          ← ex-evox-pong-ci-architect
-│   │   ├── ci-cost-locks.md
-│   │   ├── android16-evox-safelist.json · devcontainer.json · evox-ci-pipeline.yml
-│   │   └── archive/ (v2.0 canônico 33 KB + resumo)
-│   ├── scripts/ (8: extract, forge, patch-boot, bundle, audit, scanner, snapshot, runtime)
-│   └── tests/test_scanner_rules.sh
-├── android16-root-guardian/SKILL.md
-├── agent-governance-orchestrator/SKILL.md
-├── act-github-pat/SKILL.md
-└── github/ (SKILL.md + 6 references + 3 scripts)
+│   ├── references/ (module-matrix-5w1h, external-engines-arbitration, pong-hardware-matrix,
+│   │                ci-cost-locks, safelist, devcontainer, pipeline, archive/)
+│   ├── scripts/ (9: extract, forge, patch-boot, bundle, audit, scanner, snapshot, runtime, preflight)
+│   └── tests/ (test_scanner_rules.sh · test_preflight_deps.sh)
+├── android16-root-guardian/         ★ v2.1  (core, executable)
+│   ├── SKILL.md · Makefile
+│   ├── scripts/collect_evidence.sh
+│   └── tests/test_collect_evidence.sh
+├── agent-governance-orchestrator/    (meta, doctrine)
+├── fabrica-de-agentes/               (meta, doctrine)  SKILL.md + 3 references/
+├── sci-scientific-mindset/           (meta, doctrine)
+├── cogni-synapse/                    (support, doctrine)
+├── act-github-pat/                   (support, doctrine)
+└── github/                           (support, executable)  SKILL.md + references + scripts
 ```
 
-## 4. Lacunas remanescentes (honestas)
+## 4. Lacunas — estado atual
 
-| # | Lacuna | Impacto | Ação sugerida |
+| # | Lacuna | Estado | Evidência |
 |---|---|---|---|
-| L1 | `fabrica-de-agentes` / `skill-updater` citadas e inexistentes | governança promete auto-evolução que não existe | trazer do Drive ou remover a promessa do texto |
-| L2 | `android16-root-guardian` sem scripts | pós-flash depende de digitação manual | criar `scripts/collect_evidence.sh` (getprop/uname/dmesg/logcat/avc + hash) |
-| L3 | Binários externos não embarcados | `make extract/forge/runtime-test` falham em máquina limpa | `install_local.sh` deve checar e reportar o que falta (já checa; falta bootstrap) |
-| L4 | Kernel exato / hashes da build da usuária | `patch_boot_offline.sh` e KMI ficam em modo "esperado" | obter de `android-boot-hashs.txt` no Drive ou de `fastboot getvar` no device |
-| L5 | Sem harness de eval das próprias skills | qualidade não medida ao longo do tempo | plugar no `audit-fsm` do repo (pytest) ou criar `skills/tools/eval_skills.py` |
-| L6 | `docs/` do repo tem conteúdo legado divergente | risco de agente ler contrato antigo | `BOOT.md` declara a hierarquia; opcional marcar legados como `deprecated` |
+| L1 | `fabrica-de-agentes` citada e inexistente | **FECHADA** | skill instalada v2.0.0, dividida em 4 arquivos; `registry.json` registra "resolve L1" |
+| L2 | `android16-root-guardian` sem scripts | **FECHADA** | `scripts/collect_evidence.sh` (exit 0/3/4) + `evidence.json` + `MANIFEST.sha256`; `8 PASS` |
+| L3 | Binários externos não verificados | **FECHADA** | `scripts/preflight_deps.sh` (`--json/--require/--hints`, exit 0/1/2), catálogo de 12 binários; `8 PASS` |
+| L4 | Kernel exato / hashes da build da usuária | **BLOQUEADA (usuária)** | falta `android-boot-hashs.txt` ou `fastboot getvar` do device |
+| L5 | Sem harness de eval das próprias skills | **FECHADA** | `tools/eval_skills.py`, 7 eixos falseáveis, `[eval] APROVADO` |
+| L6 | `docs/` legado divergente | **FECHADA** | `docs/skills/LEGACY-INDEX.md` marca o legado e fixa a regra de precedência |
+
+**Único débito aberto: L4.** Não é código — é dado que só existe no aparelho / no Drive da usuária.
 
 ## 5. Duas frentes prontas para executar (decisão da usuária)
 
-1. **Parametrizar kernel/KMI + Device Profile para o `pong`** — precisa de: codename (já sabido:
-   `pong` / SM8475), versão de kernel da Evolution X 11.11 instalada e, se possível, hashes de
-   `boot_b`/`vendor_boot_b`/`vbmeta_b` (existem no arquivo `android-boot-hashs.txt` no Drive).
-   Entrega: `references/pong-device-profile.json` + defaults seguros em `forge_patcher.sh`.
-2. **Script de criação do repositório GitHub** (`gh repo create` + branches de snapshot
-   `snapshot/rom-base`, `snapshot/kernel-kpm`, `snapshot/modules-wave1..4` + workflow Dual-Stage).
-   Entrega: `scripts/bootstrap_github_repo.sh` — **não executar** até liberação explícita.
+1. **Fechar L4:** obter de `android-boot-hashs.txt` (Drive) ou `fastboot getvar` (device) a versão de
+   kernel da Evolution X 11.11 instalada e os hashes de `boot_b`/`vendor_boot_b`/`vbmeta_b` →
+   gerar `references/pong-device-profile.json` + defaults seguros em `forge_patcher.sh`.
+2. **Bootstrap do GitHub** (`scripts/bootstrap_github_repo.sh`) — **não executar** até liberação.
 
 ## 6. Regras que não mudam
 
@@ -81,3 +86,4 @@ skills/
 - `persist` intocável; SELinux `Enforcing`; MaxManager com exclusividade de escrita.
 - Nada de GitHub enquanto a usuária não liberar (hoje: Drive + local apenas).
 - Instrução vence código; código errado se corrige, instrução não se reescreve para caber.
+- Skill nova só entra no `registry.json` com `validate` + `eval` verdes.
