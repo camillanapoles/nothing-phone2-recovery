@@ -84,3 +84,10 @@ google_drive/
 
 # Estado runtime local (quarentena de sessões, relatórios) — nunca versionado
 state/
+
+# ROM artifacts & env gerado (determinístico, grande, local)
+workspace/artifacts/
+workspace/evox.env
+workspace/evox.env.tmp
+*.zip.part
+*.zip.mismatch

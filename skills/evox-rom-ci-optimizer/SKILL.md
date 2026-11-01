@@ -344,6 +344,9 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `references/kernel-selection-gate.md` | **Gate 1**: tríade kernel × ROM × device, escolha da versão estável, compatibilidade de módulo, estratégia para o `pong` |
 | `references/act-ab-hil-review.md` | **Revisão do HIL local**: 6 erros do draft (bind mount, rollback automático, `su` antes do root, `modules_stable` inexistente, AVB/`init_boot`, listas) e arquitetura híbrida corrigida |
 | `scripts/abl_fallback_probe.sh` | **Captura de falha A/B**: classifica `OK` / `ABL_FALLBACK` / `HANG` / `HANG_EARLY` / `BOOTLOADER` / `NO_DEVICE`, coleta pstore/dmesg/logcat e força rollback |
+| `scripts/rom_artifact_fetch.sh` | **Coleta determinística** dos dois zips da mesma build: pin por sha256, atômico, retomável, drift = exit 4, env fixo em `workspace/evox.env` |
+| `references/rom-artifacts.json` | Manifesto pinado (Vanilla + GApps, build 2026-09-15) — única fonte de nome/URL/build |
+| `tests/test_rom_artifact_fetch.sh` | 18 cenários: pin, idempotência, drift, sem rede, env, JSON |
 | `scripts/architecture_guard.py` | Trava de arquitetura (AG1–AG12): impede voltar ao modelo antigo e valida que as correções seguem aplicadas |
 | `tests/test_abl_probe.sh` | 12 cenários do probe (fallback, hang, hang precoce, sem device, rollback) |
 | `assets/00_slot_router.sh` | Roteador A/B: `guard`/`quarantine`/`activate`/`status`/`reset` — quarentena por `disable`, sem `mount`, sem `rm -rf` |

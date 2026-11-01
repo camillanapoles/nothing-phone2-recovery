@@ -193,14 +193,18 @@ princípios nem “reinterpretar” a arquitetura. Tudo abaixo é **executável*
 | Peça | Arquivo | O que garante |
 |---|---|---|
 | Contrato | [`ARCHITECTURE-DECISION.md`](ARCHITECTURE-DECISION.md) | 10 princípios, arquitetura A→B→C→E→D, lista do que **não** refazer, limites do A/B |
-| Trava | `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` | **AG1–AG15** falham o build se a arquitetura antiga voltar (`make -s arch`, dentro de `make -s prove`) |
+| Trava | `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` | **AG1–AG16** falham o build se a arquitetura antiga voltar (`make -s arch`, dentro de `make -s prove`) |
 | Classificador de falha | `scripts/abl_fallback_probe.sh` | distingue `OK` / `ABL_FALLBACK` / `HANG` / `HANG_EARLY` / `BOOTLOADER` / `NO_DEVICE` |
 | Marcas de boot | `assets/00_slot_router.sh guard` | separa falha antes do userspace de travamento pós-kernel |
 | Abertura | `scripts/session_open.py` (`auto` + `check`) | preenche P10–P14, mantém P1–P3 bloqueantes |
 | Validação | [`VALIDATION-REPORT.md`](VALIDATION-REPORT.md) | prova arquivo por arquivo, inclusive o que **não** foi possível validar offline |
 
-**Números deste worktree:** `make -s prove` exit **0** · 15 regras de arquitetura OK ·
-14 suítes verdes · 157 casos (144 na skill de ROM + 13 no teste de estado) · `bash -n` em 35 scripts · `py_compile` em 6 módulos.
+**Números deste worktree:** `make -s prove` exit **0** · 16 regras de arquitetura OK ·
+15 suítes verdes · 175 casos (162 na skill de ROM + 13 no teste de estado) · `bash -n` em 37 scripts · `py_compile` em 6 módulos.
+
+**Coleta determinística (P1):** manifesto `references/rom-artifacts.json` pina as duas variantes da
+build 2026-09-15; `scripts/rom_artifact_fetch.sh --variant both` baixa/confere com pin de sha256 e
+drift = exit 4. Discussão em [`VANILLA-VS-GAPPS.md`](VANILLA-VS-GAPPS.md).
 
 **Correções aplicadas neste turno:** `bootctl` removido do HIL (AG14) · pipeline antigo
 movido para `references/archive/` com aviso SUPERSEDIDO (AG15) · `QEMU/KVM` → AVD em

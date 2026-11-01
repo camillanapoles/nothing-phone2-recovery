@@ -1,0 +1,30 @@
+{
+  "schema": "evox-rom-artifacts/1",
+  "device": "Pong",
+  "android": "16",
+  "build": "2026-09-15",
+  "version": "11.11",
+  "note": "Objeto passageiro pinado: os dois zips da MESMA build. Nome, URL e (depois do primeiro fetch) sha256 sao a identidade do artefato. Nunca trocar por 'mais novo'.",
+  "variants": [
+    {
+      "id": "vanilla",
+      "label": "Vanilla (sem Google)",
+      "filename": "EvolutionX-16.0-20260915-Pong-11.11-Vanilla-Official.zip",
+      "url": "https://cdn.evolution-x.org/Pong/16_vanilla/EvolutionX-16.0-20260915-Pong-11.11-Vanilla-Official.zip/download",
+      "mirror": "https://cdn.evolution-x.org/Pong/16_vanilla/EvolutionX-16.0-20260915-Pong-11.11-Vanilla-Official.zip",
+      "sha256": null,
+      "bytes": null,
+      "status": "unverified"
+    },
+    {
+      "id": "gapps",
+      "label": "GApps (com Google)",
+      "filename": "EvolutionX-16.0-20260915-Pong-11.11-Official.zip",
+      "url": "https://cdn.evolution-x.org/Pong/16/EvolutionX-16.0-20260915-Pong-11.11-Official.zip/download",
+      "mirror": "https://cdn.evolution-x.org/Pong/16/EvolutionX-16.0-20260915-Pong-11.11-Official.zip",
+      "sha256": null,
+      "bytes": null,
+      "status": "unverified"
+    }
+  ]
+}

@@ -12,7 +12,7 @@ ck "self-test detecta as 10 violações simuladas" "exit" \
 ck "repositório respeita a arquitetura" "exit" \
   "$(python3 "$G" --root "$ROOT" >/dev/null 2>&1; echo $?)" "0"
 ck "JSON tem todas as regras" "contagem" \
-  "$(python3 "$G" --root "$ROOT" --json | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["results"]))')" "15"
+  "$(python3 "$G" --root "$ROOT" --json | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["results"]))')" "16"
 
 # fixture mínima com violação injetada: o guard tem de reprovar
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT

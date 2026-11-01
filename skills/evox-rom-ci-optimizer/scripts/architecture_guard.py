@@ -20,6 +20,7 @@ Regras:
   AG13 nenhum workflow do GitHub executa fastboot
   AG14 workflow local não usa bootctl e confere boot_completed
   AG15 pipeline antigo só existe em references/archive/, marcado
+  AG16 manifesto pinado das duas variantes + coletor determinístico
 
 Uso: architecture_guard.py [--root DIR] [--self-test] [--json]
 Exit: 0 ok · 3 violação · 2 uso
@@ -211,6 +212,32 @@ def check_ag14(t):
     return []
 
 
+def check_ag16(root):
+    p = []
+    mf = os.path.join(root, SK, "references", "rom-artifacts.json")
+    try:
+        m = json.load(open(mf, encoding="utf-8"))
+    except Exception as exc:
+        return [f"manifesto de artefatos ausente/invalido: {exc}"]
+    vars_ = m.get("variants") or []
+    ids = {v.get("id") for v in vars_}
+    if ids != {"vanilla", "gapps"}:
+        p.append("manifesto precisa das duas variantes (vanilla e gapps)")
+    if len({v.get("filename") for v in vars_}) != len(vars_):
+        p.append("nomes de arquivo repetidos entre variantes")
+    if not m.get("build"):
+        p.append("manifesto sem build pinada")
+    for v in vars_:
+        if "cdn.evolution-x.org" not in (v.get("url") or ""):
+            p.append(f"{v.get('id')}: URL fora do CDN esperado")
+        if not (v.get("url") or "").endswith("/download"):
+            p.append(f"{v.get('id')}: URL sem /download (nao e o link direto)")
+    for f, label in (("scripts/rom_artifact_fetch.sh", "coletor"),):
+        if not os.path.exists(os.path.join(root, SK, f)):
+            p.append(f"{label} ausente: {f}")
+    return p
+
+
 def check_ag15(root):
     p = []
     ativo = os.path.join(root, SK, "references", "evox-ci-pipeline.yml")
@@ -290,6 +317,8 @@ def run(root: str) -> dict:
     results.append({"rule": "AG13", "ok": not problems, "problems": problems})
     problems = check_ag15(root)
     results.append({"rule": "AG15", "ok": not problems, "problems": problems})
+    problems = check_ag16(root)
+    results.append({"rule": "AG16", "ok": not problems, "problems": problems})
     return {"root": os.path.abspath(root), "ok": all(r["ok"] for r in results),
             "results": results}
 

@@ -9,7 +9,7 @@
 
 | ID | Pergunta | Por que trava | O que o agente já preparou |
 |---|---|---|---|
-| **P1** | Vanilla × GApps | muda o `/system` de origem e o conjunto de módulos (GApps A16 + Google Unlocked) | tabela prós/contras em `SKILL.md` §VI-A + recomendação por módulos |
+| **P1** | Vanilla × GApps | muda o `/system` de origem e o conjunto de módulos (GApps A16 + Google Unlocked) | [`VANILLA-VS-GAPPS.md`](VANILLA-VS-GAPPS.md) (diferenças, impacto módulo a módulo, continuidade e recomendação) + coleta determinística das **duas** variantes via `rom_artifact_fetch.sh --variant both` |
 | **P2** | Caminho do `.zip` + sha256 | sandbox sem egress ao CDN; sem zip não há L4 real | `extract_rom_assets.sh --zip … --expect-sha256 …` pronto, sai 3 sem binário |
 | **P3** | Autorização de binários (item a item) | instalação no *seu* host | `preflight_deps.sh --hints` com a receita de cada um |
 | **P9** | Autorizar o PR | regra sua: remote só com liberação | commit já empurrado na branch da arena; PR **não aberto** |

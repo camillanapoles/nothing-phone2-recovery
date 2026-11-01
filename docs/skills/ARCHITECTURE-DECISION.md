@@ -2,7 +2,7 @@
 
 **Status:** aceito em 2026-11-01 · **Decisor:** usuária · **Executor:** agente de sessão
 **Fonte de verdade de conteúdo:** `skills/evox-rom-ci-optimizer/references/module-matrix-5w1h.md`
-**Trava executável:** `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` (AG1–AG15)
+**Trava executável:** `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` (AG1–AG16)
 
 > Este documento existe para a **próxima sessão que executa**. Se você é essa sessão: leia
 > este arquivo, rode `make -s arch` e `python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check`.
@@ -55,6 +55,7 @@ em `/system` a prova é o AVD + o ledger de rollout, não o slot.
 | `modules_stable` | diretório inexistente no APatch; instrução fantasma | caminho real + verificação em runtime | AG9 |
 | `staging_b` como caminho fixo | conflita com o nome do slot e induz erro de alvo | slot resolvido por `ro.boot.slot_suffix` | AG3 |
 | `bootctl mark-boot-successful` no workflow local | HAL não garantida; mascarava falha de boot | checagem de `sys.boot_completed` **e** slot esperado | AG14 |
+| Baixar “a build mais nova” a cada sessão | resultado diferente a cada run; quebra comparação e cache | manifesto pinado (nome/URL/build) + lock de sha256; divergência = exit 4 | AG16 |
 | Dois pipelines cloud (`evox-ci-pipeline.yml` e `evox-ci-validator.yml`) | ambiguidade de fonte de verdade | antigo movido para `references/archive/` com aviso | AG15 |
 
 Mensões históricas que **não** têm efeito sobre a arquitetura nova: narrativa de incidentes,
@@ -88,7 +89,7 @@ o probe retorna `NO_DEVICE`/`BOOTLOADER` → recuperação manual por botão fí
 ## 5. Verificação em 60 segundos
 
 ```bash
-make -s arch                                  # AG1–AG15
+make -s arch                                  # AG1–AG16
 make -s prove                                 # estado + guard + 15 suítes + eval
 python3 skills/evox-rom-ci-optimizer/scripts/architecture_guard.py --self-test
 python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --file workspace/decision.json --json

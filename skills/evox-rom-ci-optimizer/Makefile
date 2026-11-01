@@ -78,6 +78,7 @@ test-gates:
 	@./tests/test_slot_router.sh
 	@./tests/test_abl_probe.sh
 	@./tests/test_architecture_guard.sh
+	@./tests/test_rom_artifact_fetch.sh
 
 test-ci:
 	@./tests/test_sandbox_rollout.sh
