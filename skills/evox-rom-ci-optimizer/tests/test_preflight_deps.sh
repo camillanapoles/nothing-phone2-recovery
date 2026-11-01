@@ -24,7 +24,7 @@ mk_path() { # mk_path <dir> <bins...>
     chmod +x "$dir/$b"
   done
   for t in bash sh sed grep cat wc command dirname; do
-    ln -sf "$(command -v $t)" "$dir/$t" 2>/dev/null || true
+    ln -sf "$(command -v $t)" "$dir/$t" 2>/dev/null || { echo "fixture: $t não instalado"; exit 1; }
   done
   echo "$dir"
 }

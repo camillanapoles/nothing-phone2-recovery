@@ -42,13 +42,18 @@ while [ "$iters" -lt "$MAX" ]; do
     cov=$?
     gaps=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["gaps"])' < "$ROOT/workspace/audit/coverage.json" 2>/dev/null || echo 0)
   fi
+  vac=0
+  if [ -f "$SC/test_vacuity_scan.py" ]; then
+    python3 "$SC/test_vacuity_scan.py" --root "$ROOT" >/dev/null 2>&1
+    vac=$?
+  fi
   if [ "$SKIPTESTS" -eq 0 ]; then
     for tst in "$ROOT"/skills/evox-rom-ci-optimizer/tests/test_*.sh "$ROOT"/tests/test_*.sh; do
       [ -x "$tst" ] || { [ -f "$tst" ] && t=3; continue; }
       "$tst" >/dev/null 2>&1 || t=3
     done
   fi
-  fp="guard=$g scan_rc=$s err=$errs warn=$warns cov_rc=$cov gaps=$gaps tests=$t"
+  fp="guard=$g scan_rc=$s err=$errs warn=$warns cov=$cov gaps=$gaps vac=$vac tests=$t"
   hist+=("$fp")
   last="$fp"
   if [ "$fp" = "$prev" ]; then converged=1; break; fi
@@ -58,7 +63,8 @@ done
 clean=1
 case "$last" in *"guard=0"*) ;; *) clean=0 ;; esac
 case "$last" in *"scan_rc=0"*) ;; *) clean=0 ;; esac
-case "$last" in *"cov_rc=0"*) ;; *) clean=0 ;; esac
+case "$last" in *"cov=0"*) ;; *) clean=0 ;; esac
+case "$last" in *"vac=0"*) ;; *) clean=0 ;; esac
 case "$last" in *"tests=0"*) ;; *) clean=0 ;; esac
 
 mkdir -p "$ROOT/workspace/audit"

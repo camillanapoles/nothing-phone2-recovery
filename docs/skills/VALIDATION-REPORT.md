@@ -13,7 +13,7 @@ Complementos: [`ARCHITECTURE-DECISION.md`](ARCHITECTURE-DECISION.md) (contrato) 
 
 | Verificação | Comando | Resultado |
 |---|---|---|
-| Trava de arquitetura | `make -s arch` | **AG1–AG18 OK** (0 violações) |
+| Trava de arquitetura | `make -s arch` | **AG1–AG20 OK** (0 violações) |
 | Auto-teste da trava | `architecture_guard.py --self-test` | 10 violações simuladas detectadas |
 | Sintaxe de shell | `bash -n` em **35** scripts | OK |
 | Compilação Python | `py_compile` em **6** módulos | OK |
@@ -33,11 +33,15 @@ Complementos: [`ARCHITECTURE-DECISION.md`](ARCHITECTURE-DECISION.md) (contrato) 
 | `test_contradiction_scan.sh` | **7** (novo) |
 | `test_coverage_matrix.sh` | **6** (novo) |
 | `test_audit_loop.sh` | **5** (novo) |
+| `test_mutation_check.sh` | **5** (novo) |
+| `test_vacuity_scan.sh` | **5** (novo) |
 | `test_kernel_compat_check.sh` | 10 | `test_sandbox_rollout.sh` | 9 |
 | `test_rollout_gate.sh` | 13 | `test_ci_workflow_lint.sh` | 15 |
 | `test_cache_and_guard4.sh` | **20** | `test_collect_evidence.sh` (guardian) | 8 |
 
-**Total executado por `make -s prove`: 250 casos** (237 na skill de ROM + 13 de estado), 0 falhas.
+**Total executado por `make -s prove`: 271 casos** (258 na skill de ROM + 13 de estado), 0 falhas.
+Falseabilidade: `make mutation` → **47/47 mortos, 0 sobreviventes** · `make vacuity` → 0 erro, 0 aviso
+(ver `FALSIFIABILITY-REPORT.md`).
 Loop de convergência: `audit_loop.sh` → `guard=0 scan=0 cov=0 tests=0` em 2 iterações.
 
 ## 3. Arquivo por arquivo (o que foi corrigido e como está provado)
@@ -46,7 +50,7 @@ Loop de convergência: `audit_loop.sh` → `guard=0 scan=0 cov=0 tests=0` em 2 i
 |---|---|---|
 | `skills/evox-rom-ci-optimizer/assets/00_slot_router.sh` | quarentena por marcador, **marcas de boot** (`marks/<slot>_<n>.mark` com `uptime`), lock, 20 marcas, sem `mount`/`rm -rf` | `test_slot_router.sh` 13 PASS · AG3/AG10 |
 | `…/scripts/abl_fallback_probe.sh` | classifica `OK`/`ABL_FALLBACK`/`HANG`/`HANG_EARLY`/`BOOTLOADER`/`NO_DEVICE`, coleta pstore/dmesg/logcat, `--rollback` | `test_abl_probe.sh` 12 PASS · AG4 |
-| `…/scripts/architecture_guard.py` | trava AG1–AG18 sobre o repositório | `test_architecture_guard.sh` 6 PASS · `make arch` |
+| `…/scripts/architecture_guard.py` | trava AG1–AG20 sobre o repositório | `test_architecture_guard.sh` 6 PASS · `make arch` |
 | `…/scripts/rom_artifact_fetch.sh` | coleta determinística das duas variantes: pin sha256, atômico, retomável, drift exit 4, env absoluto | `test_rom_artifact_fetch.sh` 18 PASS · AG16 |
 | `…/references/rom-artifacts.json` | manifesto pinado (Vanilla + GApps, build 2026-09-15), URLs com `/download` | AG16 |
 | `…/scripts/session_open.py` | novo `auto` preenche P10–P14 (`decided_by: agent-context`) e mantém P1/P2/P3 bloqueantes | `test_session_open.sh` 15 PASS |

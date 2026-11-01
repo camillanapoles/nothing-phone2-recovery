@@ -23,6 +23,8 @@ Regras:
   AG16 manifesto pinado das duas variantes + coletor determinístico
   AG17 nenhuma contradição ativa (C1–C13)
   AG18 todo script tem teste ou isenção declarada
+  AG19 todo script testado tem mutante no catálogo
+  AG20 nenhum teste viciado (varredura V1–V6)
 
 Uso: architecture_guard.py [--root DIR] [--self-test] [--json]
 Exit: 0 ok · 3 violação · 2 uso
@@ -227,6 +229,35 @@ def _py(root, script, *args):
         return {"ok": False, "error": r.stderr[:200]}
 
 
+def check_ag19(root):
+    cat_p = os.path.join(root, SK, "references", "mutation-catalog.json")
+    cov = _py(root, "coverage_matrix.py")
+    if cov is None or not os.path.exists(cat_p):
+        return ["mutation-catalog.json ou coverage_matrix.py ausente"]
+    try:
+        cat = json.load(open(cat_p, encoding="utf-8"))
+    except Exception as exc:
+        return [f"catálogo de mutação inválido: {exc}"]
+    files = {m["file"] for m in (cat.get("mutants") or [])}
+    ex_p = os.path.join(root, SK, "references", "audit-exemptions.json")
+    try:
+        ex = json.load(open(ex_p, encoding="utf-8")).get("mutation_exemptions", {})
+    except Exception:
+        ex = {}
+    missing = [r["script"] for r in cov.get("rows", [])
+               if r["status"] == "tested" and r["script"] not in files and r["script"] not in ex]
+    return [f"script testado sem mutante: {m}" for m in missing]
+
+
+def check_ag20(root):
+    rep = _py(root, "test_vacuity_scan.py")
+    if rep is None:
+        return ["test_vacuity_scan.py ausente"]
+    if rep.get("errors"):
+        return [f"{rep['errors']} vício(s) estrutural(is) em teste — rode test_vacuity_scan.py"]
+    return []
+
+
 def check_ag17(root):
     rep = _py(root, "contradiction_scan.py")
     if rep is None:
@@ -351,7 +382,8 @@ def run(root: str) -> dict:
     results.append({"rule": "AG15", "ok": not problems, "problems": problems})
     problems = check_ag16(root)
     results.append({"rule": "AG16", "ok": not problems, "problems": problems})
-    for rid, fn in (("AG17", check_ag17), ("AG18", check_ag18)):
+    for rid, fn in (("AG17", check_ag17), ("AG18", check_ag18),
+                    ("AG19", check_ag19), ("AG20", check_ag20)):
         problems = fn(root)
         results.append({"rule": rid, "ok": not problems, "problems": problems})
     return {"root": os.path.abspath(root), "ok": all(r["ok"] for r in results),

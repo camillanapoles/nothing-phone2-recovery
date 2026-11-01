@@ -193,14 +193,14 @@ princípios nem “reinterpretar” a arquitetura. Tudo abaixo é **executável*
 | Peça | Arquivo | O que garante |
 |---|---|---|
 | Contrato | [`ARCHITECTURE-DECISION.md`](ARCHITECTURE-DECISION.md) | 10 princípios, arquitetura A→B→C→E→D, lista do que **não** refazer, limites do A/B |
-| Trava | `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` | **AG1–AG18** falham o build se a arquitetura antiga voltar (`make -s arch`, dentro de `make -s prove`) |
+| Trava | `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` | **AG1–AG20** falham o build se a arquitetura antiga voltar (`make -s arch`, dentro de `make -s prove`) |
 | Classificador de falha | `scripts/abl_fallback_probe.sh` | distingue `OK` / `ABL_FALLBACK` / `HANG` / `HANG_EARLY` / `BOOTLOADER` / `NO_DEVICE` |
 | Marcas de boot | `assets/00_slot_router.sh guard` | separa falha antes do userspace de travamento pós-kernel |
 | Abertura | `scripts/session_open.py` (`auto` + `check`) | preenche P10–P14, mantém P1–P3 bloqueantes |
 | Validação | [`VALIDATION-REPORT.md`](VALIDATION-REPORT.md) | prova arquivo por arquivo, inclusive o que **não** foi possível validar offline |
 
 **Números deste worktree:** `make -s prove` exit **0** · **18 regras** de arquitetura OK ·
-18 suítes verdes · **250 casos** (237 na skill de ROM + 13 de estado) · `bash -n` em 40 scripts · `py_compile` em 9 módulos · `audit_loop.sh` converge limpo em 2 iterações.
+19 suítes verdes · **271 casos** (258 na skill de ROM + 13 de estado) · `bash -n` em 40 scripts · `py_compile` em 9 módulos · `audit_loop.sh` converge limpo em 2 iterações · **47/47 mutantes mortos** (`make mutation`, ver `FALSIFIABILITY-REPORT.md`).
 
 **Auditoria de contradições:** 57 erros → **0** (`docs/skills/AUDIT-CONTRADICTIONS.md`), incluindo a colisão
 `Gate 4`/`G4`/`gate 10` e a questão do `init_boot` (agora condicional e provada por par de rollback). <!-- scan:exempt -->

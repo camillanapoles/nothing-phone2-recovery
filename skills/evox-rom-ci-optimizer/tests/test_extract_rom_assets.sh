@@ -65,6 +65,10 @@ out="$("$SCRIPT" 2>&1)"; check "sem --zip pede uso" "exit=$?" "$?" "2"
 out="$("$SCRIPT" --zip "$TMP/nao_existe.zip" 2>&1)"; check "zip inexistente" "exit=$?" "$?" "4"
 out="$("$SCRIPT" --zip "$TMP/nao_zip.zip" 2>&1)"; check "arquivo que não é zip" "exit=$?" "$?" "4"
 out="$("$SCRIPT" --zip "$TMP/sem_payload.zip" 2>&1)"; check "zip sem payload.bin" "exit=$?" "$?" "4"
+mkdir -p "$TMP/nounzip"
+BASHBIN="$(command -v bash)"
+out="$(PATH="$TMP/nounzip" "$BASHBIN" "$SCRIPT" --zip "$ZIP" --out "$TMP/o0" 2>&1)"; c=$?
+check "sem unzip: falha explícita" "exit=$c" "$c" "3"
 out="$(PAYLOAD_DUMPER="$TMP/nao_instalado" "$SCRIPT" --zip "$ZIP" --out "$TMP/o0" 2>&1)"; c=$?
 check "sem payload-dumper-go: falha explícita" "exit=$c" "$c" "3"
 check "sem ferramenta não inventa imagem" "nenhum .img" \

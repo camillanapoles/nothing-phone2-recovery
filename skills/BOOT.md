@@ -55,7 +55,7 @@ Esperado: `[harness] OK (0 falhas)` · `[core] make check OK` · `13 PASS` (regr
 
 0. Rodar `python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --json`
    (exit 3 = decisão incompleta; nada é baixado/instalado antes de completar) e
-   `make -s arch` (AG1–AG18). Ler `docs/skills/ARCHITECTURE-DECISION.md` antes de propor mudanças:
+   `make -s arch` (AG1–AG20). Ler `docs/skills/ARCHITECTURE-DECISION.md` antes de propor mudanças:
    é o contrato que impede a sessão de voltar à arquitetura antiga.
 1. Explicar o plano em 1 tela: o que será feito, em que ordem, com quais gates.
 2. **Perguntar qual build**: Vanilla ou GAPPS — com prós/contras (tabela em

@@ -347,6 +347,9 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `scripts/rom_artifact_fetch.sh` | **Coleta determinística** dos dois zips da mesma build: pin por sha256, atômico, retomável, drift = exit 4, env fixo em `workspace/evox.env` |
 | `references/rom-artifacts.json` | Manifesto pinado (Vanilla + GApps, build 2026-09-15) — única fonte de nome/URL/build |
 | `tests/test_rom_artifact_fetch.sh` | 18 cenários: pin, idempotência, drift, sem rede, env, JSON |
+| `scripts/mutation_check.py` | **Falseabilidade (Popper)**: injeta mutação real e exige que o teste falhe; sobrevivente = teste viciado |
+| `scripts/test_vacuity_scan.py` | Análise estática de testes viciados (V1–V6: falha engolida, asserção impossível, suíte só-feliz) |
+| `references/mutation-catalog.json` | 47 mutantes, um por decisão de negócio (e um por script, para 100% do workspace) |
 | `scripts/contradiction_scan.py` | Varredura de contradições (C1–C13): instrução ativa que ainda manda fazer o abandonado ou usa vocabulário ambíguo (`Gate 4`, `gate 10`, `init_boot` sem fonte) |
 | `scripts/coverage_matrix.py` | Cobertura fechada: todo script tem teste ou isenção declarada (`references/audit-exemptions.json`) |
 | `scripts/audit_loop.sh` | Harness de convergência: AG + scan + cobertura + suíte, em loop até estabilizar |

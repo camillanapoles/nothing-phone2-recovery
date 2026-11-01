@@ -42,5 +42,16 @@ ck "reuso do mesmo ledger é bloqueado" "exit" \
   "$(run "$S" --modules "$T/mods" --state "$T/s4.json" --evidence "$T/e5" --observe 0)" "3"
 ck "crash de sistema reprova o módulo" "exit" \
   "$(ADB_CRASH=3 run "$S" --modules "$T/mods" --state "$T/s6.json" --evidence "$T/e6" --observe 0)" "3"
+
+# módulo FAILED no ledger precisa PARAR o lote (gate recusando)
+GATE="$HERE/../scripts/rollout_gate.sh"
+bash "$GATE" start --state "$T/s5.json" --wave W1 --module antigo --artifact "$T/mods/01-root.zip" >/dev/null 2>&1
+bash "$GATE" record --state "$T/s5.json" --module antigo --fail "quebrou no boot" >/dev/null 2>&1
+OUT5="$("$S" --modules "$T/mods" --state "$T/s5.json" --evidence "$T/e5" --observe 0 --wave W1 2>&1)"; RC5=$?
+ck "gate recusando interrompe o lote" "exit" "$RC5" "3"
+ck "bloqueio é anunciado no stdout" "sim" "$(echo "$OUT5" | grep -q 'BLOQUEADO' && echo sim || echo nao)" "sim"
+ck "nada foi empurrado após bloqueio" "0" \
+  "$(python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));print(sum(1 for m in d["modules"] if m["state"]=="passed"))' "$T/s5.json")" "0"
+
 echo "-----------------------------------------------------------------------"
 echo "TOTAL: $P PASS / $F FAIL"; [ "$F" -eq 0 ] || exit 1

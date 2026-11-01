@@ -83,6 +83,14 @@ test-gates:
 	@./tests/test_contradiction_scan.sh
 	@./tests/test_coverage_matrix.sh
 	@./tests/test_audit_loop.sh
+	@./tests/test_mutation_check.sh
+	@./tests/test_vacuity_scan.sh
+
+mutation:
+	@python3 scripts/mutation_check.py --root ../..
+
+vacuity:
+	@python3 scripts/test_vacuity_scan.py --root ../..
 
 test-ci:
 	@./tests/test_sandbox_rollout.sh

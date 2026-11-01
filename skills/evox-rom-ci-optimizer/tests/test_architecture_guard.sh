@@ -12,18 +12,18 @@ ck "self-test detecta as 10 violações simuladas" "exit" \
 ck "repositório respeita a arquitetura" "exit" \
   "$(python3 "$G" --root "$ROOT" >/dev/null 2>&1; echo $?)" "0"
 ck "JSON tem todas as regras" "contagem" \
-  "$(python3 "$G" --root "$ROOT" --json | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["results"]))')" "18"
+  "$(python3 "$G" --root "$ROOT" --json | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["results"]))')" "20"
 
 # fixture mínima com violação injetada: o guard tem de reprovar
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
 mkdir -p "$T/skills/evox-rom-ci-optimizer/"{references,assets,scripts,tests} "$T/workflows-local"
-cp "$ROOT/skills/evox-rom-ci-optimizer/references/evox-ci-validator.yml" "$T/skills/evox-rom-ci-optimizer/references/" 2>/dev/null || true
-cp "$ROOT/workflows-local/pong-ab-hil.yml" "$T/workflows-local/" 2>/dev/null || true
-cp "$ROOT/skills/evox-rom-ci-optimizer/assets/00_slot_router.sh" "$T/skills/evox-rom-ci-optimizer/assets/" 2>/dev/null || true
-cp "$ROOT/skills/evox-rom-ci-optimizer/scripts/abl_fallback_probe.sh" "$T/skills/evox-rom-ci-optimizer/scripts/" 2>/dev/null || true
-cp "$ROOT/skills/evox-rom-ci-optimizer/SKILL.md" "$T/skills/evox-rom-ci-optimizer/" 2>/dev/null || true
-cp "$ROOT/AGENTS.md" "$T/" 2>/dev/null || true
-cp "$ROOT/skills/evox-rom-ci-optimizer/Makefile" "$T/skills/evox-rom-ci-optimizer/" 2>/dev/null || true
+cp "$ROOT/skills/evox-rom-ci-optimizer/references/evox-ci-validator.yml" "$T/skills/evox-rom-ci-optimizer/references/" 2>/dev/null || { echo "fixture incompleta: cópia falhou"; exit 1; }
+cp "$ROOT/workflows-local/pong-ab-hil.yml" "$T/workflows-local/" 2>/dev/null || { echo "fixture incompleta: cópia falhou"; exit 1; }
+cp "$ROOT/skills/evox-rom-ci-optimizer/assets/00_slot_router.sh" "$T/skills/evox-rom-ci-optimizer/assets/" 2>/dev/null || { echo "fixture incompleta: cópia falhou"; exit 1; }
+cp "$ROOT/skills/evox-rom-ci-optimizer/scripts/abl_fallback_probe.sh" "$T/skills/evox-rom-ci-optimizer/scripts/" 2>/dev/null || { echo "fixture incompleta: cópia falhou"; exit 1; }
+cp "$ROOT/skills/evox-rom-ci-optimizer/SKILL.md" "$T/skills/evox-rom-ci-optimizer/" 2>/dev/null || { echo "fixture incompleta: cópia falhou"; exit 1; }
+cp "$ROOT/AGENTS.md" "$T/" 2>/dev/null || { echo "fixture incompleta: cópia falhou"; exit 1; }
+cp "$ROOT/skills/evox-rom-ci-optimizer/Makefile" "$T/skills/evox-rom-ci-optimizer/" 2>/dev/null || { echo "fixture incompleta: cópia falhou"; exit 1; }
 printf '\n      - run: fastboot flash boot_b boot.img\n' >> "$T/skills/evox-rom-ci-optimizer/references/evox-ci-validator.yml"
 ck "cloud com fastboot é reprovado" "exit" "$(python3 "$G" --root "$T" >/dev/null 2>&1; echo $?)" "3"
 ck "violação aponta AG1" "AG1" \

@@ -42,6 +42,7 @@ ck "fallback guarda pstore" "arquivo" \
   "$([ -f "$T/e2/fallback_pstore.txt" ] && echo arquivo || echo ausente)" "arquivo"
 ck "adb vivo sem boot_completed = HANG" "exit" \
   "$(ADB_BOOT=0 ADB_SLOT=_b ADB_MARKS='b_1.mark,b_2.mark' run "$S" --staging b --prod a --timeout 1 --evidence "$T/e3")" "4"
+ck "marca presente classifica HANG" "HANG" "$(cls "$T/e3")" "HANG"
 ck "HANG grava dumpsys e pstore" "2" \
   "$(ls "$T/e3" | grep -cE 'hang_(dumpsys|pstore)\.txt')" "2"
 ck "sem marca de userspace = HANG_EARLY" "HANG_EARLY" \

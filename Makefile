@@ -9,6 +9,8 @@ help:
 	@echo "make test-state   -> regressão da higiene (13 casos)"
 	@echo "make arch         -> travas de arquitetura (AG1..AG18)"
 	@echo "make audit-loop   -> auditoria em loop até convergir (AG + contradições + cobertura + suítes)"
+	@echo "make mutation     -> falseabilidade: 47 mutantes têm de ser mortos pelos testes"
+	@echo "make vacuity       -> análise estática de testes viciados (V1–V6)"
 	@echo "make skills       -> harness completo das 8 skills (validate+testes+eval)"
 	@echo "make prove        -> tudo: test-state + skills"
 
@@ -26,6 +28,12 @@ arch:
 
 audit-loop:
 	@skills/evox-rom-ci-optimizer/scripts/audit_loop.sh
+
+mutation:
+	@python3 skills/evox-rom-ci-optimizer/scripts/mutation_check.py --root .
+
+vacuity:
+	@python3 skills/evox-rom-ci-optimizer/scripts/test_vacuity_scan.py --root .
 
 skills:
 	@$(MAKE) -s -C skills check-all

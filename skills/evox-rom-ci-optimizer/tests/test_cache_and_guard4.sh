@@ -22,6 +22,7 @@ ck "get de item inexistente é miss" "exit" "$(run "$C" get --state "$CACHE" --p
 ck "verify íntegro passa" "exit" "$(run "$C" verify --state "$CACHE")" "0"
 printf 'corrompido\n' > "$CACHE/extract/boot.img"
 ck "verify detecta corrupção" "exit" "$(run "$C" verify --state "$CACHE")" "3"
+ck "get de cache corrompido falha" "exit" "$(run "$C" get --state "$CACHE" --phase extract --name boot.img --to "$T/out2.img")" "3"
 printf 'conteudo do boot\n' > "$CACHE/extract/boot.img"
 ck "arquivo grande vira referência externa (≤0 MB)" "external" \
   "$(run "$C" put --state "$CACHE" --phase image --file "$T/src/boot.img" --max-inline-mb 0 >/dev/null
