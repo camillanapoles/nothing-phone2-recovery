@@ -1,52 +1,63 @@
 {
   "schema": "evox-root-decision/1",
-  "decision": "A",
+  "decision": "C",
   "ratified": true,
   "decided_by": "user",
   "decided_at": "2026-11-01",
-  "statement": "Confirmo APatch no kernel stock",
-  "engine": "apatch",
-  "engine_version": "v11219",
-  "kernel_source": "stock-rom",
-  "kernel_artifact": "boot.img do payload.bin da build EvolutionX-16.0-20260915-Pong-11.11",
-  "custom_kernel_allowed": false,
-  "susfs_allowed": false,
+  "statement": "Confirmo APatch no kernel stock — REVISTO em 2026-11-01: a Decisão A não entrega DroidSpaces. A usuária autorizou mudar o par ao obter aquele que garante todos os recursos.",
+  "engine": "kernelsu",
+  "engine_version": "v3.4.2",
+  "kernel_source": "custom-build",
+  "kernel_artifact": "kernel pong (5.10 GKI) compilado com KSU + SUSFS + patches kABI/SYSVIPC/POSIX_MQUEUE/IPC_NS do DroidSpaces",
+  "custom_kernel_allowed": true,
+  "susfs_allowed": true,
   "exclusive_single_engine": true,
   "forbidden_engines": [
+    "apatch",
     "magisk",
-    "kernelsu",
     "sukisu"
   ],
   "forbidden_capabilities": [
-    "CONFIG_KSU / KSU LKM",
-    "SUSFS (KernelSU/SukiSU)",
-    "kernel compilado por terceiro",
-    "KPM de terceiro"
+    "Magisk",
+    "APatch após a Decisão C",
+    "kernel de terceiro sem os patches do DroidSpaces"
   ],
-  "m01_method": "patch kptools/kpimg no boot.img da ROM + KPModule do APatch",
-  "rollback": "boot_stock_rollback.img byte-idêntico ao boot.img do pacote (guard4_verify.sh)",
+  "m01_method": "flash do kernel compilado (com KSU embutido) + KernelSU-Next Manager",
+  "rollback": "boot.img stock verificado (guard4_verify.sh) — volta ao kernel da ROM",
   "isonomia": {
     "rule": "uma única metodologia de root e de kernel no projeto inteiro",
-    "kernel_method": "kernel_compat_check.sh (pong + API 36 + KMI + base + build exata) para todo módulo",
+    "kernel_method": "kernel_compat_check.sh sobre a evidência do kernel COMPILADO (build reprodutível + sha256)",
     "module_method": "um módulo por vez via rollout_gate.sh, com PASS antes do próximo",
     "enforced_by": [
       "root_engine_gate.py (decisao_motor / decisao_kernel / decisao_susfs / motor_unico)",
       "droidspaces_preflight.py (motor_ratificado)",
+      "success_guarantee.py",
       "tests/test_root_decision.sh"
     ]
   },
   "consequences": [
-    "KernelSU, SukiSU e Magisk ficam INCOMPATÍVEIS (exit 1), não 'pendentes'",
-    "nenhum candidato de kernel de terceiro pode ser escolhido (só o kernel stock da ROM)",
-    "SUSFS sai do escopo: sem módulo que o exija; R03 (mount-hide global) deixa de ser condição ativa",
-    "M01 = patch kptools/kpimg no boot.img oficial; rollback é a imagem stock verificada",
-    "as 12 CONFIG_* do DroidSpaces (M05) dependem do kernel da ROM, não de kernel compilado"
+    "APatch, Magisk e SukiSU ficam INCOMPATÍVEIS (exit 1)",
+    "o kernel passa a ser compilado por nós: KSU + SUSFS + patches oficiais do DroidSpaces",
+    "DroidSpaces deixa de ser IMPOSSÍVEL — passa a depender do build (PENDENTE até certificar)",
+    "SUSFS entra como camada primária de ocultação, com fallback declarado",
+    "OTA deixa de ser automática; update = rebuild do kernel + refazer M01"
   ],
-  "revisit_if": "aparecer kernel com suporte declarado E certificado (kernel_compat_check exit 0) à build 2026-09-15 e uma nova decisão explícita da usuária",
+  "revisit_if": "o build reprodutível do kernel falhar em kernel_compat_check ou em boot no A1/A2 — aí a decisão volta para B (APatch + kernel próprio sem SUSFS) ou A2 (stock, sem M05)",
   "sources": [
-    "docs/skills/ROOT-ENGINE-AUDIT.md §8 (opções A/B/C)",
-    "references/root-engines.json (fatos por motor)",
-    "references/kernel-candidates.json (candidatos com data/hash/suporte)",
-    "https://nothingarchive.tech/docs/guides (Meteoric EOL; KSU no stock boot.img não cobre SUSFS)"
+    "https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Kernel-Configuration.md",
+    "https://github.com/KernelSU-Next/KernelSU-Next (v3.4.2, 2026-10-13)",
+    "https://gitlab.com/simonpunk/susfs4ksu",
+    "docs/skills/KERNEL-DECISION-C.md",
+    "references/kernel-pair-options.json"
+  ],
+  "supersedes": "A",
+  "engine_flavor": "KernelSU-Next v3.4.2 (2026-10-13)",
+  "third_party_kernel_allowed": false,
+  "susfs_fallback": "se os patches SUSFS colidirem com os patches kABI do DroidSpaces, o SUSFS é desligado NA MESMA build (não é nova decisão) e a ocultação cai para Zygisk Next + Zygisk Assistant",
+  "kernel_evidence_source": "built_kernel",
+  "why_change": [
+    "doc oficial do DroidSpaces: kernel stock 'most' não tem SYSVIPC/POSIX_MQUEUE/IPC_NS e o trio desloca o kABI (bootloop sem patch)",
+    "SUSFS só existe com kernel compilado — e é a única ocultação em nível de kernel disponível em 2026",
+    "o pedido é sucesso de TODOS os recursos (DroidSpaces + ocultação + integridade + performance), e só o par C entrega os quatro"
   ]
 }

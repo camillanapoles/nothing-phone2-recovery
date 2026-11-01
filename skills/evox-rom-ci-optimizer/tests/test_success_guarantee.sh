@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# success_guarantee.py — "garantia prévia" só existe com prova; sem prova é exit 3. (29 casos)
+# success_guarantee.py — "garantia prévia" só existe com prova; sem prova é exit 3. (32 casos)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; S="$HERE/../scripts/success_guarantee.py"; ROOT="$(cd "$HERE/../../.." && pwd)"
 P=0; F=0
@@ -75,9 +75,8 @@ d = json.load(open(sys.argv[1])); d["kernel"]["configs"]["CONFIG_USER_NS"] = "n"
 json.dump(d, open(sys.argv[2], "w"))
 PY
 out=$(python3 "$S" --root "$ROOT" --evidence "$T/sem_userns.json" --json); rc=$?
-ck "USER_NS ausente = IMPOSSIVEL sob a decisão" "exit" "$rc" "1"
-ck "veredito impossível (não pendente)" "IMPOSSIVEL_SOB_DECISAO_A" "$(printf '%s' "$out" | q 'd["verdict"]')" "IMPOSSIVEL_SOB_DECISAO_A"
-ck "R5 marcado impossível" "IMPOSSIVEL" "$(printf '%s' "$out" | q 'next(r["state"] for r in d["requirements"] if r["id"]=="R5")')" "IMPOSSIVEL"
+ck "com kernel próprio permitido, USER_NS ausente é pendente" "exit" "$rc" "3"
+ck "R5 pendente no build (não impossível)" "FALTA_PROVA" "$(printf '%s' "$out" | q 'next(r["state"] for r in d["requirements"] if r["id"]=="R5")')" "FALTA_PROVA"
 
 python3 - "$T/ok.json" "$T/sem_sysvipc.json" <<'PY'
 import json, sys
@@ -85,7 +84,7 @@ d = json.load(open(sys.argv[1])); d["kernel"]["configs"]["CONFIG_SYSVIPC"] = "n"
 json.dump(d, open(sys.argv[2], "w"))
 PY
 out=$(python3 "$S" --root "$ROOT" --evidence "$T/sem_sysvipc.json" --json); rc=$?
-ck "sem SYSVIPC no kernel = IMPOSSIVEL sob a decisão" "exit" "$rc" "1"
+ck "sem SYSVIPC o build reprova (pendente)" "exit" "$rc" "3"
 
 python3 - "$T/ok.json" "$T/nao_instalado.json" <<'PY'
 import json, sys
@@ -96,6 +95,32 @@ out=$(python3 "$S" --root "$ROOT" --evidence "$T/nao_instalado.json" --json); rc
 ck "kernel ok mas sem instalação = pendente" "exit" "$rc" "3"
 ck "R5 pendente, não impossível" "FALTA_PROVA" "$(printf '%s' "$out" | q 'next(r["state"] for r in d["requirements"] if r["id"]=="R5")')" "FALTA_PROVA"
 
+# decisão que proíbe kernel próprio: aí sim é IMPOSSÍVEL
+python3 - "$T/ok.json" "$T/stock.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); d["kernel"]["configs"]["CONFIG_SYSVIPC"] = "n"
+json.dump(d, open(sys.argv[2], "w"))
+PY
+R2="$T/fx2/skills/evox-rom-ci-optimizer/references"; mkdir -p "$R2"
+cp "$ROOT"/skills/evox-rom-ci-optimizer/references/{root-engines,hiding-stack,module-requirements,droidspaces-requirements}.json "$R2/"
+cp "$ROOT/skills/evox-rom-ci-optimizer/references/root-decision.json" "$R2/"
+python3 - "$R2" <<'PY'
+import json, sys
+p = sys.argv[1] + "/root-decision.json"; d = json.load(open(p))
+d.update({"engine": "apatch", "kernel_source": "stock-rom", "custom_kernel_allowed": False})
+json.dump(d, open(p, "w"))
+PY
+python3 - "$R2" <<'PY'
+import json, sys
+p = sys.argv[1] + "/root-engines.json"; d = json.load(open(p))
+for e in d["engines"]:
+    e["allowed"] = e["id"] == "apatch"
+json.dump(d, open(p, "w"))
+PY
+out=$(python3 "$S" --root "$T/fx2" --evidence "$T/stock.json" --json); rc=$?
+ck "kernel stock + kernel próprio proibido = IMPOSSIVEL" "exit" "$rc" "1"
+ck "veredito impossível" "IMPOSSIVEL_SOB_DECISAO_A" "$(printf '%s' "$out" | q 'd["verdict"]')" "IMPOSSIVEL_SOB_DECISAO_A"
+
 # fixtures de contrato: decisão trocada e pilha incompleta
 R="$T/fx/skills/evox-rom-ci-optimizer/references"; mkdir -p "$R"
 for f in root-decision.json root-engines.json hiding-stack.json module-requirements.json droidspaces-requirements.json; do
@@ -103,7 +128,7 @@ for f in root-decision.json root-engines.json hiding-stack.json module-requireme
 done
 python3 - "$R" <<'PY'
 import json, sys
-p = sys.argv[1] + "/root-decision.json"; d = json.load(open(p)); d["engine"] = "kernelsu"
+p = sys.argv[1] + "/root-decision.json"; d = json.load(open(p)); d["engine"] = "apatch"
 json.dump(d, open(p, "w"))
 PY
 out=$(python3 "$S" --root "$T/fx" --json); rc=$?
@@ -113,13 +138,23 @@ cp "$ROOT/skills/evox-rom-ci-optimizer/references/root-decision.json" "$R/"
 
 python3 - "$R" <<'PY'
 import json, sys
+p = sys.argv[1] + "/root-decision.json"; d = json.load(open(p)); d["ratified"] = False
+json.dump(d, open(p, "w"))
+PY
+out=$(python3 "$S" --root "$T/fx" --json); rc=$?
+ck "decisão não ratificada quebra R1" "exit" "$rc" "3"
+ck "R1 pendente sem ratificação" "FALTA_PROVA" "$(printf '%s' "$out" | q 'next(r["state"] for r in d["requirements"] if r["id"]=="R1")')" "FALTA_PROVA"
+cp "$ROOT/skills/evox-rom-ci-optimizer/references/root-decision.json" "$R/"
+
+python3 - "$R" <<'PY'
+import json, sys
 p = sys.argv[1] + "/hiding-stack.json"; d = json.load(open(p))
-d["layers"] = [l for l in d["layers"] if l["id"] != "zygisk-assistant"]
+d["layers"] = [l for l in d["layers"] if l["id"] != "susfs"]
 json.dump(d, open(p, "w"))
 PY
 out=$(python3 "$S" --root "$T/fx" --json); rc=$?
 ck "pilha incompleta quebra R2" "exit" "$rc" "3"
-ck "R2 cita camada ausente" "sim" "$(printf '%s' "$out" | q '"zygisk-assistant" in next(r["detail"] for r in d["requirements"] if r["id"]=="R2") and "sim" or "nao"')" "sim"
+ck "R2 cita camada ausente" "sim" "$(printf '%s' "$out" | q '"susfs" in next(r["detail"] for r in d["requirements"] if r["id"]=="R2") and "sim" or "nao"')" "sim"
 
 printf '%s\n' "-----------------------------------------------------------------------"
 printf 'TOTAL: %d PASS / %d FAIL\n' "$P" "$F"

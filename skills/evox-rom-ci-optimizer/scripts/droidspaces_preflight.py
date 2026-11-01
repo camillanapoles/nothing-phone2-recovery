@@ -94,10 +94,13 @@ def check_static(root: str, engine: str) -> list[dict]:
     ker = d.get("kernel") or {}
     cfgs = ker.get("configs_required") or []
     run = d.get("runtime") or {}
-    add("kernel_stock_only",
-        ker.get("source") == "stock-rom" and ker.get("custom_kernel_allowed") is False,
-        f"source={ker.get('source')} custom_kernel_allowed={ker.get('custom_kernel_allowed')} "
-        "(Decisão A: kernel do pacote, sem compilação)")
+    dec_p0 = os.path.join(root, DECISION)
+    dec0 = load(dec_p0) if os.path.exists(dec_p0) else {}
+    add("kernel_do_pacote_ou_build",
+        (ker.get("source") == dec0.get("kernel_source"))
+        and ker.get("custom_kernel_allowed") == dec0.get("custom_kernel_allowed"),
+        f"contrato={ker.get('source')}/{ker.get('custom_kernel_allowed')} "
+        f"decisão={dec0.get('kernel_source')}/{dec0.get('custom_kernel_allowed')}")
 
     iso = d.get("isolation") or {}
     iso_cfg = iso.get("required_configs") or []
@@ -236,7 +239,11 @@ def main(argv: list[str]) -> int:
     if "--root" in argv:
         root = argv[argv.index("--root") + 1]
     as_json = "--json" in argv
-    engine = argv[argv.index("--engine") + 1] if "--engine" in argv else "apatch"
+    if "--engine" in argv:
+        engine = argv[argv.index("--engine") + 1]
+    else:
+        dec_pref = os.path.join(root, DECISION)
+        engine = (load(dec_pref).get("engine") if os.path.exists(dec_pref) else "apatch")
 
     if "--static" in argv:
         checks, label = check_static(root, engine), "static"

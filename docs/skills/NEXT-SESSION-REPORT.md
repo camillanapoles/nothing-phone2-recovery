@@ -1,5 +1,9 @@
 # Relatório de preparação — sessão de execução da ROM (para validação antes do PR)
 
+> **HISTÓRICO — NÃO EXECUTAR.** Escrito sob a Decisão A (APatch + kernel stock),
+> superseded pela **Decisão C** em 2026-11-01 (`references/root-decision.json`). Vale como registro;
+> os comandos de root/kernel aqui não são a ordem vigente.
+
 **Data:** 2026-11-01 · **Branch:** `arena/863582fd-nothing-phone2-recovery` · **PR:** não aberto (aguardando sua validação)
 **Pergunta que originou este documento:** a lacuna L4 deve ser fechada com a **imagem da ROM** e não com o aparelho?
 

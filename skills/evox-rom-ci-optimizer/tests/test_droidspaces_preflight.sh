@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# droidspaces_preflight.py — M05 só entra com contrato completo e requisitos provados (32 casos)
+# droidspaces_preflight.py — M05 só entra com contrato completo e requisitos provados (33 casos)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; D="$HERE/../scripts/droidspaces_preflight.py"; ROOT="$(cd "$HERE/../../.." && pwd)"
 P=0; F=0
@@ -16,8 +16,8 @@ rc=$(run --static); ck "contrato do M05 está completo" "exit" "$rc" "0"
 verdict=$(python3 "$D" --root "$ROOT" --static --json | python3 -c 'import json,sys;print(json.load(sys.stdin)["verdict"])')
 ck "veredito é PRONTO" "PRONTO" "$verdict" "PRONTO"
 rc=$(run --static --engine magisk); ck "motor não suportado (magisk) reprova" "exit" "$rc" "3"
-rc=$(run --static --engine kernelsu); ck "motor fora da decisão A reprova" "exit" "$rc" "3"
-why=$(python3 "$D" --root "$ROOT" --static --engine kernelsu --json | python3 -c 'import json,sys;print("sim" if any("motor_ratificado" in r for r in json.load(sys.stdin)["reasons"]) else "nao")')
+rc=$(run --static --engine apatch); ck "motor fora da decisão C reprova" "exit" "$rc" "3"
+why=$(python3 "$D" --root "$ROOT" --static --engine apatch --json | python3 -c 'import json,sys;print("sim" if any("motor_ratificado" in r for r in json.load(sys.stdin)["reasons"]) else "nao")')
 ck "motivo cita a decisão ratificada" "sim" "$why" "sim"
 
 # ---------------- fixtures: o preflight sabe reprovar -------------------------
@@ -65,9 +65,13 @@ fixture "runtime.namespaces" '["pid","net","uts","ipc","cgroup","mnt"]'
 rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
 ck "fixture: sem namespace user reprova isolamento" "exit" "$rc" "3"; restore
 
-fixture "kernel.source" '"custom-build"'
+fixture "kernel.source" '"stock-rom"'
 rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
-ck "fixture: kernel compilado reprova (Decisão A)" "exit" "$rc" "3"; restore
+ck "fixture: kernel fora do que a decisão manda reprova" "exit" "$rc" "3"; restore
+
+fixture "kernel.custom_kernel_allowed" 'false'
+rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
+ck "fixture: contrato que proíbe build próprio reprova sob a decisão C" "exit" "$rc" "3"; restore
 
 fixture "install.method" '"TODO definir"'
 out=$(python3 "$D" --root "$T" --static --json)

@@ -101,17 +101,17 @@ def main(argv: list[str]) -> int:
 
     # R1 — motor único
     allow = [e["id"] for e in eng.get("engines") or [] if e.get("allowed")]
-    if dec.get("ratified") is True and allow == [dec.get("engine")] == ["apatch"]:
-        add("R1", "motor único: APatch exclusivo", "PROVADO",
+    if dec.get("ratified") is True and allow == [dec.get("engine")] and dec.get("engine"):
+        add("R1", "motor único ratificado", "PROVADO",
             f"decisão {dec.get('decision')} ratificada; único motor permitido={allow[0]}")
     else:
-        add("R1", "motor único: APatch exclusivo", "FALTA_PROVA",
+        add("R1", "motor único ratificado", "FALTA_PROVA",
             f"motores permitidos={allow} decisão={dec.get('engine')}",
             "root_engine_gate.py --engine apatch → exit 0")
 
     # R2 — root oculto
     layers = {l["id"]: l for l in hid.get("layers") or []}
-    need_layers = ["apatch-native", "zygisk-next", "zygisk-assistant"]
+    need_layers = hid.get("required_layers") or ["susfs", "zygisk-next"]
     missing = [x for x in need_layers if x not in layers]
     if missing:
         add("R2", "root oculto para apps alvo", "FALTA_PROVA", f"camadas ausentes: {missing}",
@@ -171,13 +171,14 @@ def main(argv: list[str]) -> int:
             f"ordem declarada: after={after}", "corrigir droidspaces-requirements.json")
     elif cfgs and lacking:
         hard = [c for c in lacking if c in ((iso.get("required_configs") or []) + abi_trio)]
-        if hard and dec.get("custom_kernel_allowed") is not True:
+        if hard and dec.get("kernel_source") == "stock-rom":
             add("R5", "DroidSpaces conforme doc oficial", "IMPOSSIVEL",
-                f"kernel stock sem {hard} e kernel próprio proibido pela Decisão A",
+                f"kernel stock sem {hard} e decisão {dec.get('decision')} não permite kernel compilado",
                 "só resolve com nova decisão sua (revisar custom_kernel_allowed) — não com código")
         else:
             add("R5", "DroidSpaces conforme doc oficial", "FALTA_PROVA",
-                f"kernel sem {lacking}", "kernel_compat_check.sh + preflight --kernel-evidence")
+                f"kernel do build ainda sem {lacking}",
+                "ligar as opções no defconfig do build + kernel_compat_check.sh + preflight --kernel-evidence")
     elif dro.get("installed") is True and dro.get("proc_ok") is True and dro.get("paths_ok") is True:
         add("R5", "DroidSpaces conforme doc oficial", "PROVADO",
             "instalado, procfs IPC legível, caminhos do runtime presentes")

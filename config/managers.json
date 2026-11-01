@@ -9,8 +9,8 @@
       "supports_susfs": false,
       "supports_zsuy_fix": true,
       "description": "Kallsyms-based root manager. Preferred for Pong (no KMI dependency).",
-      "selected": true,
-      "decision": "A"
+      "selected": false,
+      "blocked_by": "root-decision.json (decisão C: KernelSU-Next + kernel próprio)"
     },
     {
       "id": "magisk",
@@ -22,7 +22,7 @@
       "supports_zsuy_fix": false,
       "description": "Traditional boot.img patcher. Works on Pong but lacks LKM support.",
       "selected": false,
-      "blocked_by": "root-decision.json (decisão A)"
+      "blocked_by": "root-decision.json (decisão C: KernelSU-Next + kernel próprio)"
     },
     {
       "id": "kernelsu-next",
@@ -33,8 +33,8 @@
       "supports_susfs": true,
       "supports_zsuy_fix": true,
       "description": "LKM-based root. Requires custom kernel build with KSU integration.",
-      "selected": false,
-      "blocked_by": "root-decision.json (decisão A)"
+      "selected": true,
+      "decision": "C"
     }
   ],
   "toolchains": [

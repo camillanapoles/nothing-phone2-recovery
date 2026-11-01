@@ -15,8 +15,7 @@
       "status": "baseline_recommended",
       "source": "https://github.com/bmax121/APatch",
       "reason": "Não depende de KMI nem de kernel de terceiro; rollback é a própria imagem stock.",
-      "allowed": true,
-      "decision": "A",
+      "allowed": false,
       "kernel_configs_required": [
         "CONFIG_KALLSYMS",
         "CONFIG_KALLSYMS_ALL"
@@ -26,7 +25,8 @@
         "Zygisk Next",
         "Zygisk Assistant"
       ],
-      "source_extra": "https://github.com/bmax121/APatch (README: requer CONFIG_KALLSYMS=y e CONFIG_KALLSYMS_ALL=y)"
+      "source_extra": "https://github.com/bmax121/APatch (README: requer CONFIG_KALLSYMS=y e CONFIG_KALLSYMS_ALL=y)",
+      "blocked_by": "root-decision.json (decisão C: KernelSU-Next + kernel próprio)"
     },
     {
       "id": "magisk",
@@ -41,7 +41,7 @@
       "source": "https://github.com/topjohnwu/Magisk",
       "reason": "Caminho mais batido, mas é root em espaço de usuário: não serve para módulos que exigem primitivas de kernel.",
       "allowed": false,
-      "blocked_by": "root-decision.json (decisão A: APatch no kernel stock)"
+      "blocked_by": "root-decision.json (decisão C: KernelSU-Next + kernel próprio)"
     },
     {
       "id": "kernelsu",
@@ -55,8 +55,8 @@
       "status": "second_wave",
       "source": "https://github.com/KernelSU-Next/KernelSU-Next",
       "reason": "No pong o kernel stock não tem KSU: exige kernel de terceiro — logo, mais variáveis e perda do kernel oficial.",
-      "allowed": false,
-      "blocked_by": "root-decision.json (decisão A: APatch no kernel stock)"
+      "allowed": true,
+      "decision": "C"
     },
     {
       "id": "sukisu",
@@ -71,7 +71,7 @@
       "source": "https://github.com/ReSukiSU/ReSukiSU",
       "reason": "Mesma classe do KernelSU, com KPM; hoje é o que kernels ativos do pong embarcam.",
       "allowed": false,
-      "blocked_by": "root-decision.json (decisão A: APatch no kernel stock)"
+      "blocked_by": "root-decision.json (decisão C: KernelSU-Next + kernel próprio)"
     }
   ],
   "susfs": {

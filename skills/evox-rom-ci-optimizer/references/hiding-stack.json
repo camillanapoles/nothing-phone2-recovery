@@ -1,8 +1,20 @@
 {
   "schema": "evox-hiding-stack/1",
-  "purpose": "Como esconder root sob a Decisão A (APatch, kernel stock, sem SUSFS, sem Shamiko) — com fonte primária por camada.",
-  "engine": "apatch",
+  "purpose": "Como esconder root sob a Decisão C (KernelSU-Next + kernel próprio com SUSFS) — com fonte primária por camada; o caminho APatch/Zygisk Assistant fica como legado da decisão A.",
+  "engine": "kernelsu",
   "layers": [
+    {
+      "id": "susfs",
+      "name": "SUSFS4KSU (simonpunk) compilado no kernel",
+      "role": "ocultação em nível de kernel: mounts, ksu, procfs, uptime (a camada mais forte disponível)",
+      "requires": [
+        "kernelsu"
+      ],
+      "source": "https://gitlab.com/simonpunk/susfs4ksu",
+      "status": "supported_by_upstream",
+      "verified_on_device": false,
+      "note": "entra no build do kernel; se colidir com os patches kABI do DroidSpaces, é desligado na mesma build (fallback declarado na decisão)"
+    },
     {
       "id": "apatch-native",
       "name": "APatch — 'Exclude modifications' por app (umount de módulos)",
@@ -65,5 +77,12 @@
     "https://github.com/bmax121/APatch (README: requer CONFIG_KALLSYMS=y + CONFIG_KALLSYMS_ALL=y)",
     "https://github.com/Dr-TSNG/ZygiskNext (README v1.5.2)",
     "https://github.com/snake-4/Zygisk-Assistant (README, APatch)"
+  ],
+  "required_layers": [
+    "susfs",
+    "zygisk-next"
+  ],
+  "optional_layers": [
+    "zygisk-assistant"
   ]
 }

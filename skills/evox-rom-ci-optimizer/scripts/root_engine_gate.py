@@ -155,12 +155,20 @@ def main(argv: list[str]) -> int:
     if cand is not None:
         origin = cand.get("origin", "third-party")
         if origin == "stock-rom":
-            add("decisao_kernel", "ok", f"{cand.get('id')} é o kernel stock da ROM")
-        elif dec.get("custom_kernel_allowed") is True:
-            add("decisao_kernel", "ok", f"kernel de terceiro permitido pela decisão vigente")
+            ok_stock = dec.get("kernel_source") == "stock-rom"
+            add("decisao_kernel", "ok" if ok_stock else "incompativel",
+                f"{cand.get('id')} é o kernel stock da ROM"
+                + ("" if ok_stock else f"; decisão {dec.get('decision')} exige kernel {dec.get('kernel_source')}"))
+        elif origin == "custom-build":
+            allowed = dec.get("kernel_source") == "custom-build" and dec.get("custom_kernel_allowed") is True
+            add("decisao_kernel", "ok" if allowed else "incompativel",
+                f"{cand.get('id')} é build nosso"
+                + ("" if allowed else f"; decisão {dec.get('decision')} não permite kernel compilado"))
+        elif dec.get("third_party_kernel_allowed") is True:
+            add("decisao_kernel", "ok", "kernel de terceiro permitido pela decisão vigente")
         else:
             add("decisao_kernel", "incompativel",
-                f"{cand.get('id')} é kernel de terceiro; decisão {dec.get('decision')} exige o kernel stock")
+                f"{cand.get('id')} é kernel de terceiro; decisão {dec.get('decision')} não aceita binário de terceiro")
 
     # 1c. SUSFS fora do escopo quando a decisão não o permite
     if dec.get("susfs_allowed") is not True:

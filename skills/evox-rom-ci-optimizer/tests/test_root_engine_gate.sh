@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# root_engine_gate.py — a escolha motor × kernel × módulos é executável? (35 casos)
+# root_engine_gate.py — a escolha motor × kernel × módulos é executável? (37 casos)
 # O gate não opina: ele recusa (incompatível), espera (pendente) ou libera (compatível).
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; G="$HERE/../scripts/root_engine_gate.py"; ROOT="$(cd "$HERE/../../.." && pwd)"
@@ -18,19 +18,19 @@ ck "lista motores" "4 motores" "$n" "4"
 
 # 1) baseline limpa: APatch roda no kernel stock, nenhum módulo exige kernel próprio
 rc=$(run --engine apatch)
-ck "APatch + kernel stock = compatível hoje" "exit" "$rc" "0"
+ck "APatch é recusado pela decisão C" "exit" "$rc" "1"
 rc=$(run --engine apatch --candidate stock-evolutionx)
-ck "APatch com candidato stock fica PENDENTE (falta L4)" "exit" "$rc" "3"
+ck "APatch + kernel stock também é recusado" "exit" "$rc" "1"
 
 # 2) KernelSU sem kernel próprio não fecha
 rc=$(run --engine kernelsu)
-ck "KernelSU é recusado pela decisão ratificada" "exit" "$rc" "1"
+ck "KernelSU sem kernel próprio fica PENDENTE" "exit" "$rc" "3"
 rc=$(run --engine kernelsu --candidate np2-kernel-lineageos-v3.0.5)
-ck "KernelSU + NP² continua recusado" "exit" "$rc" "1"
+ck "KernelSU + NP² (terceiro) é recusado" "exit" "$rc" "1"
 rc=$(run --engine sukisu)
-ck "SukiSU é recusado pela decisão ratificada" "exit" "$rc" "1"
-rc=$(run --engine apatch --candidate np2-kernel-lineageos-v3.0.5)
-ck "APatch + kernel de terceiro é INCOMPATÍVEL" "exit" "$rc" "1"
+ck "SukiSU é recusado pela decisão C" "exit" "$rc" "1"
+rc=$(run --engine kernelsu --candidate custom-build-pong-ksu-susfs-droidspaces)
+ck "par C fica PENDENTE até o kernel ser certificado" "exit" "$rc" "3"
 rc=$(run --engine kernelsu --candidate meteoric-v6-pong)
 ck "KernelSU + Meteoric (EOL) é INCOMPATÍVEL" "exit" "$rc" "1"
 found=$(python3 "$G" --root "$ROOT" --engine kernelsu --candidate meteoric-v6-pong --json |
@@ -40,7 +40,7 @@ ck "veredito nomeia o motivo EOL" "sim" "$found" "sim"
 rc=$(run --engine nao-existe)
 ck "motor desconhecido é entrada inválida" "exit" "$rc" "4"
 out_pol=$(python3 "$G" --root "$ROOT" --show-policy)
-has_pol=$(printf '%s' "$out_pol" | grep -c "motor=apatch" | tr -d ' ')
+has_pol=$(printf '%s' "$out_pol" | grep -c "motor=kernelsu" | tr -d ' ')
 ck "--show-policy declara o motor ratificado" "1" "$has_pol" "1"
 why_dec=$(python3 "$G" --root "$ROOT" --engine kernelsu --json |
   python3 -c 'import json,sys;d=json.load(sys.stdin);print("sim" if any("decisao_motor" in c["check"] for c in d["checks"]) else "nao")')
@@ -96,7 +96,7 @@ rc=$(python3 "$G" --root "$T" --engine apatch >/dev/null 2>&1; echo $?)
 ck "fixture: módulo exige SUSFS e motor é APatch" "exit" "$rc" "1"
 # política hipotética (fixture): prova que o gate ainda avalia SUSFS quando a decisão permite
 cat > "$R/root-decision.json" <<'J'
-{"schema":"evox-root-decision/1","decision":"fixture","ratified":true,"decided_by":"fixture","decided_at":"2026-01-01","engine":"kernelsu","kernel_source":"third-party","custom_kernel_allowed":true,"susfs_allowed":true,"exclusive_single_engine":true,"forbidden_engines":[]}
+{"schema":"evox-root-decision/1","decision":"fixture","ratified":true,"decided_by":"fixture","decided_at":"2026-01-01","engine":"kernelsu","kernel_source":"custom-build","custom_kernel_allowed":true,"third_party_kernel_allowed":true,"susfs_allowed":true,"exclusive_single_engine":true,"forbidden_engines":[]}
 J
 cat > "$R/root-engines.json" <<'J'
 {"schema":"evox-root-engines/1","engines":[
@@ -149,7 +149,7 @@ mv "$T/dec.bak" "$R/root-decision.json"
 
 # casos isolados: cada trava tem de reprovar SOZINHA (senão a mutação fica mascarada)
 cat > "$R/root-decision.json" <<'J'
-{"schema":"evox-root-decision/1","decision":"fx","ratified":true,"decided_by":"fixture","decided_at":"2026-01-01","engine":"kernelsu","kernel_source":"third-party","custom_kernel_allowed":true,"susfs_allowed":true,"exclusive_single_engine":true,"forbidden_engines":[]}
+{"schema":"evox-root-decision/1","decision":"fx","ratified":true,"decided_by":"fixture","decided_at":"2026-01-01","engine":"kernelsu","kernel_source":"custom-build","custom_kernel_allowed":true,"third_party_kernel_allowed":true,"susfs_allowed":true,"exclusive_single_engine":true,"forbidden_engines":[]}
 J
 cat > "$R/root-engines.json" <<'J'
 {"schema":"evox-root-engines/1","engines":[
@@ -193,16 +193,23 @@ ck "DroidSpaces × motor: motivo é m05_motor" "m05_motor" "$m05_why" "m05_motor
 # 4) M05/DroidSpaces obedece a instrução do app dentro do gate
 rc_magisk=$(run --engine magisk)
 ck "DroidSpaces não roda sobre Magisk → INCOMPATÍVEL" "exit" "$rc_magisk" "1"
-cond_m05=$(python3 "$G" --root "$ROOT" --engine apatch --json |
+cond_m05=$(python3 "$G" --root "$ROOT" --engine kernelsu --json |
   python3 -c 'import json,sys;c=[x for x in json.load(sys.stdin)["checks"] if x["check"]=="m05_kernel_configs"];print(c[0]["verdict"] if c else "ausente")')
 ck "configs de kernel não provadas viram CONDIÇÃO" "condicao" "$cond_m05" "condicao"
 printf '{"kmi":"android13-5.10","kernel_base":"5.10","configs":{"CONFIG_SYSVIPC":"y","CONFIG_POSIX_MQUEUE":"y","CONFIG_NAMESPACES":"y","CONFIG_UTS_NS":"y","CONFIG_IPC_NS":"y","CONFIG_PID_NS":"y","CONFIG_NET_NS":"y","CONFIG_USER_NS":"y","CONFIG_CGROUPS":"y","CONFIG_CGROUP_PIDS":"y","CONFIG_CGROUP_FREEZER":"y","CONFIG_SECCOMP":"y"}}\n' > "$T/evok.json"
 printf '{"kmi":"android13-5.10","kernel_base":"5.10","configs":{"CONFIG_POSIX_MQUEUE":"y"}}\n' > "$T/evno.json"
-rc_evok=$(python3 "$G" --root "$ROOT" --engine apatch --kernel-evidence "$T/evok.json" >/dev/null 2>&1; echo $?)
-ck "evidência completa do kernel libera o M05" "exit" "$rc_evok" "0"
-rc_evno=$(python3 "$G" --root "$ROOT" --engine apatch --kernel-evidence "$T/evno.json" >/dev/null 2>&1; echo $?)
+evok=$(python3 "$G" --root "$ROOT" --engine kernelsu --kernel-evidence "$T/evok.json" --json |
+  python3 -c 'import json,sys;print(next(c["verdict"] for c in json.load(sys.stdin)["checks"] if c["check"]=="m05_kernel_configs"))')
+ck "evidência completa fecha o kernel do M05" "ok" "$evok" "ok"
+rc_evno=$(python3 "$G" --root "$ROOT" --engine kernelsu --kernel-evidence "$T/evno.json" >/dev/null 2>&1; echo $?)
 ck "evidência sem SYSVIPC deixa PENDENTE" "exit" "$rc_evno" "3"
-rc_evo=$(python3 "$G" --root "$ROOT" --engine apatch --kernel-evidence "$T/nao-existe.json" >/dev/null 2>&1; echo $?)
+evno=$(python3 "$G" --root "$ROOT" --engine kernelsu --kernel-evidence "$T/evno.json" --json |
+  python3 -c 'import json,sys;print(next(c["verdict"] for c in json.load(sys.stdin)["checks"] if c["check"]=="m05_kernel_configs"))')
+ck "check do kernel fica pendente (não ok)" "pendente" "$evno" "pendente"
+evno_motivo=$(python3 "$G" --root "$ROOT" --engine kernelsu --kernel-evidence "$T/evno.json" --json |
+  python3 -c 'import json,sys;print("sim" if "CONFIG_SYSVIPC" in next(c["detail"] for c in json.load(sys.stdin)["checks"] if c["check"]=="m05_kernel_configs") else "nao")')
+ck "motivo nomeia a CONFIG_* que falta" "sim" "$evno_motivo" "sim"
+rc_evo=$(python3 "$G" --root "$ROOT" --engine kernelsu --kernel-evidence "$T/nao-existe.json" >/dev/null 2>&1; echo $?)
 ck "evidência apontada e ausente deixa PENDENTE" "exit" "$rc_evo" "3"
 
 printf '%s\n' "-----------------------------------------------------------------------"

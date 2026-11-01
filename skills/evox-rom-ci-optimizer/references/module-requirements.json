@@ -4,7 +4,7 @@
   "modules": [
     {
       "id": "M01",
-      "name": "Root engine (Guard-4 / kernel root)",
+      "name": "Root engine — flash do kernel compilado (KSU embutido) + KernelSU-Next Manager",
       "is_root_engine": true,
       "root_required": true,
       "requires_root_engine": [],
@@ -12,8 +12,9 @@
       "mount_hide_global": false,
       "needs_zygisk": false,
       "kernel_level": true,
-      "kernel_evidence": "rom_package",
-      "kernel_gate": "kernel_compat_check.sh"
+      "kernel_evidence": "built_kernel",
+      "kernel_gate": "kernel_compat_check.sh",
+      "artifact": "Custom-build-pong-ksu-susfs-droidspaces"
     },
     {
       "id": "M02",
@@ -70,7 +71,7 @@
         "kernelsu",
         "sukisu"
       ],
-      "kernel_evidence": "rom_package",
+      "kernel_evidence": "built_kernel",
       "kernel_gate": "kernel_compat_check.sh"
     },
     {
@@ -139,7 +140,7 @@
       "mount_hide_global": false,
       "needs_zygisk": false,
       "kernel_level": true,
-      "kernel_evidence": "rom_package",
+      "kernel_evidence": "built_kernel",
       "kernel_gate": "kernel_compat_check.sh"
     },
     {

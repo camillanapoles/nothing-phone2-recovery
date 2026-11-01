@@ -40,7 +40,7 @@ Complementos: [`ARCHITECTURE-DECISION.md`](ARCHITECTURE-DECISION.md) (contrato) 
 | `test_legacy_scope.sh` | **15** (novo) | | |
 | `test_collect_evidence.sh` (guardian) | 8 | | |
 
-**Total dos testes diretos: 526 casos** (471 na skill da ROM + 8 no guardian + 13 de estado + 34 nos
+**Total dos testes diretos: 535 casos** (480 na skill da ROM + 8 no guardian + 13 de estado + 34 nos
 wrappers de release), 0 falhas, em **28 suítes**. `make -s prove` roda tudo isso + `arch` + harness das 8 skills.
 Falseabilidade: `make mutation` → **121/121 mortos por asserção, 0 sobreviventes, 0 timeout** · `make vacuity` → 0 erro, 0 aviso
 (ver `FALSIFIABILITY-REPORT.md`).

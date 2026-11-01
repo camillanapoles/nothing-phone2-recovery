@@ -9,6 +9,49 @@
   },
   "candidates": [
     {
+      "id": "custom-build-pong-ksu-susfs-droidspaces",
+      "name": "Kernel pong 5.10 (GKI) compilado por nós: KernelSU-Next + SUSFS + patches kABI do DroidSpaces",
+      "origin": "custom-build",
+      "requires_build": true,
+      "build_from": "LineageOS android_kernel_nothing_sm8475 (lineage-23.2) + gki_defconfig",
+      "patches": [
+        "001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch (DroidSpaces)",
+        "002.5.10_or_lower_use_android_abi_padding_for_posix_mqueue.patch (DroidSpaces)",
+        "SUSFS4KSU (simonpunk) para KernelSU-Next",
+        "KernelSU-Next: integração KSU no kernel"
+      ],
+      "configs_extra": [
+        "CONFIG_KSU=y",
+        "CONFIG_KPM=y",
+        "CONFIG_SUSFS=y",
+        "CONFIG_SYSVIPC=y",
+        "CONFIG_POSIX_MQUEUE=y",
+        "CONFIG_IPC_NS=y",
+        "CONFIG_DEVTMPFS=y",
+        "CONFIG_NET_NS=y"
+      ],
+      "model": "pong",
+      "soc": "SM8475",
+      "android_api": 36,
+      "android_release": "16",
+      "kmi": "android13-5.10 (a confirmar na L4)",
+      "kernel_base": "5.10",
+      "supported_rom_builds": [
+        "EvolutionX-16.0-20260915-Pong-11.11"
+      ],
+      "developer_support": {
+        "declared": true,
+        "source": "build próprio do projeto (scripts/build-kernel-pong.sh)",
+        "notes": "suporte declarado por construção: compilamos do source do device para a build pinada"
+      },
+      "source_url": "https://github.com/LineageOS/android_kernel_nothing_sm8475",
+      "sha256": "",
+      "status": "candidate_unverified",
+      "kernel_supports_susfs": true,
+      "kernel_supports_kernelsu": true,
+      "evidence": "PENDENTE: (1) build reprodutível com sha256 do Image, (2) kernel_compat_check exit 0 contra a L4, (3) boot provado em AVD/staging antes do físico"
+    },
+    {
       "id": "stock-evolutionx",
       "name": "Kernel stock da Evolution X 11.11 (boot.img do payload.bin)",
       "model": "pong",

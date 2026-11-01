@@ -60,10 +60,10 @@
     ],
     "evidence_source": "L4 (payload.bin -> boot.img -> /proc/config.gz ou IKCONFIG extraído) ou kernel candidato certificado",
     "min_kernel_base": "5.10",
-    "source": "stock-rom",
-    "custom_kernel_allowed": false,
-    "custom_kernel_path": "forbidden_by_decision_A",
-    "note": "Decisão A: o kernel é o do pacote. A receita de kernel próprio do knowledge (droidspaces-android14-5.10, patch sysvipc) está PROIBIDA — se o kernel stock não tiver as CONFIG_*, o M05 fica BLOQUEADO, não vira kernel compilado.",
+    "source": "custom-build",
+    "custom_kernel_allowed": true,
+    "custom_kernel_path": "required_under_decision_C",
+    "note": "Decisão C: o kernel é compilado por nós com os patches oficiais do DroidSpaces (kABI + IPC). O kernel stock continua tecnicamente incapaz (stock_rom_verdict=impossible).",
     "official_source": "https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Kernel-Configuration.md",
     "official_line": "Droidspaces needs kernel features that most stock Android kernels leave out: PID and IPC namespaces, a few networking pieces and devtmpfs.",
     "gki_chains_required": {
@@ -81,7 +81,11 @@
     ],
     "stock_rom_verdict": "impossible",
     "stock_rom_verdict_reason": "O trio que desloca o kABI não existe no kernel stock do GKI 5.10 e habilitá-lo exige patch compilado no kernel. Kernel stock + Decisão A => M05 IMPOSSÍVEL, não pendente.",
-    "check_command": "app Droidspaces > Settings > Requirements > Check Requirements"
+    "check_command": "app Droidspaces > Settings > Requirements > Check Requirements",
+    "patches_required": [
+      "001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch (ou alternativa da pasta)",
+      "002.5.10_or_lower_use_android_abi_padding_for_posix_mqueue.patch"
+    ]
   },
   "runtime": {
     "namespaces": [

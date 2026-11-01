@@ -43,7 +43,26 @@ com o objetivo `G10`. A varredura (`contradiction_scan.py`, regras C8–C10) rep
 | 13 | **Um único motor de root (APatch) e um único kernel (o da ROM)** | `root_engine_gate.py` + `tests/test_root_decision.sh` |
 
 
-## 2.1 Decisão A ratificada — motor único e kernel da ROM (2026-11-01)
+## 2.1 Decisão C ratificada — supersede a A (2026-11-01)
+
+**A usuária autorizou explicitamente trocar o par:** *"Você pode e deve mudar ao obter o root +
+kernel que garantem"* (sucesso de **todos** os recursos). A Decisão A foi **superseded** porque a
+documentação oficial do DroidSpaces mostra que o kernel stock do GKI 5.10 não tem
+`SYSVIPC`/`POSIX_MQUEUE`/`IPC_NS` e ativá-los sem patch kABI dá bootloop — logo M05 seria impossível.
+
+| Componente | Decisão A (revogada) | **Decisão C (vigente)** |
+|---|---|---|
+| Motor | APatch | **KernelSU-Next v3.4.2** |
+| Kernel | stock da ROM | **compilado por nós**: KSU + SUSFS + patches DroidSpaces |
+| SUSFS | proibido | **permitido** (camada primária de ocultação, com fallback declarado) |
+| DroidSpaces | impossível | **possível**, pendente de build certificado |
+| M01 | patch `kptools` no `boot.img` | **flash do kernel compilado** + Manager |
+| Prova de kernel | `rom_package` | **`built_kernel`** (build reprodutível + sha256 + `kernel_compat_check`) |
+
+Estado do par C: **PENDENTE (3)** até (1) build reprodutível com sha256, (2) `kernel_compat_check`
+exit 0 contra a L4, (3) boot provado em AVD/staging. Nada é declarado "garantido" antes disso.
+
+### 2.1.1 Histórico: Decisão A (revogada em 2026-11-01)
 
 **Confirmado pela usuária:** *"Confirmo APatch no kernel stock"*. Registro executável:
 `skills/evox-rom-ci-optimizer/references/root-decision.json` (`decision: A`, `ratified: true`,
@@ -151,7 +170,7 @@ o probe retorna `NO_DEVICE`/`BOOTLOADER` → recuperação manual por botão fí
 ```bash
 make -s arch                                  # AG1–AG21
 skills/evox-rom-ci-optimizer/scripts/audit_loop.sh   # AG + scan + cobertura + vacuidade + suítes
-make -s mutation                              # falseabilidade: 129 mutantes, 0 sobreviventes
+make -s mutation                              # falseabilidade: 134 mutantes, 0 sobreviventes
 make -s prove                                 # estado + guard + 15 suítes + eval
 python3 skills/evox-rom-ci-optimizer/scripts/architecture_guard.py --self-test
 python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --file workspace/decision.json --json

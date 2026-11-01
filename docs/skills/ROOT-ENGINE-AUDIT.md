@@ -7,23 +7,32 @@ KernelSU(+SUSFS com kernel customizado)? E isso é compatível com a otimizaçã
 **Regra que vale aqui:** o agente verifica e recomenda com dado; **a escolha é sua**. Nada foi
 flasheado, nada foi substituído — só auditado com fonte, data e hash.
 
+> **Atualização 2026-11-01:** esta auditoria foi escrita quando a hipótese era "APatch + kernel de
+> terceiro". Você autorizou trocar o par ao obter aquele que garante tudo, e a **Decisão C** foi
+> ratificada (`references/root-decision.json`): **KernelSU-Next v3.4.2 + kernel compilado por nós**
+> com SUSFS e os patches do DroidSpaces. As seções abaixo continuam válidas como **auditoria das
+> alternativas** (por que não APatch, por que não Meteoric/NP²); o que mudou é o veredito.
+
 ---
 
 ## 1. Veredito em uma linha
 
-> **Hoje só existe um conjunto COMPATÍVEL: APatch no `boot.img` da própria ROM.**
-> KernelSU/SUSFS exige kernel de terceiro e **nenhum candidato declara suporte à sua build** →
-> estado `PENDENTE`. O Meteoric, citado como “opção de out/nov 2026”, está **EOL desde jun/2025**.
+> **O par vigente é KernelSU-Next v3.4.2 + kernel `pong` 5.10 compilado por nós** (KSU + SUSFS +
+> patches `001…below-kernel-6.12` / `002…posix_mqueue` do DroidSpaces) — decisão da usuária em
+> 2026-11-01, com estado **PENDENTE** até o build ser certificado. APatch deixou de ser o motor;
+> kernel de terceiro (Meteoric, NP²) continua fora — a doc do DroidSpaces mostra que o stock não
+> tem `SYSVIPC`/`POSIX_MQUEUE`/`IPC_NS` e que ativá-los sem patch kABI dá bootloop.
 
-Isso não é opinião: é a saída do gate novo `root_engine_gate.py` (§6).
+Isso não é opinião: é a saída do gate `root_engine_gate.py` (§6).
 
 | Combinação | Veredito do gate |
 |---|---|
-| APatch + kernel stock (sem candidato de kernel) | **COMPATÍVEL** (exit 0) |
-| APatch + kernel stock com manifesto (`stock-evolutionx`) | **PENDENTE** — falta a L4 (KMI/base reais) |
-| KernelSU / SukiSU sem candidato | **PENDENTE** — motor exige kernel próprio |
-| KernelSU + NP² Kernel v3.0.5 | **PENDENTE** — kernel ativo, mas não certificado para a build |
-| KernelSU + Meteoric V6 | **INCOMPATÍVEL** — `rejected_eol` |
+| **KernelSU-Next + build própria (`custom-build-pong-ksu-susfs-droidspaces`)** | **PENDENTE (3)** — `kernel_certificado` + `m05_kernel_configs` até o build provar |
+| APatch (qualquer kernel) | **INCOMPATÍVEL (1)** — `decisao_motor` (superseded) |
+| SukiSU / Magisk | **INCOMPATÍVEL (1)** — motor único é KernelSU-Next |
+| KernelSU + kernel stock da ROM (`stock-evolutionx`) | **INCOMPATÍVEL (1)** — `decisao_kernel` exige build próprio |
+| KernelSU + kernel de terceiro (NP² v3.0.5) | **INCOMPATÍVEL (1)** — `third_party_kernel_allowed: false` |
+| KernelSU + Meteoric V6 | **INCOMPATÍVEL (1)** — `rejected_eol` + terceiro |
 
 ## 2. Validação item a item do que você trouxe
 
@@ -44,7 +53,7 @@ Isso não é opinião: é a saída do gate novo `root_engine_gate.py` (§6).
 | Dependência de KMI | baixa | nenhuma | **alta** (LKM exige KMI idêntico) | **alta** |
 | Suporta SUSFS | não | não | **sim** | **sim** |
 | Rollback | `boot_stock_rollback.img` (sha256) | idem | idem (volta ao kernel stock) | idem |
-| Status no repo | `baseline_recommended` | `fallback` | `second_wave` | `second_wave` |
+| Status no repo (Decisão C) | `blocked_by decisão C` | `blocked_by decisão C` | **`allowed` (único)** | `blocked_by decisão C` |
 
 Fontes: `references/root-engines.json`; `config/managers.json`; aviso já existente nos workflows —
 “KernelSU LKM has KMI mismatch on stock kernel”.
@@ -53,7 +62,8 @@ Fontes: `references/root-engines.json`; `config/managers.json`; aviso já existe
 
 | Candidato | Versão / data | KMI declarada | Suporte à sua build? | Status |
 |---|---|---|---|---|
-| **Kernel stock da ROM** | `boot.img` do `payload.bin` (build 2026-09-15) | sai da L4 | é a própria build | `baseline` |
+| **Kernel stock da ROM** | `boot.img` do `payload.bin` (build 2026-09-15) | sai da L4 | é a própria build | `baseline` (só referência: a C exige build própria) |
+| **Build própria `pong` 5.10** (KSU + SUSFS + patches DroidSpaces) | a compilar | `android13-5.10` (L4) | **sim, é a nossa** | `candidate_unverified` |
 | **NP² Kernel (LineageOS)** | v3.0.5 · **2026-08-12** | `android13-5.10` · Linux 5.10.246 | **não declara** a build EVOX 11.11 (A16) | `candidate_unverified` |
 | **Meteoric V6-Pong** | **2025-06-19** (repo parado em 2025-07-02) | `android12-5.10` | **não declara**; guia do device: EOL | `rejected_eol` |
 
