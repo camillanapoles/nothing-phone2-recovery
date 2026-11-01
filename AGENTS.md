@@ -38,7 +38,17 @@ isso exige gate aprovado + confirmação explícita da usuária (Guard-4).
 
 ## 2. Boot obrigatório — começar pelas skills, sempre
 
-Antes de qualquer tarefa, nesta ordem:
+Antes de qualquer tarefa (e **antes de qualquer download**), rodar:
+
+```bash
+python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --json   # exit 3 = falta decisão
+```
+
+`workspace/decision.json` (P1–P8) precisa estar completo: build + caminho do zip, binários
+autorizados item a item, kernel, módulos aprovados, canário, cache e ciência de que USB = produção.
+Detalhe do protocolo: `skills/evox-rom-ci-optimizer/references/session-opening.md`.
+
+Depois disso, nesta ordem:
 
 ```bash
 sed -n '1,120p' skills/BOOT.md          # 1. invariantes e ordem de carga

@@ -10,13 +10,14 @@
 #   ./cache_manager.sh get    --phase extract --name boot.img --to /tmp/boot.img [--state ./cache]
 #   ./cache_manager.sh list   --state ./cache [--json]
 #   ./cache_manager.sh verify --state ./cache
+#   ./cache_manager.sh prune  --state ./cache [--days 90]
 #
 # Exit: 0 = ok · 3 = cache miss / hash divergente / referência externa ausente · 2 = uso · 4 = entrada inválida
 # =============================================================================
 set -uo pipefail
 
 CMD="${1:-}"; shift || true
-STATE="./cache"; PHASE=""; FILE=""; NAME=""; TO=""; PROVEN=""; MAXMB=25; JSON=0
+STATE="./cache"; PHASE=""; FILE=""; NAME=""; TO=""; PROVEN=""; MAXMB=25; JSON=0; DAYS=90
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --state) STATE="$2"; shift 2 ;;
@@ -26,17 +27,18 @@ while [[ $# -gt 0 ]]; do
     --to) TO="$2"; shift 2 ;;
     --proven-by) PROVEN="$2"; shift 2 ;;
     --max-inline-mb) MAXMB="$2"; shift 2 ;;
+    --days) DAYS="$2"; shift 2 ;;
     --json) JSON=1; shift ;;
     *) echo "arg desconhecido: $1" >&2; exit 2 ;;
   esac
 done
 [[ -n "$CMD" ]] || { echo "Uso: $0 {put|get|list|verify} --state DIR [...]" >&2; exit 2; }
 
-exec python3 - "$CMD" "$STATE" "$PHASE" "$FILE" "$NAME" "$TO" "$PROVEN" "$MAXMB" "$JSON" <<'PY'
+exec python3 - "$CMD" "$STATE" "$PHASE" "$FILE" "$NAME" "$TO" "$PROVEN" "$MAXMB" "$JSON" "$DAYS" <<'PY'
 import hashlib, json, os, shutil, sys, time
 
-cmd, state, phase, src, name, dst, proven, maxmb, as_json = sys.argv[1:]
-maxmb = int(maxmb); as_json = as_json == "1"
+cmd, state, phase, src, name, dst, proven, maxmb, as_json, days = sys.argv[1:]
+maxmb = int(maxmb); as_json = as_json == "1"; days = int(days)
 man_p = os.path.join(state, "manifest.json")
 
 def now(): return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -103,6 +105,25 @@ if cmd == "list":
     for e in entries:
         tag = "externo" if e["external"] else "inline "
         print(f"  {e['phase']:<10} {e['name']:<24} {tag} {e['sha256'][:12]}… {e['size_bytes']} B")
+
+if cmd == "prune":
+    d = load(); entries = d["entries"]; cutoff = time.time() - days * 86400
+    keep, dropped = [], []
+    for e in entries:
+        try:
+            ts = time.mktime(time.strptime(e["created_at"], "%Y-%m-%dT%H:%M:%SZ")) - time.timezone
+        except Exception:
+            ts = 0
+        if ts < cutoff:
+            if not e["external"]:
+                p = os.path.join(state, e["phase"], e["name"])
+                if os.path.isfile(p): os.remove(p)
+            dropped.append(f"{e['phase']}/{e['name']}")
+        else:
+            keep.append(e)
+    d["entries"] = keep; save(d)
+    emit("pruned", f"{len(dropped)} entrada(s) removida(s), {len(keep)} mantida(s)",
+         0, {"dropped": dropped, "kept": len(keep)})
 
 if cmd == "verify":
     d = load(); bad = []

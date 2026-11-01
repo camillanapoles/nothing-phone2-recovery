@@ -330,11 +330,14 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `references/pong-hardware-matrix.md` | Matriz PASS/FAIL do Nothing Phone 2 (`pong`) — absorve a antiga skill `evox-pong-ci-architect` |
 | `references/ci-cost-locks.md` | As 4 travas de custo (concurrency, timeout 25/10, poweroff 1800 s) |
 | `references/kernel-selection-gate.md` | **Gate 1**: tríade kernel × ROM × device, escolha da versão estável, compatibilidade de módulo, estratégia para o `pong` |
+| `references/session-opening.md` | **P1–P8 ratificados**: explicar Vanilla×GAPPS, pedir zip, autorizar binário item a item, kernel, módulos, canário, cache, USB |
+| `scripts/session_open.py` | `questions` / `template` / `check` — sem `decision.json` completo, nada executa (exit 3) |
 | `references/emulation-sandbox.md` | **Estágio B**: restrições reais (arm64 × x86_64, KVM), cobertura por módulo, travas de custo, alternativas avaliadas |
 | `references/evox-ci-validator.yml` | Workflow de 3 estágios (forge → sandbox → release) com cache, timeouts e watchdog |
 | `references/module-rollout-order.md` | **Ordem ratificada** dos 15 módulos em F0–F5, dependências e critério de saída por fase |
 | `scripts/sandbox_rollout.sh` | Stage B: injeta 1 módulo por vez via `adb`, soft-reboot, coleta evidência e chama o ledger |
 | `scripts/ci_workflow_lint.py` | Lint das travas de custo/segurança do workflow (11 regras) |
+| `tests/test_session_open.sh` | 10 cenários: decisão incompleta trava, completa libera |
 | `tests/test_sandbox_rollout.sh` | 9 cenários com stub de `adb` (boot, crash, ordem, ledger) |
 | `tests/test_ci_workflow_lint.sh` | 12 cenários: cada trava removida é detectada |
 | `references/rollout-and-cache.md` | **Gates 3–5**: rollout canário (1 módulo por vez), ondas, cache versionado por SHA-256, política de tamanho |

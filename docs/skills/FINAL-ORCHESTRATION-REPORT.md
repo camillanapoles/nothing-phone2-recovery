@@ -1,5 +1,8 @@
 # Relatório final de orquestração — retificado, validado e pronto para ratificação
 
+**Documentos irmãos:** [`PROJECT-OVERVIEW.md`](PROJECT-OVERVIEW.md) (o projeto explicado) ·
+[`PR-AUTHORIZATION-5W1H.md`](PR-AUTHORIZATION-5W1H.md) (pedido de autorização do PR)
+
 **Data:** 2026-11-01 · **Branch:** `arena/863582fd-nothing-phone2-recovery` · **PR:** não aberto (aguarda seu "ratifico")
 **Escopo:** como o agente atuará na próxima sessão — emulação no GitHub Actions, 15 módulos, kernel, custos, rollback e release pré-USB.
 
@@ -149,22 +152,21 @@ higiene de estado ................ 13 PASS · clean · 0 linhas no DB do FSM
 
 ---
 
-## 10. Pendências para você responder (numere a resposta)
+## 10. Pendências — estado após as suas respostas de 2026-11-01
 
-| # | Pergunta | Minha recomendação | Bloqueia? |
+| # | Pendência | Sua resposta | Como virou contrato |
 |---|---|---|---|
-| **P1** | **Vanilla ou GAPPS?** | **GAPPS** (M03 já resolvido, banking/IA prontos) — paga-se com bloat e mais superfície | **sim** |
-| **P2** | Caminho local do `.zip` (o sandbox não alcança o CDN) | baixar e informar o caminho | **sim** |
-| **P3** | Autoriza instalar `payload-dumper-go`, `kptools`, `magiskboot`, `adb`? | sim, todos (sem eles não há Stage A/B) | **sim** |
-| **P4** | Kernel: **stock + APatch** ou kernel de terceiro? | stock + APatch (menor variável) | não |
-| **P5** | Runner: **GitHub hospedado** (x86_64) ou **self-hosted arm64** para Cuttlefish? | hospedado agora; arm64 só se quiser validar arm64 real | não |
-| **P6** | Intervalo de canário por módulo (padrão 10 min)? | 10 min no físico, 1 min na AVD | não |
-| **P7** | Retenção de cache/artefatos (padrão 5 dias no Actions + manifesto no repo)? | padrão | não |
-| **P8** | Autoriza abrir PR com esta preparação? | sim, depois do seu "ratifico" | não |
-| **P9** | Quando o cabo USB entra (10/10 gates)? | só depois do Stage C aprovado | não |
-| **P10** | Duck-ToolBox cobre fingerprint+banking (7+8) ou você quer separado? | consolidado (regra R04) | não |
+| P1 | Vanilla × GAPPS | "explicar e sugerir na abertura, com justificativa" | `references/session-opening.md` §P1 + `session_open.py questions` |
+| P2 | Caminho do `.zip` | "solicitar após a decisão" | §P2: pedido em ordem, só depois da build |
+| P3 | Autorizar binários | "pedir item a item, com justificativa" | §P3: 4 itens com "sem ele não há…" |
+| P4 | Kernel | "sugerir o mais estável/compatível" | §P4: stock + APatch; externo só com gate 1 verde |
+| P5 | Módulos | "pedir aprovação com descrição" | §P5 + `decision.json` com `approved` por módulo |
+| P6 | Canário/AVC | "melhor performance" | §P6: **AVD 60 s · device 10 min · 0 AVC novo** (proposta) |
+| P7 | Cache | "melhor performance" | §P7: **inline ≤ 25 MB · retention 5 d · prune 90 d** |
+| P8 | USB | "produção, só após 10/10 no emulador" | §P8 + `usb.acknowledged` obrigatório na decisão |
 
----
+**Ainda abertas:** P9 (autorizar o PR), P10 (Duck-ToolBox consolidado × separado),
+P11 (kernel de terceiro), P12 (ativar o workflow). Ver `PR-AUTHORIZATION-5W1H.md`.
 
 ## 11. Checklist de ratificação (marque para liberar a próxima sessão)
 

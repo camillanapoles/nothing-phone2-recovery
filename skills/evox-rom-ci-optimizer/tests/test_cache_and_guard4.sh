@@ -26,8 +26,11 @@ printf 'conteudo do boot\n' > "$CACHE/extract/boot.img"
 ck "arquivo grande vira referência externa (≤0 MB)" "external" \
   "$(run "$C" put --state "$CACHE" --phase image --file "$T/src/boot.img" --max-inline-mb 0 >/dev/null
      python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));print(next(e["external"] for e in d["entries"] if e["phase"]=="image"))' "$CACHE/manifest.json")" "True"
-ck "list --json parseável" "entradas" \
-  "$("$C" list --state "$CACHE" --json | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["entries"])>=2)')" "True"
+ck "prune preserva entradas recentes" "exit" "$(run "$C" prune --state "$CACHE" --days 90)" "0"
+ck "prune com --days 0 esvazia o cache" "0" \
+  "$(run "$C" prune --state "$CACHE" --days 0 >/dev/null; python3 -c 'import json,sys;print(len(json.load(open(sys.argv[1]))["entries"]))' "$CACHE/manifest.json")" "0"
+ck "list --json parseável" "ok" \
+  "$("$C" list --state "$CACHE" --json | python3 -c 'import json,sys;print("ok" if "entries" in json.load(sys.stdin) else "sem")')" "ok"
 
 # Guard-4
 cp "$T/src/boot.img" "$T/stock.img"; cp "$T/src/boot.img" "$T/backup.img"

@@ -74,6 +74,7 @@ test-gates:
 	@./tests/test_kernel_compat_check.sh
 	@./tests/test_rollout_gate.sh
 	@./tests/test_cache_and_guard4.sh
+	@./tests/test_session_open.sh
 
 test-ci:
 	@./tests/test_sandbox_rollout.sh
