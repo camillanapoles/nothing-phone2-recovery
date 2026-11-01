@@ -4,6 +4,12 @@
 # =============================================================================
 set -euo pipefail
 
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  echo "uso: $(basename "$0") — este comando só executa com argumentos explícitos"
+  sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
 MODULES_DIR="${1:-./modules}"
 
 echo "[*] Aguardando ADB e sys.boot_completed=1 no emulador (AVD)..."

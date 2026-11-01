@@ -5,6 +5,12 @@
 
 set -euo pipefail
 
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  echo "uso: $(basename "$0") — só executa com argumentos explícitos"
+  sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 source "${REPO_ROOT}/config/pong.env"
@@ -71,7 +77,7 @@ if [[ -f "${DIST_DIR}/vendor_boot.img" ]] && [[ -s "${DIST_DIR}/vendor_boot.img"
   echo "  [COPY] vendor_boot.img → release/"
 fi
 
-# Find init_boot (WARNING: Pong should NOT use this)
+# init_boot: layout nao verificado (confirmar no payload.bin); se existir, precisa de par proprio
 if [[ -f "${DIST_DIR}/init_boot.img" ]] && [[ -s "${DIST_DIR}/init_boot.img" ]]; then
   cp "${DIST_DIR}/init_boot.img" "${RELEASE_DIR}/init_boot.img"
   INIT_BOOT_FOUND="init_boot.img"

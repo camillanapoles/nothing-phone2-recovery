@@ -5,6 +5,12 @@
 # =============================================================================
 set -euo pipefail
 
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  echo "uso: $(basename "$0") — este comando só executa com argumentos explícitos"
+  sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
 ROOT_METHOD="${1:-apatch}"
 ROM_DIR="${2:-./work/rom_extracted}"
 MODULES_DIR="${3:-./modules}"

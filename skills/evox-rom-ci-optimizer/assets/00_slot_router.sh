@@ -38,6 +38,14 @@
 # =============================================================================
 set -u
 
+case "${1:-}" in
+  -h|--help)
+    echo "uso: 00_slot_router.sh {guard|quarantine|activate|status|reset} [--root DIR] [--max-attempts N]"
+    sed -n '2,38p' "$0" | sed 's/^# \{0,1\}//'
+    exit 0 ;;
+esac
+
+
 SR_ROOT="${SR_ROOT:-}"
 GETPROP="${SR_GETPROP:-getprop}"
 BASE="$SR_ROOT/data/adb"

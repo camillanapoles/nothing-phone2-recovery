@@ -9,19 +9,30 @@
 #   ./guard4_verify.sh --boot ./workspace/rom_assets/boot.img \
 #                      --backup ./workspace/out/boot_stock_rollback.img \
 #                      [--sha-file ./workspace/out/boot_stock_rollback.img.sha256] \
-#                      [--rom-assets ./workspace/rom_assets/rom_assets.json] [--json]
+#                      [--rom-assets ./workspace/rom_assets/rom_assets.json] \
+#                      [--init-boot ./rom_assets/init_boot.img \
+#                       --init-boot-backup ./out/init_boot_stock_rollback.img] [--json]
+#
+# Guard-4 (definição canônica, 4 condições antes de qualquer mutação):
+#   1) build/kernel pinados e hashes vindos do pacote oficial (não do aparelho)
+#   2) backup stock do boot — e do init_boot QUANDO o pacote tiver init_boot — byte-idêntico
+#   3) comando de rollback exato (fastboot --set-active) e estado de slot conhecido
+#   4) confirmação explícita da usuária
+# Este script prova 1 e 2. As condições 3 e 4 são humanas (workflow + autorização).
 #
 # Exit: 0 = rollback verificado · 2 = uso · 3 = arquivo ausente · 4 = hash divergente
 # =============================================================================
 set -uo pipefail
 
-BOOT=""; BACKUP=""; SHAF=""; ROM=""; JSON=0
+BOOT=""; BACKUP=""; SHAF=""; ROM=""; JSON=0; INIT=""; INITB=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --boot) BOOT="$2"; shift 2 ;;
     --backup) BACKUP="$2"; shift 2 ;;
     --sha-file) SHAF="$2"; shift 2 ;;
     --rom-assets) ROM="$2"; shift 2 ;;
+    --init-boot) INIT="$2"; shift 2 ;;
+    --init-boot-backup) INITB="$2"; shift 2 ;;
     --json) JSON=1; shift ;;
     -h|--help) sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "arg desconhecido: $1" >&2; exit 2 ;;
@@ -29,10 +40,10 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -n "$BOOT" && -n "$BACKUP" ]] || { echo "Uso: $0 --boot <stock.img> --backup <rollback.img> [--sha-file F] [--rom-assets F] [--json]" >&2; exit 2; }
 
-python3 - "$BOOT" "$BACKUP" "$SHAF" "$ROM" "$JSON" <<'PY'
+python3 - "$BOOT" "$BACKUP" "$SHAF" "$ROM" "$JSON" "$INIT" "$INITB" <<'PY'
 import hashlib, json, os, sys
 
-boot, backup, shaf, romp, as_json = sys.argv[1:6]
+boot, backup, shaf, romp, as_json, init, initb = sys.argv[1:8]
 as_json = as_json == "1"
 checks = []
 def add(n, ok, d=""): checks.append({"check": n, "ok": bool(ok), "detail": d})
@@ -65,6 +76,28 @@ if os.path.isfile(boot) and os.path.isfile(backup):
             except Exception as exc:
                 detail = f"rom_assets inválido: {exc}"
         add("igual_ao_pacote_oficial", ok, detail)
+
+# ---- init_boot: par obrigatório SÓ quando o pacote oficial traz init_boot.img ----
+has_init = None
+if romp and os.path.isfile(romp):
+    try:
+        has_init = "init_boot.img" in (json.load(open(romp)).get("images") or {})
+    except Exception:
+        has_init = None
+if has_init is None:
+    add("init_boot_layout", True, "layout não informado (-→ declare --rom-assets para exigir o par)")
+elif has_init:
+    if not init or not initb:
+        add("init_boot_par_declarado", False,
+            "pacote tem init_boot.img: informe --init-boot e --init-boot-backup")
+    else:
+        add("init_boot_existe", os.path.isfile(init), init)
+        add("init_boot_backup_existe", os.path.isfile(initb), initb)
+        if os.path.isfile(init) and os.path.isfile(initb):
+            hi, hb = sha(init), sha(initb)
+            add("init_boot_backup_identico", hi == hb, f"stock {hi[:12]}… backup {hb[:12]}…")
+else:
+    add("init_boot_ausente_no_pacote", True, "layout do pacote não traz init_boot.img")
 
 bad = [c for c in checks if not c["ok"]]
 missing = any(c["check"].endswith("_existe") and not c["ok"] for c in checks)

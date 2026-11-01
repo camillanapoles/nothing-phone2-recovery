@@ -1,4 +1,10 @@
 #!/system/bin/sh
+
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  echo "uso: $(basename "$0") — este comando só executa com argumentos explícitos"
+  sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
 # =============================================================================
 # EVOX-CI v2.0 — Watchdog Anti-Bootloop & Post-Boot Optimizer (Android 16)
 # Se sys.boot_completed nao atingir 1 em 120 segundos, desativa todos os

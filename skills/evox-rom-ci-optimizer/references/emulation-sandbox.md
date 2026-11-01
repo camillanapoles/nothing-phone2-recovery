@@ -55,7 +55,7 @@ Stage D  DEVICE (humano, com o cabo)
 | **M13/M14/M15** CI, snapshots, release | **sim**: o processo inteiro é testável | nada — são artefatos de engenharia |
 
 Resumo honesto: **6 validam de fato, 5 parcialmente, 4 não**. Prometer 15/15 em emulador seria mentira;
-o gate 10 (pré-USB) cobre o que a AVD não cobre, e o Stage D confirma no hardware.
+o GO-USB 10/10 (pré-USB) cobre o que a AVD não cobre, e o Stage D confirma no hardware.
 
 ## 4. Travas de custo (o que impede a conta de subir)
 

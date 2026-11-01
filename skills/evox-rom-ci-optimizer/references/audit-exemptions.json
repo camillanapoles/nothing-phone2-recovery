@@ -1,0 +1,10 @@
+{
+  "schema": "evox-audit-exemptions/1",
+  "note": "Scripts sem teste próprio. Cada linha declara POR QUE a ausência é aceitável. A lista é fechada: script novo sem teste e sem entrada aqui = falha (AG18).",
+  "exemptions": {
+    "skills/github/scripts/copilot_activity.sh": "skill github: consulta API do gh com token; fora do domínio de ROM",
+    "skills/github/scripts/pr_details.sh": "skill github: consulta API do gh com token; fora do domínio de ROM",
+    "skills/github/scripts/triage_gather.sh": "skill github: consulta API do gh com token; fora do domínio de ROM",
+    "skills/evox-rom-ci-optimizer/install_local.sh": "instalador interativo (copia workflows para .github/); validado por inspeção + git diff, não por execução no sandbox"
+  }
+}

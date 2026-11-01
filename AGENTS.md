@@ -102,8 +102,11 @@ Regras de carga: ler **só** a skill que casa com a tarefa (economia de contexto
 19. **`/data` é único entre os slots.** Módulo experimental quebra também o slot estável no fallback.
     Antes de qualquer troca de slot: `00_slot_router.sh quarantine` **no host**. Nunca `mount --bind`
     sobre `/data/adb/modules` — o gerenciador de root já leu a pasta antes do hook.
-20. **Primeiro root é fastboot-only.** Sem `su` antes de M01: flash de `boot_<slot>` + `init_boot_<slot>`;
-    o roteador só é instalado depois do primeiro boot com root.
+20. **Primeiro root é fastboot-only.** Sem `su` antes de M01: flash de `boot_<slot>` — e de
+    `init_boot_<slot>` **somente se o pacote da ROM trouxer `init_boot.img`** (layout não verificado:
+    confirmar em `payload.bin`; ver `docs/skills/AUDIT-CONTRADICTIONS.md`). `guard4_verify.sh` exige
+    par de rollback byte-idêntico para **cada** partição de boot que o pacote tiver. O roteador só é
+    instalado depois do primeiro boot com root.
 21. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
 
 Sempre que uma regra R01–R09 for tocada, o teste é `skills/evox-rom-ci-optimizer/tests/test_scanner_rules.sh`

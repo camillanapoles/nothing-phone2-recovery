@@ -6,6 +6,12 @@
 # =============================================================================
 set -euo pipefail
 
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  echo "uso: $(basename "$0") — este comando só executa com argumentos explícitos"
+  sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
 MOD_ID="evox-11-11-camilla-prevalidated"
 PROP_FILE="./assets/evox_tuning_preset.prop"
 WATCHDOG_FILE="./assets/watchdog_anti_bootloop_service.sh"

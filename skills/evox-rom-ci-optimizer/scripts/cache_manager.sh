@@ -16,6 +16,13 @@
 # =============================================================================
 set -uo pipefail
 
+case "${1:-}" in -h|--help)
+  echo "uso: $(basename "$0") <comando> [opções] — comandos:"
+  echo "  put|get|list|verify|prune  (ver cabeçalho)"
+  sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0 ;;
+esac
+
 CMD="${1:-}"; shift || true
 STATE="./cache"; PHASE=""; FILE=""; NAME=""; TO=""; PROVEN=""; MAXMB=25; JSON=0; DAYS=90
 while [[ $# -gt 0 ]]; do

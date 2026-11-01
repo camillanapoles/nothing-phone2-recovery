@@ -5,7 +5,7 @@ description: >
   Sistema multi-agente (EVOX-FORGE, CI-SANDBOX-PROBE, CONFLICT-INQUISITOR, SNAPSHOT-KEEPER)
   especialista em engenharia pre-flash Dual-Stage da ROM Evolution X 11.11 (Android 16 / API 36)
   para Nothing Phone 2 (pong / SM8475): extracao deterministica de payload.bin, patch offline de
-  kernel/root (APatch+KPM, KernelSU, Magisk/Zygisk), validacao em emulador QEMU/KVM no GitHub
+  kernel/root (APatch+KPM, KernelSU, Magisk/Zygisk), validacao em AVD (API 36) no GitHub
   Actions com trava de custo zero, gestao de snapshots em branches/tags e validacao incremental
   de 15 componentes + 3 plataformas externas (MaxManager, Duck-ToolBox, Qualcomm GenieX).
   Use quando a usuaria pedir otimizacao/validacao de ROM antes do flash, criacao de imagem base
@@ -62,7 +62,7 @@ Se (4) divergir de (1)/(2), **corrija o script** — não reescreva a instruçã
    configuracao de `boot.img`, `init_boot.img` e `system.img`, verificacao de KMI (GKI 2.0),
    patch de root/KPM e analise estatica de conflitos (`CONFLICT-INQUISITOR`).
 2. **Estagio B — Validacao dinamica em emulador (`CI-SANDBOX-PROBE`):** execucao automatizada
-   sobre QEMU/KVM no GitHub Actions para testar modulos, scripts de inicializacao e estabilidade
+   sobre AVD no GitHub Actions para testar modulos, scripts de inicializacao e estabilidade
    de `SystemServer`/`Zygote`, com encerramento automatico por inatividade
    (`cancel-in-progress: true` + `timeout-minutes`).
 
@@ -83,7 +83,7 @@ exige `sys.boot_completed=1` e matriz de colisao `CLEAN`.
 - Injetar offline root e kernel: **APatch** (`.kpm`/`.apm`, `kptools`, superkey), **KernelSU**,
   **Magisk + Zygisk**, validando `(versao-patchlevel-androidrelease-KMI)`.
 - Rodar a matriz estatica de conflitos antes de combinar 2+ modulos (OverlayFS / Magic Mount).
-- Executar smoke test de boot em QEMU/KVM (API 36) e capturar `logcat`/`dmesg`/`dumpsys`.
+- Executar smoke test de boot na AVD (API 36) e capturar `logcat`/`dmesg`/`dumpsys`.
 - Empacotar release artefato pre-USB com manifesto SHA-256, relatorio `conflict_report.json`
   e script de rollback.
 - Handoff: `android16-root-guardian` (pos-flash no device) e `act-github-pat` (rodar workflows
@@ -179,7 +179,7 @@ make audit          # matriz de conflitos -> workspace/out/conflict_matrix_repor
 make forge ENGINE=apatch SUPERKEY="<superkey>"
 make bundle         # All-in-One + Watchdog Anti-Bootloop 120s
 make snapshot LAYER=wave1 TAG=v11.11-w1-clean
-make runtime-test   # QEMU/KVM + ADB (requer device/emulador acessivel)
+make runtime-test   # AVD (API 36) + ADB (requer device/emulador acessivel)
 make run-act        # executa references/evox-ci-validator.yml via nektos/act
 ```
 
@@ -347,6 +347,10 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `scripts/rom_artifact_fetch.sh` | **Coleta determinística** dos dois zips da mesma build: pin por sha256, atômico, retomável, drift = exit 4, env fixo em `workspace/evox.env` |
 | `references/rom-artifacts.json` | Manifesto pinado (Vanilla + GApps, build 2026-09-15) — única fonte de nome/URL/build |
 | `tests/test_rom_artifact_fetch.sh` | 18 cenários: pin, idempotência, drift, sem rede, env, JSON |
+| `scripts/contradiction_scan.py` | Varredura de contradições (C1–C13): instrução ativa que ainda manda fazer o abandonado ou usa vocabulário ambíguo (`Gate 4`, `gate 10`, `init_boot` sem fonte) |
+| `scripts/coverage_matrix.py` | Cobertura fechada: todo script tem teste ou isenção declarada (`references/audit-exemptions.json`) |
+| `scripts/audit_loop.sh` | Harness de convergência: AG + scan + cobertura + suíte, em loop até estabilizar |
+| `tests/test_script_contracts.sh` | 55 asserções: todo CLI responde `--help` **sem** efeito colateral (branch, commit, arquivo) |
 | `scripts/architecture_guard.py` | Trava de arquitetura (AG1–AG12): impede voltar ao modelo antigo e valida que as correções seguem aplicadas |
 | `tests/test_abl_probe.sh` | 12 cenários do probe (fallback, hang, hang precoce, sem device, rollback) |
 | `assets/00_slot_router.sh` | Roteador A/B: `guard`/`quarantine`/`activate`/`status`/`reset` — quarentena por `disable`, sem `mount`, sem `rm -rf` |

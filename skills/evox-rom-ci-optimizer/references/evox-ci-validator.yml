@@ -239,7 +239,7 @@ jobs:
             --out ./dist --include-rollback || true
           ( cd workspace && find . -name '*.img' -o -name '*.json' -o -name '*.sha256' ) \
             | sort | xargs -r sha256sum > dist/SHA256SUMS || true
-          echo "gate10=pendente (exige 10/10 testes e aprovação humana)" > dist/GATE10.txt
+          echo "go_usb=pendente (exige 10/10 testes e aprovação humana)" > dist/GO-USB.txt
       - uses: actions/upload-artifact@v4
         with:
           name: evox-11.11-pre-usb

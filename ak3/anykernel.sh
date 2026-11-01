@@ -5,7 +5,7 @@
 
 DEVICE_CODENAME="pong"
 DEVICE_MODEL="SM8475"
-BOOT_PARTITION="boot"  # Pong uses boot.img (NOT init_boot.img!)
+BOOT_PARTITION="boot"  # layout nao verificado: confirmar no payload.bin se ha init_boot
 IS_SIDEPART=0
 IS_PHASED=1
 

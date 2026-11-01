@@ -4,7 +4,7 @@
 > v3.1 para eliminar duas fontes de verdade sobre o mesmo pipeline).
 > **Alvo:** Evolution X 11.11 / Android 16 (API 36) em Nothing Phone 2 — Snapdragon 8+ Gen 1
 > (`SM8475`, cortex-X2/A710/A510 + Adreno 730), leitor Goodix óptico, câmeras Sony IMX890 + JN1.
-> **Uso:** consultado pela Wave 2 (Device Profile), Wave 3 (performance/câmera) e pelo Gate 10
+> **Uso:** consultado pela Wave 2 (Device Profile), Wave 3 (performance/câmera) e pelo GO-USB 10/10
 > (release pre-USB) do `SKILL.md`.
 
 ## 1. Dois níveis de verificação
@@ -12,7 +12,7 @@
 | Nível | O que valida | Ferramenta |
 |---|---|---|
 | **Estrutural (estático)** | pacotes, XML de permissão, bibliotecas `arm64-v8a`, `system.prop`, sobreposição de arquivos críticos | `scripts/static_conflict_scanner.py`, `scripts/audit_rom_conflicts.sh` |
-| **Comportamental (QEMU/KVM)** | inicialização do sistema, Free-Form/WindowManager, scripts de boot, estabilidade de `system_server` | `scripts/runtime_module_tester.sh` + `references/evox-ci-validator.yml` (o `evox-ci-pipeline.yml` antigo está em `references/archive/`) |
+| **Comportamental (AVD API 36)** | inicialização do sistema, Free-Form/WindowManager, scripts de boot, estabilidade de `system_server` | `scripts/runtime_module_tester.sh` + `references/evox-ci-validator.yml` (o `evox-ci-pipeline.yml` antigo está em `references/archive/`) |
 
 > O emulador **não** reproduz sensor físico proprietário (Goodix/IMX890) nem o TEE do SoC:
 > aprovação comportamental não substitui a matriz estática nem libera `persist`.

@@ -6,6 +6,12 @@
 # =============================================================================
 set -euo pipefail
 
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  echo "uso: $(basename "$0") — este comando só executa com argumentos explícitos"
+  sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
 ENGINE="apatch"
 BOOT_IMG="./workspace/extracted/boot.img"
 INIT_BOOT_IMG="./workspace/extracted/init_boot.img"

@@ -21,6 +21,8 @@ Regras:
   AG14 workflow local não usa bootctl e confere boot_completed
   AG15 pipeline antigo só existe em references/archive/, marcado
   AG16 manifesto pinado das duas variantes + coletor determinístico
+  AG17 nenhuma contradição ativa (C1–C13)
+  AG18 todo script tem teste ou isenção declarada
 
 Uso: architecture_guard.py [--root DIR] [--self-test] [--json]
 Exit: 0 ok · 3 violação · 2 uso
@@ -212,6 +214,36 @@ def check_ag14(t):
     return []
 
 
+def _py(root, script, *args):
+    import subprocess
+    f = os.path.join(root, SK, "scripts", script)
+    if not os.path.exists(f):
+        return None
+    r = subprocess.run([sys.executable, f, "--root", root, "--json", *args],
+                       capture_output=True, text=True)
+    try:
+        return json.loads(r.stdout)
+    except Exception:
+        return {"ok": False, "error": r.stderr[:200]}
+
+
+def check_ag17(root):
+    rep = _py(root, "contradiction_scan.py")
+    if rep is None:
+        return ["contradiction_scan.py ausente"]
+    if rep.get("errors"):
+        return [f"{rep['errors']} contradição(ões) ativa(s) — rode contradiction_scan.py"]
+    return []
+
+
+def check_ag18(root):
+    rep = _py(root, "coverage_matrix.py")
+    if rep is None:
+        return ["coverage_matrix.py ausente"]
+    gaps = [r["script"] for r in rep.get("rows", []) if r["status"] == "GAP"]
+    return [f"sem teste nem isenção: {g}" for g in gaps]
+
+
 def check_ag16(root):
     p = []
     mf = os.path.join(root, SK, "references", "rom-artifacts.json")
@@ -319,6 +351,9 @@ def run(root: str) -> dict:
     results.append({"rule": "AG15", "ok": not problems, "problems": problems})
     problems = check_ag16(root)
     results.append({"rule": "AG16", "ok": not problems, "problems": problems})
+    for rid, fn in (("AG17", check_ag17), ("AG18", check_ag18)):
+        problems = fn(root)
+        results.append({"rule": rid, "ok": not problems, "problems": problems})
     return {"root": os.path.abspath(root), "ok": all(r["ok"] for r in results),
             "results": results}
 
@@ -346,6 +381,9 @@ def self_test() -> int:
 
 
 def main(argv: list[str]) -> int:
+    if "-h" in argv or "--help" in argv:
+        print(__doc__.strip())
+        return 0
     root = "."
     if "--root" in argv:
         root = argv[argv.index("--root") + 1]

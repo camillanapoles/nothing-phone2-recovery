@@ -114,7 +114,7 @@ Atalho de descoberta: `.claude/skills -> ../skills` (o `.claude/` é gitignored)
 
 1. **Evidência antes de opinião** — `sys.boot_completed=1`, hash ou JSON; `PASS` autodeclarado não vale.
 2. **Reversibilidade determinística** — Guard-4 grava `boot_stock_rollback.img` + `.sha256` antes do kernel.
-3. **Gêmeo digital antes do hardware** — Estágio B obrigatório no QEMU/KVM.
+3. **Gêmeo digital antes do hardware** — Estágio B obrigatório em AVD (API 36).
 4. **Governança de topologia** — Ownership Ledger + ondas eliminam dois escritores no mesmo alvo.
 5. **Disciplina de custo** — 4 travas (concurrency, 25 min job, 10 min QEMU, poweroff 1800 s).
 6. **Estado versionado** — snapshot por camada com manifesto SHA-256.
@@ -143,7 +143,7 @@ Atalho de descoberta: `.claude/skills -> ../skills` (o `.claude/` é gitignored)
 | Coletor de evidência (stub de adb) | `make -C skills test-guard` | **8 PASS / 0 FAIL** |
 | Gate kernel × ROM × device | `test_kernel_compat_check.sh` | **10 PASS / 0 FAIL** |
 | Rollout canário (1 módulo/vez) | `test_rollout_gate.sh` | **13 PASS / 0 FAIL** |
-| Cache versionado + rollback Guard-4 | `test_cache_and_guard4.sh` | **13 PASS / 0 FAIL** |
+| Cache versionado + rollback (Guard-4, inclui par de `init_boot`) | `test_cache_and_guard4.sh` | **20 PASS / 0 FAIL** |
 | Stage B (injeção via adb) | `test_sandbox_rollout.sh` | **9 PASS / 0 FAIL** |
 | Travas de custo do workflow | `test_ci_workflow_lint.sh` | **12 PASS / 0 FAIL** |
 | Protocolo de abertura (P1–P8) | `test_session_open.sh` | **10 PASS / 0 FAIL** |

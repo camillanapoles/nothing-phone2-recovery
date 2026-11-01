@@ -2,13 +2,27 @@
 
 **Status:** aceito em 2026-11-01 · **Decisor:** usuária · **Executor:** agente de sessão
 **Fonte de verdade de conteúdo:** `skills/evox-rom-ci-optimizer/references/module-matrix-5w1h.md`
-**Trava executável:** `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` (AG1–AG16)
+**Trava executável:** `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` (AG1–AG18)
 
 > Este documento existe para a **próxima sessão que executa**. Se você é essa sessão: leia
 > este arquivo, rode `make -s arch` e `python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check`.
 > Se `arch` falhar, **pare** — alguém reintroduziu a arquitetura antiga.
 
 ---
+
+## 0. Vocabulário canônico (evita colisão entre skills)
+
+| Termo | Significa | **Não** confundir com |
+|---|---|---|
+| `AG1–AG18` | travas de arquitetura executáveis (`architecture_guard.py`) | `G1–G10` (objetivos globais, §9 do `AGENTS.md`) |
+| `Guard-4` | 4 condições antes de qualquer mutação: build/kernel pinados · backup stock byte-idêntico (boot **e** `init_boot` quando existir) · rollback exato · confirmação humana | `G4` de outras skills (`github`, `cogni-synapse`, `sci-…`), que significam outra coisa <!-- scan:exempt --> |
+| **GO-USB 10/10** | checklist de 10 itens antes do cabo (antes chamado de "gate 10") <!-- scan:exempt --> | `G10` (objetivo "HIL A/B isolado") |
+| `R01–R09` | regras do scanner de conflito | `C1–C13` (regras da varredura de contradições) |
+| `P1–P14` | decisões da usuária | `E1–E6` (erros do draft do HIL) |
+| `F0–F5` | fases de rollout dos módulos | `W1–W5` (ondas antigas, históricas) |
+
+Motivo: "Gate 4"/"G4" existia com **5 significados diferentes** no repositório e "gate 10" colidia <!-- scan:exempt -->
+com o objetivo `G10`. A varredura (`contradiction_scan.py`, regras C8–C10) reprova o vocabulário solto.
 
 ## 1. Princípios invioláveis
 
@@ -63,6 +77,24 @@ comparativos de alternativas (Cuttlefish, QEMU TCG, macOS runner) e o guia legad
 `.github/workflows/boot-test.yml` (marcado como LEGADO no próprio artefato). Elas ficam como
 registro; não são instruções.
 
+## 3-B. Por que o HIL A/B **não** é o gate final (P13)
+
+O HIL A/B é o pré-gate técnico mais forte que existe sem o cabo na mão dela — e continua **não**
+sendo o gate final. As razões são estruturais, não de maturidade:
+
+| O que o A/B prova | O que ele **não** prova |
+|---|---|
+| o slot novo completa `boot_completed=1` | se o app de banco abre sem detectar root |
+| falha cedo (ABL troca de slot) é reversível | travamento pós-kernel sem marca (só o probe detecta, com limite) |
+| kernel/`boot`/`init_boot`/AVB do slot funcionam | `system`/`vendor`/`product` — partições **dinâmicas compartilhadas** entre slots |
+| módulos que quebram o boot são isoláveis | câmera HAL, NPU, rádio/VoLTE, térmica e consumo |
+| rollback por `fastboot --set-active` | comportamento de UI e de serviços de terceiros |
+
+Além disso, `quarantine`/`activate` usam `su` — logo **o ciclo 0 (M01) não pode usar o roteador**:
+o primeiro root é fastboot puro, e é exatamente onde `guard4_verify` (par `boot`/`init_boot`) e o
+layout do pacote importam mais. Por isso o gate final é o **GO-USB 10/10 + autorização humana**, e a
+prova derradeira é o aparelho.
+
 ## 4. Captura do risco "ABL só cobre falha cedo"
 
 Fallback do bootloader só é confiável para falha **antes do userspace**. Um travamento em
@@ -89,7 +121,8 @@ o probe retorna `NO_DEVICE`/`BOOTLOADER` → recuperação manual por botão fí
 ## 5. Verificação em 60 segundos
 
 ```bash
-make -s arch                                  # AG1–AG16
+make -s arch                                  # AG1–AG18
+skills/evox-rom-ci-optimizer/scripts/audit_loop.sh   # AG + scan + cobertura + suítes, em loop
 make -s prove                                 # estado + guard + 15 suítes + eval
 python3 skills/evox-rom-ci-optimizer/scripts/architecture_guard.py --self-test
 python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --file workspace/decision.json --json
@@ -112,3 +145,4 @@ pré-gate, quarentena no host) foram **delegadas** e estão registradas em `deci
 | Data | Mudança |
 |---|---|
 | 2026-11-01 | ADR criado; arquitetura híbrida AVD→HIL→USB ratificada; 13 regras de trava |
+| 2026-11-01 | §0 vocabulário canônico (fim da colisão Gate 4/G4/gate 10); <!-- scan:exempt --> §3-B limites do A/B; AG17/AG18 (contradições e cobertura); `guard4_verify` cobre `init_boot` quando o pacote tiver |

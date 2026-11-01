@@ -85,7 +85,7 @@ própria) e aceita fazer M03 à mão — é o caminho mais limpo tecnicamente e 
 | **3. Base** | extrai partições de trabalho (Wave 1) | `extract_evox_base.sh --rom …` | `evox_base_manifest.json` com sha256 |
 | **4. Auditoria** | conflito estático entre módulos/plataformas | `make scan` / `make audit` | `CLEAN` (WARN justificado; CONFLICT = veto) |
 | **5. Estágio A** | patch offline do boot (APatch/KPM) + rollback | `make patch-boot` / `forge_patcher.sh` | `boot_patched.img` + `boot_stock_rollback.img` + `.sha256` |
-| **6. Estágio B** | boot do patched no QEMU/KVM | `make runtime-test` | `sys.boot_completed=1`, sem RescueParty |
+| **6. Estágio B** | boot da camada de módulos na AVD | `make runtime-test` | `sys.boot_completed=1`, sem RescueParty |
 | **7. Ondas 2–4** | identidade, performance/NPU/câmera, janelas/SAF/rede | módulos + `make scan` a cada onda | 10 testes binários por onda |
 | **8. Estado** | snapshot por camada | `snapshot_branch_manager.sh` | `snapshot/<layer>/<tag>` + manifesto |
 | **9. Release** | pacote pré-USB | `make bundle` | `SHA256SUMS` + `flash_and_rollback.sh` |
@@ -104,7 +104,7 @@ Nada disso toca o aparelho. A fase 10 é a única que depende de você conectar 
 | **W2** | M03 GApps A16 · M07 Fingerprint · M08 Duck-ToolBox | overlays sysconfig, `system.prop`, `duck-toolbox` | colisão de chave; crashes GMS |
 | **W3** | MaxManager (externo) · GenieX (externo) · M02 Câmera | `MaxManager-V2.zip` auditado, QAIRT, GCam/HAL | exclusividade de escrita; rede do NPU; `.so`/XML |
 | **W4** | M04 Screen Capture · M06 Free-Form · M09 SAF · M10/M11 Rede | flags WindowManager, overlay SAF, `iptables`/`adb reverse` | SurfaceFlinger/SystemUI; R/W SAF; ConnectivityService |
-| **W5** | M13 Ambient CI · M14 Snapshots · M15 Release | workflow com travas, branches `snapshot/*`, pacote pré-USB | trava de custo; manifesto; gate 10 |
+| **W5** | M13 Ambient CI · M14 Snapshots · M15 Release | workflow com travas, branches `snapshot/*`, pacote pré-USB | trava de custo; manifesto; GO-USB 10/10 |
 
 Regras duras por módulo: `persist` intocável (R06), SELinux `Enforcing` (R08), MaxManager com
 exclusividade de escrita (R01/R02), Duck-ToolBox consolida M07/M08 (R04), DroidSpaces sem mount-hide
@@ -169,7 +169,7 @@ O `preflight_deps.sh` não instala nada: diz o que falta e o comando (exit 1 se 
 4. **Autorizar (ou não) a instalação** de `payload-dumper-go`, `kptools`, `magiskboot`, `adb`.
 
 Respondidos 1–4, a próxima sessão executa as fases 0→9 sem tocar no aparelho e devolve o pacote
-pré-USB com gate 10. O flash continua sendo decisão sua, com o cabo na sua mão.
+pré-USB com GO-USB 10/10. O flash continua sendo decisão sua, com o cabo na sua mão.
 
 ---
 
@@ -211,7 +211,7 @@ tests/test_{kernel_compat_check,rollout_gate,cache_and_guard4}.sh
 | **P5** | **Lista final de módulos** que entram em W2–W4 (MaxManager, GenieX, GCam, Duck-ToolBox, DroidSpaces, SAF, free-form, rede) | escopo | ledger de rollout | fica a matriz 5W1H completa como proposta |
 | **P6** | **Janela de canário** (10 min por módulo) e critério de AVC denial aceitável | decisão | `--min-uptime` e baseline | padrão 10 min, baseline 0 novos AVC |
 | **P7** | **Retenção de cache** (o que fica versionado; quanto tempo) | política | `cache_manager put` por fase | padrão: manifestos sempre, binários > 25 MB externos |
-| **P8** | **Quando o cabo USB entra** (gate 10 = 10/10 PASS) | autorização | flash assistido | nada é gravado no aparelho |
+| **P8** | **Quando o cabo USB entra** (GO-USB 10/10) | autorização | flash assistido | nada é gravado no aparelho |
 | **P9** | **Abrir PR** com esta preparação? | autorização | PR da branch atual | fica só no commit local/remoto da branch |
 | **P10** | **L4 na prática**: rodar `extract_rom_assets.sh` com o zip e confirmar kernel/KMI | execução | arquivo + permissão P3 | L4 permanece "procedimento pronto, dado ausente" |
 

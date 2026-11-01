@@ -13,7 +13,7 @@
 | Afirmação original | Correção técnica | Efeito no plano |
 |---|---|---|
 | "carregar a ROM do Evolution X no QEMU e bootar" | a imagem do `pong` é **arm64** com `vendor` do SM8475 (GPU/modem/NPU/câmera reais); runner hospedado é **x86_64** e o arm64 hospedado **não tem KVM** | a ROM **não** boota no CI; o CI valida a **camada de módulos** numa AVD API 36 x86_64 |
-| "validar conflitos no emulador e liberar" | emulador não prova kernel-space, NPU, câmera HAL nem `sysfs` do device | 6 módulos validam de fato, 5 parcialmente, **4 só no aparelho**; gate 10 + Stage D cobrem o resto |
+| "validar conflitos no emulador e liberar" | emulador não prova kernel-space, NPU, câmera HAL nem `sysfs` do device | 6 módulos validam de fato, 5 parcialmente, **4 só no aparelho**; GO-USB 10/10 + Stage D cobrem o resto |
 | "cache no Actions resolve continuidade" | cache do Actions é efêmero (7 dias, por chave) | dois níveis: `actions/cache` (insumo grande) **e** `cache/` versionado no repo (manifesto + sha256) |
 | "um workflow de 25 min" | emulador + boot + 15 módulos não cabem em um job | 3 jobs encadeados com timeouts próprios (25 / 15 / 10) e `needs:` |
 
@@ -85,7 +85,7 @@ Duck-ToolBox cobre #7+#8, MaxManager/GenieX entram em F2.
 | M04 captura · M06 free-form · M07 fingerprint · M09 SAF · M10/M11 rede · M13/M14/M15 processo | M02 câmera · M03 GApps · M05 DroidSpaces · M08 Duck-ToolBox · M12B GenieX | M01 kernel/KPM · M12A MaxManager (`sysfs`) · HAL de câmera · RKP/attestation real |
 
 Consequência prática: **o CI nunca autoriza flash sozinho**. Ele reduz risco e prova o processo; o
-gate 10 e o Stage D continuam humanos.
+GO-USB 10/10 e o Stage D continuam humanos.
 
 ---
 
@@ -177,7 +177,7 @@ em [`PENDING-DECISIONS.md`](PENDING-DECISIONS.md).
 - [ ] **R2** concordo com os 3 estágios (forge → sandbox → release) + Stage D humano
 - [ ] **R3** concordo com a ordem F0→F5 dos 15 módulos
 - [ ] **R4** concordo com as travas de custo (25/15/10 min, cache por hash, retention 5)
-- [ ] **R5** concordo que o CI nunca autoriza flash sozinho (gate 10 + sua confirmação)
+- [ ] **R5** concordo que o CI nunca autoriza flash sozinho (GO-USB 10/10 + sua confirmação)
 - [ ] **R6** respondi P1–P3 (bloqueantes) e, se quiser, P4–P10
 
 Com **R1–R5 + P1–P3**, a próxima sessão executa o Stage A real (L4 + kernel gate + patch + rollback)
@@ -193,14 +193,17 @@ princípios nem “reinterpretar” a arquitetura. Tudo abaixo é **executável*
 | Peça | Arquivo | O que garante |
 |---|---|---|
 | Contrato | [`ARCHITECTURE-DECISION.md`](ARCHITECTURE-DECISION.md) | 10 princípios, arquitetura A→B→C→E→D, lista do que **não** refazer, limites do A/B |
-| Trava | `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` | **AG1–AG16** falham o build se a arquitetura antiga voltar (`make -s arch`, dentro de `make -s prove`) |
+| Trava | `skills/evox-rom-ci-optimizer/scripts/architecture_guard.py` | **AG1–AG18** falham o build se a arquitetura antiga voltar (`make -s arch`, dentro de `make -s prove`) |
 | Classificador de falha | `scripts/abl_fallback_probe.sh` | distingue `OK` / `ABL_FALLBACK` / `HANG` / `HANG_EARLY` / `BOOTLOADER` / `NO_DEVICE` |
 | Marcas de boot | `assets/00_slot_router.sh guard` | separa falha antes do userspace de travamento pós-kernel |
 | Abertura | `scripts/session_open.py` (`auto` + `check`) | preenche P10–P14, mantém P1–P3 bloqueantes |
 | Validação | [`VALIDATION-REPORT.md`](VALIDATION-REPORT.md) | prova arquivo por arquivo, inclusive o que **não** foi possível validar offline |
 
-**Números deste worktree:** `make -s prove` exit **0** · 16 regras de arquitetura OK ·
-15 suítes verdes · 175 casos (162 na skill de ROM + 13 no teste de estado) · `bash -n` em 37 scripts · `py_compile` em 6 módulos.
+**Números deste worktree:** `make -s prove` exit **0** · **18 regras** de arquitetura OK ·
+18 suítes verdes · **250 casos** (237 na skill de ROM + 13 de estado) · `bash -n` em 40 scripts · `py_compile` em 9 módulos · `audit_loop.sh` converge limpo em 2 iterações.
+
+**Auditoria de contradições:** 57 erros → **0** (`docs/skills/AUDIT-CONTRADICTIONS.md`), incluindo a colisão
+`Gate 4`/`G4`/`gate 10` e a questão do `init_boot` (agora condicional e provada por par de rollback). <!-- scan:exempt -->
 
 **Coleta determinística (P1):** manifesto `references/rom-artifacts.json` pina as duas variantes da
 build 2026-09-15; `scripts/rom_artifact_fetch.sh --variant both` baixa/confere com pin de sha256 e

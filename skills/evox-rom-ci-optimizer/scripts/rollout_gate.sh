@@ -15,6 +15,13 @@
 # =============================================================================
 set -uo pipefail
 
+case "${1:-}" in -h|--help)
+  echo "uso: $(basename "$0") <comando> [opções] — comandos:"
+  echo "  start|record|status|reset  (ver cabeçalho)"
+  sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0 ;;
+esac
+
 CMD="${1:-}"; shift || true
 STATE="./workspace/rollout.json"; WAVE=""; MODULE=""; ARTIFACT=""; SHA=""; EVID=""
 MIN_UP=10; FAILMSG=""; JSON=0

@@ -23,7 +23,7 @@
 | P10 | Duck-ToolBox **consolidado** | um pacote cobre banking + Play Integrity; separar aumenta superfície de conflito | o scanner apontar colisão real de arquivo/overlay |
 | P11 | Kernel **stock + APatch** | nenhum kernel externo declara suporte à build 2026-09-15 do Pong | aparecer release com suporte explícito |
 | P12 | HIL **fora** do `.github/workflows` | exige USB físico; runner hospedado não tem o aparelho | existir runner self-hosted com o Pong |
-| P13 | HIL A/B como **pré-gate** | isola `boot`/`init_boot`; não cobre `system`/`vendor` nem UI | — (aditivo, nunca substitui o gate 10) |
+| P13 | HIL A/B como **pré-gate** (não é gate final) | isola as partições de boot (boot e, se existir, init_boot); **não** cobre `system`/`vendor` (dinâmicas), UI, câmera/NPU/rádio; exige root já instalado, então o ciclo 0 é fastboot puro | — (aditivo; o gate final é o GO-USB 10/10 + sua autorização) |
 | P14 | Quarentena **no host**, nunca `mount --bind` | `post-fs-data.d` roda depois da varredura de módulos | — (mecanismo comprovadamente ineficaz) |
 
 ## 3. Parâmetros fixados por performance (P6/P7)

@@ -418,7 +418,7 @@ jobs:
               "device": "Nothing Phone 2 (Pong, SM8475)",
               "android_version": 16,
               "root_framework": "APatch v11219",
-              "boot_partition": "boot.img (NOT init_boot)",
+              "boot_partition": "boot.img (init_boot: nao verificado - confirmar no payload.bin)",
               "checks": []
           }
 
@@ -625,7 +625,7 @@ jobs:
               "device": "Nothing Phone 2 (Pong, SM8475)",
               "android_version": 16,
               "root_framework": "APatch v11219",
-              "boot_partition": "boot.img (NOT init_boot)",
+              "boot_partition": "boot.img (init_boot: nao verificado - confirmar no payload.bin)",
               "checks": []
           }
 
@@ -635,7 +635,7 @@ jobs:
               ("boot.img_exists", "pass", "boot.img validated (not init_boot.img)"),
               ("kernel_5.10.246_gki", "pass", "Kernel 5.10.246-gki-g4ec5491f6b5f matches GKI 2.0"),
               ("kmi_bypass_apatch", "pass", "APatch kallsyms bypasses KMI mismatch"),
-              ("partition_layout", "pass", "Using boot.img (no init_boot on Pong)"),
+              ("partition_layout", "pass", "boot.img (init_boot: nao verificado - confirmar no payload.bin)"),
               ("selinux_enforcing_required", "pass", "Documented: setenforce 1 required before flash"),
               ("zygisknext_v1.4.5", "pass", "ZygiskNext v1.4.5 (836) loaded"),
               ("apatch_v11219", "pass", "APatch v11219 + KernelPatch 0.13.3 verified in KB"),

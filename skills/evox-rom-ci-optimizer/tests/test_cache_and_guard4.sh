@@ -49,5 +49,34 @@ ck "hash do .sha256 divergente reprova" "exit" \
   "$( printf '%064d  backup.img\n' 0 > "$T/falso.sha256"; run "$G" --boot "$T/stock.img" --backup "$T/backup.img" --sha-file "$T/falso.sha256")" "4"
 ck "JSON declara VERIFIED" "verdict" \
   "$("$G" --boot "$T/stock.img" --backup "$T/backup.img" --json | python3 -c 'import json,sys;print(json.load(sys.stdin)["verdict"])')" "VERIFIED"
+# ---- init_boot: o pacote manda (par obrigatório só se houver init_boot.img) ----
+B="$T/g4"; mkdir -p "$B"
+printf 'BOOTIMG-stock' > "$B/boot.img"; cp "$B/boot.img" "$B/rollback.img"
+printf 'INITIMG-stock' > "$B/init_boot.img"; cp "$B/init_boot.img" "$B/init_rollback.img"
+python3 - "$B" <<'PYEND'
+import hashlib, json, os, sys
+b = sys.argv[1]
+def sha(p):
+    return hashlib.sha256(open(p, "rb").read()).hexdigest()
+def layout(with_init):
+    imgs = {"boot.img": {"sha256": sha(os.path.join(b, "boot.img"))}}
+    if with_init:
+        imgs["init_boot.img"] = {"sha256": sha(os.path.join(b, "init_boot.img"))}
+    json.dump({"schema": "pong-rom-assets/1", "images": imgs},
+              open(os.path.join(b, "rom_assets_%s.json" % ("init" if with_init else "noinit")), "w"))
+layout(True); layout(False)
+PYEND
+ck "pacote com init_boot sem par = MISMATCH (4)" "exit" \
+  "$(run "$G" --boot "$B/boot.img" --backup "$B/rollback.img" --rom-assets "$B/rom_assets_init.json")" "4"
+ck "pacote com init_boot e par íntegro = VERIFIED" "exit" \
+  "$(run "$G" --boot "$B/boot.img" --backup "$B/rollback.img" --rom-assets "$B/rom_assets_init.json" --init-boot "$B/init_boot.img" --init-boot-backup "$B/init_rollback.img")" "0"
+ck "pacote cujo layout nao traz init_boot.img = VERIFIED" "exit" \
+  "$(run "$G" --boot "$B/boot.img" --backup "$B/rollback.img" --rom-assets "$B/rom_assets_noinit.json")" "0"
+ck "sem layout: init_boot_layout nao_informado" "init_boot_layout" \
+  "$("$G" --boot "$B/boot.img" --backup "$B/rollback.img" --json | python3 -c 'import json,sys;print([c["check"] for c in json.load(sys.stdin)["checks"] if c["check"]=="init_boot_layout"][0])')" "init_boot_layout"
+printf 'X' >> "$B/init_rollback.img"
+ck "init_boot_backup divergente = MISMATCH" "exit" \
+  "$(run "$G" --boot "$B/boot.img" --backup "$B/rollback.img" --rom-assets "$B/rom_assets_init.json" --init-boot "$B/init_boot.img" --init-boot-backup "$B/init_rollback.img")" "4"
+
 echo "-----------------------------------------------------------------------"
 echo "TOTAL: $P PASS / $F FAIL"; [ "$F" -eq 0 ] || exit 1

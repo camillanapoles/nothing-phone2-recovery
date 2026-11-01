@@ -54,7 +54,7 @@ zip oficial
                           └─ AVD: 1 módulo por vez
                               └─ evidence.json → rollout_gate ──► PASS por módulo
                                   └─ cache/manifest.json ────────► fase verde endereçável
-                                      └─ release pré-USB ────────► gate 10 (10/10)
+                                      └─ release pré-USB ────────► GO-USB 10/10
                                           └─ Stage D: flash + collect_evidence
 ```
 
@@ -117,4 +117,4 @@ Stage B 9 · lint de custo 12 · pós-flash 8 · abertura de sessão 10 · higie
 - **AVD**: emulador Android (x86_64) — não é o `pong`, é o laboratório da camada de módulos.
 - **KMI**: identificador de compatibilidade de módulos de kernel (`android14-11`, etc.).
 - **Canário**: instalar um módulo, provar, e só então o próximo.
-- **Gate 10**: 10/10 testes verdes antes de qualquer contato com o cabo USB.
+- **GO-USB 10/10**: 10/10 testes verdes antes de qualquer contato com o cabo USB.

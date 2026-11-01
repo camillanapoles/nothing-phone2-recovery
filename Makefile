@@ -7,7 +7,8 @@ help:
 	@echo "make state        -> dry-run da higiene de estado (nada é alterado)"
 	@echo "make state-reset  -> aplica a higiene (quarentena + limpa banco do FSM)"
 	@echo "make test-state   -> regressão da higiene (13 casos)"
-	@echo "make arch         -> trava de arquitetura HIL A/B + AVD (AG1..AG12)"
+	@echo "make arch         -> travas de arquitetura (AG1..AG18)"
+	@echo "make audit-loop   -> auditoria em loop até convergir (AG + contradições + cobertura + suítes)"
 	@echo "make skills       -> harness completo das 8 skills (validate+testes+eval)"
 	@echo "make prove        -> tudo: test-state + skills"
 
@@ -22,6 +23,9 @@ test-state:
 
 arch:
 	@python3 skills/evox-rom-ci-optimizer/scripts/architecture_guard.py
+
+audit-loop:
+	@skills/evox-rom-ci-optimizer/scripts/audit_loop.sh
 
 skills:
 	@$(MAKE) -s -C skills check-all

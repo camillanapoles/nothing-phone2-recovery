@@ -79,6 +79,10 @@ test-gates:
 	@./tests/test_abl_probe.sh
 	@./tests/test_architecture_guard.sh
 	@./tests/test_rom_artifact_fetch.sh
+	@./tests/test_script_contracts.sh
+	@./tests/test_contradiction_scan.sh
+	@./tests/test_coverage_matrix.sh
+	@./tests/test_audit_loop.sh
 
 test-ci:
 	@./tests/test_sandbox_rollout.sh

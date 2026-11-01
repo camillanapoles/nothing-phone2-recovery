@@ -122,7 +122,7 @@ P10_P13 = {
             "rationale": "exige USB físico; runner hospedado não tem o aparelho e "
                          "falharia sempre — HIL roda local via act",
             "revisit_if": "existir runner self-hosted com o pong conectado"},
-    "P13": {"decision": "HIL A/B como pré-gate, sem substituir o gate 10",
+    "P13": {"decision": "HIL A/B como pré-gate, sem substituir o GO-USB 10/10",
             "rationale": "A/B isola boot/init_boot e prova rollback; não cobre "
                          "system/vendor (partições dinâmicas) nem UI",
             "revisit_if": "nenhum — é aditivo"},
@@ -171,6 +171,13 @@ def _fill_delegated(doc: dict) -> dict:
 def main(argv: list[str]) -> int:
     cmd = argv[1] if len(argv) > 1 else ""
     args = argv[2:]
+    if cmd in ("-h", "--help", "help"):
+        print("Uso: session_open.py {questions|template|auto|check} [--out F] [--file F] [--json]")
+        print("  questions  lista as perguntas P1–P8 na ordem")
+        print("  template   cria decision.json vazio")
+        print("  auto       preenche P10–P14 (decisão delegada) e mantém P1–P3 pendentes")
+        print("  check      exit 0 completo · 3 pendente · 4 inválido")
+        return 0
     if cmd == "questions":
         print("Protocolo de abertura (ordem obrigatória):")
         for pid, q, detail in QUESTIONS:

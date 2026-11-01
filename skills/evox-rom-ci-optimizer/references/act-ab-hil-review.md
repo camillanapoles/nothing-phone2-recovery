@@ -22,7 +22,7 @@
 
 ## 2. Os 6 erros do draft (e a correção)
 
-### E1 · `mount --bind /data/adb/staging_b /data/adb/modules` — chega tarde e quebra o gerenciador
+### E1 · `mount --bind /data/adb/staging_b /data/adb/modules` — abandonado: chega tarde e quebra o gerenciador
 
 `post-fs-data.d/` roda **depois** da fase `post-fs-data` dos módulos: o gerenciador de root já leu
 `/data/adb/modules`, já montou os overlays e já executou os scripts. Bind nesse instante não desfaz
@@ -92,9 +92,10 @@ PRÉ-GATE (barato, sem risco)            GATE AUTORITATIVO (hardware real)
 
 - A AVD **não** foi descartada: ela é o filtro barato que evita gastar ciclos de reboot do aparelho
   em erro trivial de script/propriedade.
-- O HIL A/B é o **gate final antes do USB de produção**, porque só ele exercita kernel, HAL e `/data`
+- O HIL A/B é o **pré-gate técnico mais forte antes do USB**, porque só ele exercita kernel, HAL e `/data`
+  no hardware — mas **não** é o gate final: o GO-USB 10/10 + sua autorização continuam humanos
   reais.
-- Nenhum dos dois substitui o gate 10: 10/10 verdes + sua autorização.
+- Nenhum dos dois substitui o GO-USB 10/10: 10/10 verdes + sua autorização.
 
 ## 4. Contrato do `00_slot_router.sh` (implementado e testado)
 
@@ -120,7 +121,7 @@ ROM no disco e ciclo rápido.
 
 **Não resolve:** (a) isolamento de `/data` — isso é o router; (b) persistência entre jobs — cada job
 é um container novo, então artefatos precisam de `actions/upload-artifact`/volume; (c) passthrough em
-macOS/Windows; (d) substituir o gate 10.
+macOS/Windows; (d) substituir o GO-USB 10/10.
 
 ## 6. Como isto se liga ao resto do contrato
 
