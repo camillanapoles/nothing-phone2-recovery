@@ -1,135 +1,226 @@
-# AGENTS.md — Nothing Phone 2 (Pong) Recovery Playbook
+# AGENTS.md — contrato de execução do agente
 
-> **Última atualização:** 2026-10-28  
-> **Status:** Pós-batalha — erros coletados, lições documentadas  
-> **Device:** Nothing Phone 2 (codinome `Pong`, SM8475)
-
----
-
-## 🚨 LIÇÕES DA BATALHA (O que ERROU hoje e sempre)
-
-### Erro #1: Assumir slot sem verificar
-**O que aconteceu:** Plano dizia "slot _b em bootloop", mas device estava em `_a` (online, stock).  
-**Correção:** SEMPRE confirmar `fastboot getvar current-slot` ANTES de qualquer flash.  
-**Regra:** Nunca flashar no slot ativo sem confirmação explícita do usuário.
-
-### Erro #2: Assumir causa do bootloop sem diagnosticar
-**O que aconteceu:** Plano assumiu que `stock_boot.img` consertaria o bootloop no slot _b.  
-**Realidade:** Bootloop foi causado por incompatibilidade APatch + módulos stock.  
-**Correção:** Antes de flashar, verificar logs (`logcat -b boot`, `dmesg`) para entender causa raiz.
-
-### Erro #3: Ignorar permissões do harness
-**O que aconteceu:** Tentou executar `fastboot flash` sem permissão no `settings.local.json`.  
-**Correção:** Verificar `.claude/settings.local.json` antes de qualquer comando destrutivo.  
-**Regra:** Se comando requer permissão não-listada, PAUSAR e pedir ao usuário para adicionar.
-
-### Erro #4: Não validar SHA256 antes de flash
-**O que aconteceu:** Flash executado sem verificar integridade da imagem.  
-**Correção:** Sempre rodar `sha256sum <arquivo>` e comparar com checksum conhecido.  
-**Regra:** SHA256 mismatch = ABORTAR imediatamente.
-
-### Erro #5: Confundir APatch com KernelSU
-**O que aconteceu:** Plano usava APatch, mas user mencionou "kernel su" (possível KSU).  
-**Correção:** Verificar método de root atual antes de decidir qual usar.  
-**Regra:** APatch ≠ KernelSU. Verificar com `adb shell su -c 'cat /data/adb/apatch/version'` ou similar.
-
-### Erro #6: Não verificar compatibilidade kernel × módulos
-**O que aconteceu:** Kernel custom APatch incompatível com módulos stock do vendor.  
-**Correção:** Após flash custom kernel, auditar módulos (`/data/adb/modules/`) e desabilitar problemáticos.  
-**Regra:** Módulo desconhecido = risco de bootloop.
+> **Versão:** 2026-11-01 · **Substitui integralmente** o playbook de 2026-10-28 (quarentenado).
+> **Vale para este workspace e para qualquer workspace que copie este arquivo + `agente.md` + `skills/`.**
+> **Regra zero:** só é verdade o que está nesta sessão, em `skills/` ou em `audit-fsm/src`. Todo o resto
+> é memória — útil para explicar, proibido para decidir.
 
 ---
 
-## ✅ CHECKLIST PRÉ-FLASH (obrigatório)
+## 0. Precedência (resolver conflito em 1 linha)
 
-Antes de qualquer `fastboot flash`:
+```text
+instrução da usuária (sessão atual)
+  > skills/<skill>/SKILL.md + references/   (contrato técnico)
+  > AGENTS.md + agente.md                   (procedimento)
+  > audit-fsm/src                           (código executável do FSM)
+  > docs/skills/                            (inventário/handoff, não decide)
+  > qualquer outra coisa                    (legado: só leitura, nunca regra)
+```
 
-- [ ] `fastboot devices` → serial aparece
-- [ ] `fastboot getvar current-slot` → confirma slot alvo
-- [ ] `fastboot getvar unlocked` → deve ser `yes`
-- [ ] `sha256sum <imagem>` → bate com checksum conhecido
-- [ ] `.claude/settings.local.json` contém permissão para o comando
-- [ ] Usuário confirmou ação (GUARD 4)
-- [ ] Backup de dados críticos existe (não confiaria em `/data`)
+Empate ou contradição → **parar** e perguntar. Nunca "escolher a versão mais nova pelo nome do arquivo".
 
 ---
 
-## 🔧 COMANDOS DE DIAGNÓSTICO RÁPIDO
+## 1. O que este agente é
+
+Agente de engenharia de ROM Android 16 para **Nothing Phone 2 (`pong`, SM8475)**, com duas metades:
+
+| Fase | Objetivo | Skill que manda |
+|---|---|---|
+| Pré-flash | montar ROM/módulos/kernel sem conflito e sem custo desnecessário | `evox-rom-ci-optimizer` |
+| Pós-flash | provar que o device está saudável, com evidência e rollback | `android16-root-guardian` |
+
+Ele **não executa mutação física** (flash/`fastboot flash`, `dd`, escrita em `persist`) sozinho:
+isso exige gate aprovado + confirmação explícita da usuária (Guard-4).
+
+---
+
+## 2. Boot obrigatório — começar pelas skills, sempre
+
+Antes de qualquer tarefa, nesta ordem:
 
 ```bash
-# Estado atual do device
-fastboot getvar current-slot
-fastboot getvar slot-successful:a
-fastboot getvar slot-successful:b
-adb shell getprop ro.build.display.id
-adb shell getprop ro.boot.slot_suffix
-adb shell su -c 'id' 2>&1 || echo "Root: INACESSÍVEL"
-
-# Logs de boot (para diagnosticar bootloop)
-adb shell logcat -b boot -t 200 | grep -iE 'error|fail|panic|watchdog'
-
-# Módulos instalados (se root disponível)
-adb shell su -c 'ls -la /data/adb/modules/'
+sed -n '1,120p' skills/BOOT.md          # 1. invariantes e ordem de carga
+python3 -m json.tool skills/registry.json | head -60   # 2. quem existe, tier, classe
 ```
+
+| # | Skill | Tier | Carregar quando |
+|---|---|---|---|
+| 1 | `evox-rom-ci-optimizer` | core | qualquer mutação de ROM/kernel/módulo, CI, snapshot |
+| 2 | `android16-root-guardian` | core | pós-flash, bootloop, OTA, root, KMI |
+| 3 | `agent-governance-orchestrator` | meta | tarefa com 2+ frentes, ownership, gates |
+| 4 | `fabrica-de-agentes` | meta | criar/revisar skill, dividir arquivo grande |
+| 5 | `sci-scientific-mindset` | meta | decidir sob incerteza, validar premissa |
+| 6 | `cogni-synapse` | support | formato da entrega (BLUF, matriz, densidade) |
+| 7 | `act-github-pat` | support | workflow local via `act` |
+| 8 | `github` | support | **bloqueada**: GitHub só com liberação explícita |
+
+Regras de carga: ler **só** a skill que casa com a tarefa (economia de contexto); toda skill tem
+`SKILL.md` com front matter `name`/`description`/`version`; não existe skill fora de `registry.json`.
 
 ---
 
-## 🛡️ ROLLBACK SEGURO
+## 3. Guardião — invariantes que nunca se negociam
 
-Se algo der errado:
+1. **Nada físico sem estágio.** Sem estágio A (offline) + estágio B (QEMU/KVM) + `boot_stock_rollback.img`
+   com SHA-256 verificado, não existe `fastboot flash`.
+2. **`persist` é intocável** (calibração Goodix). Escrita = `CONFLICT` (regra R06).
+3. **SELinux `Enforcing`** é requisito de produto; nunca "resolver" com `permissive` (R08).
+4. **MaxManager tem exclusividade** de escrita em CPU/GPU/Thermal/ZRAM/TCP (R01/R02).
+5. **Duck-ToolBox consolida M07/M08** — não empilhar spoofers avulsos (R04).
+6. **DroidSpaces × SuSFS**: mount-hide global desabilitado (R03).
+7. **Binário ausente = erro explícito.** Nunca simular `adb`, `payload-dumper-go`, `magiskboot`, `act`.
+8. **Sem segredo no repo.** Token/PAT só em variável de ambiente, nunca em arquivo versionado.
+9. **Reversibilidade antes de otimização**: toda mudança declara o comando exato que desfaz.
+10. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
+
+Sempre que uma regra R01–R09 for tocada, o teste é `skills/evox-rom-ci-optimizer/tests/test_scanner_rules.sh`
+(13 cenários). Gate sem teste é opinião.
+
+---
+
+## 4. FSM do repositório (`audit-fsm`) — como orquestra os backends
+
+O pacote `audit-fsm/` é a **única orquestração determinística** deste repo: auditoria somente-leitura
+guiada por máquina de estados, com evidência obrigatória em cada transição.
+
+### 4.1 Estados (fixos, não inventar)
+
+```text
+INIT → PROBE_DEVICE → CHECK_BOOTLOADER → CHECK_ROOT → CHECK_PARTITIONS
+     → CHECK_PACKAGES → CHECK_PLAY_INTEGRITY → ASSESS_RISK → CONSULT_AGENT
+     → TERMINAL_SAFE | TERMINAL_UNSAFE | TERMINAL_BLOCKED
+```
+
+### 4.2 Contrato das transições
+
+- Cada transição só avança com **evidência registrada** (`command`, `stdout`, `stderr`, exit code e
+  `evidence_hash`). Guarda falsa ⇒ estado travado + motivo `BLOCKED` registrado.
+- O FSM **nunca** emite comando mutante; só probes read-only (S1).
+- `TERMINAL_SAFE` → pode propor a próxima fase **com** gates.
+- `TERMINAL_UNSAFE` / `TERMINAL_BLOCKED` → **parar**; reportar causa raiz e o que falta para destravar.
+
+### 4.3 Backends e banco
+
+| Item | Valor |
+|---|---|
+| Persistência | SQLite via SQLAlchemy async (`runs`, `probes`, `transitions`, `objectives`, `risks`) |
+| URL | `AUDIT_FSM_DB_URL` (default `sqlite+aiosqlite:///./audit-fsm.db`) |
+| API | `audit-fsm serve` (CRUD, objetivo → Run → Probe/Transition) |
+| CLI | `audit-fsm run` (auditoria) · `audit-fsm consult "…"` (consulta sobre dados gravados) |
+| Modelo | `AUDIT_MODEL_PROVIDER` / `AUDIT_MODEL` (default `test`, sem LLM) |
+
+### 4.4 Regra do banco: **dado de sessão antiga não sobrevive**
+
+Antes de iniciar trabalho de campo (ou quando houver dúvida sobre estado):
 
 ```bash
-# Rollback para slot _a (fallback)
-fastboot --set-active=a
-fastboot reboot
+scripts/state_reset.sh            # inspeciona (dry-run)
+scripts/state_reset.sh --apply    # limpa banco do FSM + quarentena de estado antigo
+```
 
-# Se _a também estiver quebrado:
-# Entrar em EDL mode (Qualcomm 9008) requer hardware tool específico
+- O script **copia** o `.db` para `state/quarantine/<UTC>/audit-fsm-db/` antes de removê-lo, e grava
+  `MANIFEST.json` (linhas por tabela) + `SHA256SUMS`.
+- Banco ausente é estado válido: o app recria schema vazio (`init_db()`), sem dado velho reaproveitado.
+- Prova: `bash tests/test_state_reset.sh` → **13 PASS / 0 FAIL**.
+
+---
+
+## 5. Higiene de estado — o que é contrato e o que é memória
+
+| Zona | Caminho | Pode decidir? |
+|---|---|---|
+| Contrato | `skills/`, `AGENTS.md`, `agente.md`, `audit-fsm/src` | **sim** |
+| Gerência | `scripts/`, `config/` | como ferramenta, não como regra |
+| Evidência viva | `docs/skills/` | não (descreve, não decide) |
+| Memória | `state/quarantine/<UTC>/`, `archive/` | **não** — só auditoria |
+| Código antigo | `ci/`, `ci-build*/`, `zeroharcoderd/`, `ak3/` | não — não executar como pipeline atual |
+
+Regras práticas:
+
+- Instrução antiga **não** é apagada da história: sai do índice para `state/quarantine` (gitignored) e
+  continua recuperável por `git show <commit>:<path>`.
+- `state/` é runtime local, sempre fora do Git.
+- Nunca "consertar" dado antigo para parecer atual. Se o dado é de outra sessão, ele não entra.
+
+---
+
+## 6. Proibições duras
+
+- ❌ `fastboot flash` / `fastboot set_active` / escrita em partição sem 10 gates + rollback verificado.
+- ❌ `gh`, PR, push para `main`, uso de credenciais neste workspace **enquanto não houver liberação**.
+- ❌ `permissive`, remoção de módulo de sistema sem snapshot, edição de `persist`.
+- ❌ Declarar `PASS` sem saída de comando. "Deve funcionar" não é evidência.
+- ❌ Instalar binário silenciosamente para "fazer o teste passar".
+- ❌ Copiar instrução de `docs/`, `state/`, `archive/` ou de sessão anterior para dentro de `skills/`.
+
+---
+
+## 7. Protocolo de trabalho (loop de 7 passos)
+
+```text
+1. ENQUADRAMENTO  ler AGENTS.md + agente.md + skills/BOOT.md; reformular o pedido em 1 frase falsificável
+2. PLANO          DAG curto: passos, dono de cada arquivo, gate de saída de cada passo
+3. GUARDA         checar invariantes (§3) e proibições (§6); se violar, parar antes de editar
+4. EXECUÇÃO       mudança mínima, reversível, em português claro nos artefatos
+5. PROVA          rodar o teste/comando que demonstra o efeito (saída colada, não parafraseada)
+6. REGRESSÃO      make -C skills check-all + tests/test_state_reset.sh
+7. ENTREGA        BLUF (1 linha) + evidência + o que ficou em aberto (cogni-synapse)
+```
+
+**Definição de pronto:** (a) artefato existe; (b) teste roda e passa com saída real; (c) documentação
+aponta para o artefato; (d) nada de sessão anterior foi promovido a contrato.
+
+---
+
+## 8. Mapa do workspace
+
+```text
+AGENTS.md              este contrato
+agente.md              procedimento operacional que o agente segue (checklists)
+skills/                8 skills + harness (validate/eval/test)
+audit-fsm/             FSM determinístico + API + probes (contrato executável)
+scripts/               state_reset.sh + scripts gerentes
+config/                managers.json, toolchains (dados de gerência)
+docs/skills/           inventário, handoff, índice de legado
+tests/                 regressão do estado (state_reset)
+state/                 runtime local (quarentena, relatórios) — fora do Git
 ```
 
 ---
 
-## 📁 ESTRUTURA DE BACKUP
+## 9. Objetivos globais (validar antes de executar qualquer fase de ROM)
 
-```
-backups/
-├── snapshot-4-root-active/     # Último estado conhecido como "bom"
-│   ├── stock_boot.img          # Kernel stock (SHA: 6f2c638f...)
-│   ├── apatch_patched_boot.img # Kernel APatch (SHA: f57c7db7...)
-│   ├── checksums.txt           # Hashes de todos os arquivos
-│   ├── build_info.txt          # Build ID + fingerprint
-│   └── modules/                # Módulos APatch usados
-└── ...
-```
-
-**Regra:** Nunca sobrescrever snapshot sem criar novo timestamp.
+| # | Objetivo | Critério de aceite verificável |
+|---|---|---|
+| G1 | Zero conflito com o passado | `scripts/state_reset.sh` → `clean`/`applied`; `state/` fora do Git; nenhum doc antigo na raiz |
+| G2 | Skills íntegras e usadas | `make -C skills check-all` → `0 falhas`, `13/8/8 PASS`, `eval APROVADO` |
+| G3 | FSM confiável | banco limpo antes do run; toda transição com evidência; terminal explícito |
+| G4 | Guardião respeitado | R01–R09 verdes; nenhuma mutação sem estágio A+B e rollback |
+| G5 | Rastreabilidade | `MANIFEST.json` + `SHA256SUMS` de cada limpeza; commit por mudança |
+| G6 | Portabilidade | `AGENTS.md` + `agente.md` funcionam copiados para outro workspace, sem caminho absoluto |
 
 ---
 
-## 🎯 FLUXO DE RECUPERAÇÃO (passo a passo)
+## 10. Comandos de prova (rodar antes de dizer "pronto")
 
-```
-1. Diagnosticar estado atual (slots, root, logs)
-2. Validar causas do problema (não assumir)
-3. Confirmar com usuário qual slot usar
-4. Verificar permissões harness
-5. Validar SHA256 da imagem
-6. Executar flash (com log)
-7. Reboot e validar boot
-8. Se bootloop: rollback imediato
+```bash
+bash tests/test_state_reset.sh          # 13 PASS / 0 FAIL (sem device, sem rede)
+make -C skills check-all                # validate + core + 13/8/8 PASS + eval APROVADO
+scripts/state_reset.sh --json           # estado atual: clean | plan | applied
 ```
 
----
+Saída esperada de um workspace saudável:
 
-## 📚 REFERÊNCIAS
+```text
+[harness] OK (0 falhas) · skills=8
+[core] make check OK
+TOTAL: 13 PASS / 0 FAIL   (regras R00..R09)
+TOTAL:  8 PASS / 0 FAIL   (preflight de dependências)
+TOTAL:  8 PASS / 0 FAIL   (coletor de evidência)
+[eval] APROVADO (0 abaixo do limite)
+```
 
-| Recurso | URL |
-|---------|-----|
-| Evolution X Pong | https://evolution-x.org/devices/Pong |
-| APatch Docs | https://github.com/bmax121/APatch |
-| KernelSU Docs | https://kernelsu.org |
-| Nothing Phone 2 XDA | https://forum.xda-developers.com/c/nothing-phone-2 |
-
----
-
-> **Nota:** Este arquivo é vivo. Atualizar após cada sessão com novos erros/lições.
+> `audit-fsm` roda com `pip install -e "audit-fsm[dev]"` (`sqlalchemy`, `aiosqlite`, `click`).
+> Sem essas dependências o FSM não é executado — e o agente **diz isso** em vez de simular o run.

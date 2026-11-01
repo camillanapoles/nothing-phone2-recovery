@@ -81,3 +81,6 @@ skills/**/__pycache__/
 
 # Fonte bruta do Google Drive (proveniência registrada em docs/skills/SKILLS-INVENTORY.md)
 google_drive/
+
+# Estado runtime local (quarentena de sessões, relatórios) — nunca versionado
+state/
