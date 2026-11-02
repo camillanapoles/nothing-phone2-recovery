@@ -1,5 +1,7 @@
 # Relatório final de orquestração — retificado, validado e pronto para ratificação
 
+<!-- contagens: histórico --> números deste relatório são o retrato de 2026-10-31; o valor vivo sai de `make -s contagens`.
+
 > **HISTÓRICO — NÃO EXECUTAR.** Escrito sob a Decisão A (APatch + kernel stock),
 > superseded pela **Decisão C** em 2026-11-01 (`references/root-decision.json`). Vale como registro;
 > os comandos de root/kernel aqui não são a ordem vigente.

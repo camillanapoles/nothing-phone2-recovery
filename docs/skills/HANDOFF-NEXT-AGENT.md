@@ -1,7 +1,7 @@
 # Handoff — instrução de prosseguimento (próximo agente)
 
 **Estado:** branch `arena/863582fd-nothing-phone2-recovery` · skill `evox-rom-ci-optimizer` v3.1
-**Data:** 2026-11-01 · **Suíte:** `make -s prove` verde (754 casos / 35 suítes) · mutação **169/169 mortos por asserção**
+**Data:** 2026-11-01 · **Suíte:** `make -s prove` verde · mutação **177/177 mortos por asserção**
 
 > **Leia antes:** `docs/skills/CONTINUITY-INSTRUCTION.md` (memória, método, mandato, aprendizados,
 > anti-padrões e como resolver dúvida). Para a kernel: `docs/skills/KERNEL-REQUIREMENTS.md`
@@ -73,7 +73,7 @@ pergunta de novo; ele **verifica** com `session_open.py check` antes de agir.
 
 ## 5. Regras que não podem ser afrouxadas
 
-- **Teste que passa com a lógica removida é falha** (`make -s mutation`: 139 mutantes, 0 vivo).
+- **Teste que passa com a lógica removida é falha** (`make -s mutation`: catálogo inteiro, 0 vivo).
 - **Timeout não é cobertura**: mutante morto por travar é classificado `timeout` e o harness
   reprova (`--allow-timeout` só com justificativa explícita).
 - **Ausência de insumo não é sucesso**: scripts de estágio saem `3` (PENDENTE) ou `4` (ferramenta
@@ -86,7 +86,7 @@ pergunta de novo; ele **verifica** com `session_open.py check` antes de agir.
 | Comando | O que prova |
 |---|---|
 | `make -s prove` | estado + wrappers + arquitetura + harness das 8 skills |
-| `make -s mutation` | falseabilidade: 102/102 mortos **por asserção**, 0 timeout |
+| `make -s mutation` | falseabilidade: catálogo inteiro morto **por asserção**, 0 timeout |
 | `make -s vacuity` | 22 suítes, 0 erro, 0 aviso (V1–V6) |
 | `make -s audit-loop` | AG1–AG21 + contradições + cobertura + mutação, em loop até convergir |
 | `docs/skills/FALSIFIABILITY-REPORT.md` | relatório com mascaramentos encontrados e limites |

@@ -1,5 +1,7 @@
 # Auditoria de contradições — 2026-11-01
 
+<!-- contagens: histórico --> números deste relatório são o retrato de 2026-10-28; o valor vivo sai de `make -s contagens`.
+
 **Pergunta:** alguma instrução ativa ainda pertence à arquitetura antiga, a outro workspace, ou usa
 vocabulário que duas partes do repositório leem de formas diferentes?
 

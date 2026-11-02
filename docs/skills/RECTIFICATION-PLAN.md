@@ -55,7 +55,7 @@ troca de branch, porque `workspace/` está no `.gitignore` (linha 97). O ledger 
 | **R2** | `success_guarantee.py`: `R3` dizia *Tricky Store + PIFork*; `R5` não conhece SUSFS userspace | script + `test_success_guarantee.sh` | `make garantia` deve citar TEESimulator-RS + PIFork e exigir `susfs4ksu` casado | gate que **avalia** a decisão — antes dos documentos |
 | **R3** | `module-requirements.json`: `M03` (GApps A16), `M07` (fingerprint), `M08` (banking/Tricky) ainda descrevem a arquitetura antiga | JSON + testes que o leem | `make m05` + `test_script_contracts` | é o dado que o R2 consulta |
 | **R4** | `hiding-stack.json` estrutural: camada `apatch-native` com `engine_only: apatch` e `zygisk-next.requires = [apatch-native]` — topologia APatch-first, agora errada | JSON + `root_pair_solver` | `make pack` tem de continuar `FALTA_PROVA`, com a topologia KSU-Next | muda o solver; por isso vem depois dos gates que só citam |
-| **R5** | `session_open.py` `SKELETON`/`QUESTIONS`: 15 módulos legados e `kptools` (APatch) | script + `test_session_open.sh` | `session_open template` deve emitir as 20 camadas ativas do contrato | template alimenta decisão; depois da topologia estar certa |
+| **R5** | `session_open.py` `SKELETON`/`QUESTIONS`: 15 módulos legados e `kptools` (APatch) | script + `test_session_open.sh` | `session_open template` deve emitir as 21 camadas ativas do contrato | template alimenta decisão; depois da topologia estar certa |
 | **R6** | `APPROVED-INSTALL-SEQUENCE.md` | docs + `legacy-sources.json` | `make escopo` (conflitos declarados continuam) | **feito parcial**: banner SUPERSEDIDO; falta apontar `replaced_by` no `legacy-sources.json` |
 | **R7** | `closure-plan.json` não conhece `E13…` (retificações) nem cita `make stack` | JSON + `closure_gate` | `make closure` 16/16 com os novos passos | o plano de fechamento tem de cobrir o que a arquitetura nova criou |
 | **R8** | débitos novos não aparecem no ledger: `S02` (zip+sha da ROM), `S03` (medição de integridade) | `debt_ledger.py` | `make debitos` listando `S02`/`S03` abertos | derivar débito é o último passo de contrato |
@@ -90,7 +90,7 @@ A frente de retificação está encerrada quando, ao mesmo tempo:
 2. `make -s garantia` cita apenas camadas que existem no `install-stack.json`;
 3. `make -s pack` continua `FALTA_PROVA` **sem** mencionar APatch como única topologia;
 4. `make -s closure` e `make -s debitos` conhecem `E13…` e `S02`/`S03`;
-5. `prove` e `mutation` seguem verdes (hoje: 752+ casos / 35 suítes e 169 mutantes).
+5. `prove` e `mutation` seguem verdes (hoje: 752+ casos / 35 suítes e 177 mutantes).
 
 Nada disso promete `DEVICE` no aparelho: isso é `R11`, e depende de keybox não revogada.
 
@@ -99,7 +99,7 @@ Nada disso promete `DEVICE` no aparelho: isso é `R11`, e depende de keybox não
 ## 5. Estado em 2026-11-02 — refatoração provada, não prometida
 
 `scripts/refactor_gate.py` transforma "refatoração completa" em **gate**: 9 checagens
-`RC1…RC9` que comparam o contrato (`references/install-stack.json`) com TODOS os consumidores.
+`RC1…RC10` que comparam o contrato (`references/install-stack.json`) com TODOS os consumidores.
 Sem ele, refatorar era um passo manual que ficava pela metade.
 
 | Checagem | Cobra | Situação |
@@ -134,12 +134,36 @@ O harness tinha uma fuga silenciosa: `--only` com id **inexistente** devolvia `e
 | cobertura por `M[id]` | `workspace/audit/mutation-latest.json`: `value` 1 (morto) / 0 (não executado), reescrito do zero a cada execução |
 | produto da cobertura | `product = 1` só com todos mortos; `missing` lista os ausentes |
 | relatório do CI | reprova se faltar id, sobrar id, duplicar id ou houver sobrevivente |
-| numeração | fechada (`ativo ∪ retired` = `M01..M195`, sem lacuna) — `M158` foi registrado como aposentado ao fechar a lacuna |
+| numeração | fechada (`ativo ∪ retired` = `M01..M197`, sem lacuna) — `M158` foi registrado como aposentado ao fechar a lacuna |
 | ids novos | auto-incremento: entrada sem `id` recebe o próximo livre; `--write-ids` grava; `--next-id` mostra |
 
 `RC10_mutacao_completa` (gate de refatoração) cobra que **todo script** de `scripts/` e
 `skills/*/scripts/` tenha mutante com teste existente — script novo sem mutante = falha.
 
+## 7. Limites derivados — "e se o catálogo virar 176?" (2026-11-02)
+
+Todo número que aparece em doc, workflow ou comentário é conferido contra a fonte viva por
+`scripts/counts_gate.py` (`make -s contagens`). Nada é digitado como limite:
+
+| Limite | De onde sai |
+|---|---|
+| quantos mutantes | `len(mutants)` do catálogo |
+| último / próximo id | `max(ativo ∪ retired)` |
+| camadas do contrato | `len(layers)` do `install-stack.json` |
+| invariantes | `len(checks)` do `stack_gate --json` |
+| coerências | `len(checks)` do `refactor_gate --json` |
+| passos do plano | `len(steps)` do `closure-plan.json` |
+| fatias do CI | input `shards` (padrão 8), limitado a `len(ids)` — cobertura continua total |
+
+Prova do crescimento: `tests/test_counts_gate.sh` adiciona um mutante (175→176) num workspace
+temporário e exige **reprovação**; corrigindo o texto, o mesmo fixture volta a passar. Ou seja:
+o gate não é "sempre vermelho", é derivado.
+
+O que **não** está coberto por esse ledger: o `audit-fsm` não persiste cobertura de mutação
+(as tabelas são `runs`, `probes`, `transitions`, `objectives`, `risks` — estado de aparelho,
+não prova de validação). A cobertura vive em `workspace/audit/mutation-latest.json`, artefato de
+execução. Isso está registrado como lacuna conhecida, não como promessa.
+
 **Falseabilidade (o teste viável):** `tests/test_refactor_gate.sh` — 16 PASS, sendo 10 falsificações
-(uma por checagem + a variante "módulo perde o token"), mais 3 mutantes `M190–M192` que só morrem se
+(uma por checagem + a variante "módulo perde o token"), mais 6 mutantes (`M190`–`M195`) que só morrem se
 esses casos continuarem reprovando. Rodar: `make -s refactor` (9/9) e `make -s mutation`.

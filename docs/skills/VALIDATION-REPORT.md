@@ -1,5 +1,7 @@
 # Relatório de validação — worktree `arena/863582fd-nothing-phone2-recovery`
 
+<!-- contagens: histórico --> números deste relatório são o retrato de 2026-10-30; o valor vivo sai de `make -s contagens`.
+
 **Data:** 2026-11-01 · **Escopo:** confirmar, arquivo por arquivo, que as correções da arquitetura
 ratificada estão **aplicadas neste worktree** e que nenhuma instrução ativa ainda manda fazer o que
 foi abandonado.

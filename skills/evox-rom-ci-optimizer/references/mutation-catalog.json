@@ -1615,6 +1615,24 @@
    "strength": "semantic",
    "rationale": "ledger diria 100% de cobertura mesmo com mutante não executado",
    "id": "M195"
+  },
+  {
+   "file": "scripts/counts_gate.py",
+   "find": "                if escrito == esperado:",
+   "replace": "                if True:",
+   "test": "tests/test_counts_gate.sh",
+   "strength": "semantic",
+   "rationale": "número escrito à mão nunca seria conferido contra a fonte viva",
+   "id": "M196"
+  },
+  {
+   "file": "scripts/counts_gate.py",
+   "find": "            if re.search(r'--only\\s+\"?M\\d', linha):",
+   "replace": "            if False:",
+   "test": "tests/test_counts_gate.sh",
+   "strength": "semantic",
+   "rationale": "workflow poderia carregar lista de ids na mão e o escopo do CI não seria cobrado",
+   "id": "M197"
   }
  ],
  "retired": [

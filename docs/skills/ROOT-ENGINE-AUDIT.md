@@ -1,5 +1,7 @@
 # Auditoria — qual motor de root, qual kernel, e como ficam os módulos
 
+<!-- contagens: histórico --> números deste relatório são o retrato de 2026-10-30; o valor vivo sai de `make -s contagens`.
+
 **Data:** 2026-11-01 · **Device:** Nothing Phone (2) `pong` / SM8475 · **ROM alvo:** Evolution X
 `16.0-20260915-Pong-11.11` (Android 16 / API 36, pinada) · **Pergunta:** Magisk, APatch ou
 KernelSU(+SUSFS com kernel customizado)? E isso é compatível com a otimização limpa que foi pedida?

@@ -269,9 +269,10 @@ make -C skills check-all                # validate + core + 13/8/8 PASS + eval A
 make -s stack                           # 16/16 invariantes do contrato (install-stack.json)
 make -s refactor                        # 10/10 coerências contrato × consumidores
 make -s prove                           # suíte inteira inclui stack + refactor
-make -s mutation                        # 175/175 mutantes mortos · cobertura COMPLETA
+make -s mutation                        # 177/177 mutantes mortos · cobertura COMPLETA
 make -s mutacao-verifica                # catálogo fechado (ids únicos, sem lacuna)
 make -s mutacao-ids                     # grava ids automáticos de mutantes novos
+make -s contagens                       # nenhum número escrito à mão: tudo derivado do catálogo
 scripts/state_reset.sh --json           # estado atual: clean | plan | applied
 ```
 
@@ -286,6 +287,13 @@ scripts/state_reset.sh --json           # estado atual: clean | plan | applied
 > `workspace/audit/mutation-latest.json` guarda **1 (morto) / 0 (não executado)** por `M[id]`,
 > com o produto — zerado a cada execução, para que "rodei em parte" nunca pareça "passei".
 > Ids são auto-incrementais (`--next-id`, `--write-ids`, `make -s mutacao-ids`).
+
+> **Zero número escrito à mão.** `scripts/counts_gate.py` (`make -s contagens`) recalcula a
+> verdade viva — mutantes, último/próximo id, camadas, invariantes, coerências, passos — e
+> reprova qualquer doc/workflow que diga outro número. Crescer o catálogo de 175 para 176
+> **quebra o CI em segundos** até o texto ser corrigido: deriva, não decoreba. Afirmação
+> histórica é declarada na própria linha ou no topo do arquivo com
+> `<!-- contagens: histórico -->` — presumir histórico não vale.
 > O CI `.github/workflows/proof.yml` roda contrato → `make -s prove` → mutação em 8 fatias
 > (`granularity=item` faz 1 job por mutante) → relatório **item a item** no summary e no PR.
 
