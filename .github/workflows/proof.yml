@@ -1,0 +1,160 @@
+name: Proof
+
+# A prova não depende de alguém lembrar: contrato primeiro (falha em 1 s), prova determinística
+# depois (make -s prove), mutação fatiada em 8 shards e um relatório único por PR.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: proof-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONHASHSEED: "0"
+
+jobs:
+  contrato:
+    name: Contrato + coerência (falha cedo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Gate do contrato (install-stack × consumidores)
+        run: make -s stack
+      - name: Coerência da refatoração (9/9)
+        run: make -s refactor
+      - name: Escopo, plano e continuidade
+        run: |
+          make -s escopo
+          make -s closure
+          make -s continuidade
+
+  prove:
+    name: Prova determinística (make -s prove)
+    needs: contrato
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: make -s prove
+        run: make -s prove
+
+  plano:
+    name: Plano da mutação (shards)
+    needs: contrato
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      shards: ${{ steps.split.outputs.shards }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: split
+        name: Fatiar o catálogo em SHARDS fatias
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, sys
+          cat = json.load(open("skills/evox-rom-ci-optimizer/references/mutation-catalog.json",
+                              encoding="utf-8"))
+          ids = [m["id"] for m in cat["mutants"]]
+          n = int(os.environ.get("SHARDS", "8"))
+          fatias = [ids[i::n] for i in range(n)]
+          fatias = [f for f in fatias if f]
+          print("shards=" + json.dumps([{"shard": i, "ids": ",".join(f)}
+                                        for i, f in enumerate(fatias)]))
+          # só a linha shards vai para $GITHUB_OUTPUT: comentário aqui quebra o parser
+          print(f"{len(ids)} mutantes em {len(fatias)} shards", file=sys.stderr)
+          PY
+        env:
+          SHARDS: "8"
+
+  mutacao:
+    name: Mutação (shard ${{ matrix.shard.shard }})
+    needs: plano
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plano.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Rodar o shard
+        run: |
+          python3 skills/evox-rom-ci-optimizer/scripts/mutation_check.py --root . \
+            --only "${{ matrix.shard.ids }}" || true
+      - name: Anotar sobrevivente/inválido/timeout (o log não é a prova)
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, os, sys
+          p = "workspace/audit/mutation.json"
+          if not os.path.exists(p):
+              print("::error::shard sem relatório de mutação")
+              sys.exit(1)
+          d = json.load(open(p, encoding="utf-8"))
+          ruins = [r for r in d.get("results") or []
+                   if r.get("status") in ("survived", "invalid", "timeout")]
+          for r in ruins:
+              print(f"::error file={r.get('file')}::" + r.get("id") + " " + r.get("status"))
+          print(f"{d.get('killed')}/{d.get('total')} mortos neste shard")
+          sys.exit(1 if ruins else 0)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-${{ matrix.shard.shard }}
+          path: workspace/audit/mutation.json
+          if-no-files-found: warn
+
+  relatorio:
+    name: Relatório de mutação
+    needs: mutacao
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-*
+          path: shards
+      - name: Consolidar e reprovar sobrevivente
+        run: |
+          python3 - <<'PY'
+          import glob, json, os, sys
+          arqs = sorted(glob.glob("shards/*/mutation.json"))
+          if not arqs:
+              print("::error file=skills/evox-rom-ci-optimizer/references/mutation-catalog.json::"
+                    "nenhum shard produziu relatório")
+              sys.exit(1)
+          res, ruins = [], []
+          for a in arqs:
+              d = json.load(open(a, encoding="utf-8"))
+              res += d.get("results") or []
+              ruins += [r for r in d.get("results") or []
+                        if r.get("status") in ("survived", "invalid", "timeout")]
+          os.makedirs("workspace", exist_ok=True)
+          json.dump({"schema": "evox-mutation-report/2", "shards": len(arqs),
+                     "total": len(res), "results": res},
+                    open("workspace/mutation-merged.json", "w", encoding="utf-8"), indent=1)
+          for r in ruins:
+              print(f"::error file={r.get('file')}::" + r.get("id") + " " + r.get("status"))
+          print(f"{len(res) - len(ruins)}/{len(res)} mortos em {len(arqs)} shards")
+          sys.exit(1 if ruins else 0)
+          PY

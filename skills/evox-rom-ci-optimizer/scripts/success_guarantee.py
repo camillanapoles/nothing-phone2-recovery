@@ -5,7 +5,7 @@ Avalia as cinco solicitações da usuária contra o PAR (motor × kernel) e devo
 
   R1 par único do pack      existe exatamente 1 par que fecha as 10 condições (root_pair_solver.py)
   R2 root oculto            camada de ocultação utilizável pelo par + medição por app
-  R3 integridade/fingerprint Tricky Store + PIFork sem spoofers concorrentes
+  R3 integridade/fingerprint: atestação do contrato (TEESimulator-RS + PIFork) sem spoofers
   R4 zero conflito          varredura estática dos módulos reais
   R5 DroidSpaces oficial    instalação conforme doc do app + kernel com as CONFIG_* e os patches
 
@@ -174,17 +174,33 @@ def main(argv: list[str]) -> int:
     m07 = next((m for m in mods if m["id"] == "M07"), {})
     m08 = next((m for m in mods if m["id"] == "M08"), {})
     base = ",".join((m07.get("compliance_base") or []) + (m08.get("compliance_base") or []))
-    if "Tricky Store" in base and "PlayIntegrityFork" in base:
+    # os tokens vêm do CONTRATO (install-stack.json): trocar a engine muda a exigência aqui
+    try:
+        _cands = [os.path.join(root, "skills", "evox-rom-ci-optimizer", "references", "install-stack.json"),
+                  os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "references", "install-stack.json")]
+        _st = {}
+        for _c in _cands:
+            if os.path.isfile(_c):
+                _st = json.load(open(_c, encoding="utf-8"))
+                break
+    except (OSError, ValueError):
+        _st = {}
+    tokens = [l.get("proof_token") for l in (_st.get("layers") or [])
+              if l.get("kind") == "integrity" and l.get("status") == "required"]
+    tokens = [t for t in tokens if t]
+    if tokens and all(t in base for t in tokens):
         if dev.get("device_integrity") is True:
             add("R3", "integridade/fingerprint sem conflito", "PROVADO",
                 f"DEVICE_INTEGRITY medido em {len(dev.get('integrity_tested_apps') or [])} app(s)")
         else:
             add("R3", "integridade/fingerprint sem conflito", "FALTA_PROVA",
-                "M07/M08 declaram Tricky Store + PIFork (fonte: config-map do aparelho)",
+                f"M07/M08 declaram {', '.join(tokens)} (contrato: install-stack)",
                 "medir MEETS_DEVICE_INTEGRITY no aparelho e registrar em device.device_integrity")
     else:
+        faltam = [t for t in tokens if t not in base] or ["camada de atestação"]
         add("R3", "integridade/fingerprint sem conflito", "FALTA_PROVA",
-            "contrato de M07/M08 sem a camada de atestação", "declarar compliance_base em M07/M08")
+            f"M07/M08 não declaram {', '.join(faltam)}",
+            "declarar compliance_base em M07/M08 conforme install-stack.json")
 
     # R4 — zero conflito
     n = conf.get("conflicts")

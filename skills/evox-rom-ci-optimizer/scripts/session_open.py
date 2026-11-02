@@ -52,35 +52,46 @@ REQUIRED = {
     "usb.acknowledged": ("usb", "acknowledged"),
 }
 
+def _modulos_do_contrato():
+    """Os módulos do template vêm do CONTRATO (install-stack.json), não de lista fixa."""
+    cands = [os.path.join("skills", "evox-rom-ci-optimizer", "references", "install-stack.json"),
+             os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "references",
+                          "install-stack.json")]
+    d = None
+    for c in cands:
+        try:
+            d = json.load(open(c, encoding="utf-8"))
+            break
+        except (OSError, ValueError):
+            continue
+    if not isinstance(d, dict):
+        return None
+    fase = {}
+    for ph in d.get("phases") or []:
+        for st in ph.get("steps") or []:
+            fase.setdefault(st.get("layer"), ph.get("id"))
+    out = []
+    for l in d.get("layers") or []:
+        if l.get("status") == "not_installed":
+            continue
+        out.append({"id": l.get("id"), "name": l.get("name"), "phase": fase.get(l.get("id"), "?"),
+                    "pin": l.get("pin"), "status": l.get("status"), "approved": None})
+    return out
+
+
 SKELETON = {
     "schema": "evox-session/1",
     "build": {"flavor": None, "flavor_source": None, "rationale": None,
               "zip_path": None, "zip_sha256": None},
     "installs": [
         {"tool": "payload-dumper-go", "needed_for": "extrair payload.bin (L4 + Wave 1)", "authorized": None},
-        {"tool": "kptools", "needed_for": "patch APatch/KPM no boot.img", "authorized": None},
+        {"tool": "ksud", "needed_for": "instalar módulos no KSU-Next", "authorized": None},
         {"tool": "magiskboot", "needed_for": "unpack/repack do boot.img", "authorized": None},
         {"tool": "adb", "needed_for": "Stage B (AVD) e coleta pós-flash", "authorized": None},
     ],
     "kernel": {"choice": None, "rationale": None},
-    "modules": [
-        {"id": "M01", "name": "APatch Root (Guard-4)", "phase": "F0", "approved": None},
-        {"id": "M05", "name": "DroidSpaces", "phase": "F0", "approved": None},
-        {"id": "M03", "name": "Google Unlocked (GApps A16)", "phase": "F1", "approved": None},
-        {"id": "M07", "name": "Fingerprint Google", "phase": "F1", "approved": None},
-        {"id": "M08", "name": "Duck-ToolBox (banking/Play Integrity)", "phase": "F1", "approved": None},
-        {"id": "M12A", "name": "MaxManager", "phase": "F2", "approved": None},
-        {"id": "M12B", "name": "GenieX (NPU)", "phase": "F2", "approved": None},
-        {"id": "M02", "name": "Camera (GCam + HAL)", "phase": "F3", "approved": None},
-        {"id": "M04", "name": "Screen Capture", "phase": "F4", "approved": None},
-        {"id": "M06", "name": "Free-Form Windows", "phase": "F4", "approved": None},
-        {"id": "M09", "name": "SAF", "phase": "F4", "approved": None},
-        {"id": "M10", "name": "Rede/socket por app", "phase": "F4", "approved": None},
-        {"id": "M11", "name": "Port-forward intranet", "phase": "F4", "approved": None},
-        {"id": "M13", "name": "Ambient Open CI", "phase": "F5", "approved": None},
-        {"id": "M14", "name": "Snapshots por camada", "phase": "F5", "approved": None},
-        {"id": "M15", "name": "Release pré-USB", "phase": "F5", "approved": None},
-    ],
+    "modules": _modulos_do_contrato() or [],
+
     "canary": {"avd_seconds": 60, "physical_min": 10, "avc_baseline": 0, "approved": None},
     "cache": {"inline_max_mb": 25, "retention_days": 5, "prune_days": 90, "approved": None},
     "usb": {"policy": "produção: somente após 10/10 no emulador", "acknowledged": None},

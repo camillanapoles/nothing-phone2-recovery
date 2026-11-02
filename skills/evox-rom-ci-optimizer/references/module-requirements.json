@@ -1,207 +1,207 @@
 {
-  "schema": "evox-module-requirements/1",
-  "note": "Contrato de requisitos por módulo (não é a ordem de rollout; a ordem está em module-rollout-order.md).",
-  "modules": [
-    {
-      "id": "M01",
-      "name": "Root engine — flash do kernel compilado (KSU embutido) + KernelSU-Next Manager",
-      "is_root_engine": true,
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": true,
-      "kernel_evidence": "built_kernel",
-      "kernel_gate": "kernel_compat_check.sh",
-      "artifact": "Custom-build-pong-ksu-susfs-droidspaces"
-    },
-    {
-      "id": "M02",
-      "name": "Camera (GCam + HAL flags)",
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false
-    },
-    {
-      "id": "M03",
-      "name": "GApps A16 (serviços Google)",
-      "root_required": false,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false
-    },
-    {
-      "id": "M04",
-      "name": "Screen capture irrestrito",
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false
-    },
-    {
-      "id": "M05",
-      "name": "DroidSpaces (containers Linux)",
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": true,
-      "needs_zygisk": false,
-      "kernel_level": true,
-      "app": {
-        "name": "Droidspaces-OSS",
-        "version": "v7.1.0",
-        "released_at": "2026-10-27"
-      },
-      "requirements_ref": "skills/evox-rom-ci-optimizer/references/droidspaces-requirements.json",
-      "install_phase": "F0",
-      "install_position": 2,
-      "depends_on": [
-        "M01"
-      ],
-      "supported_engines": [
-        "apatch",
-        "kernelsu",
-        "sukisu"
-      ],
-      "kernel_evidence": "built_kernel",
-      "kernel_gate": "kernel_compat_check.sh"
-    },
-    {
-      "id": "M06",
-      "name": "Free-form windows",
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false
-    },
-    {
-      "id": "M07",
-      "name": "Fingerprint Google (props)",
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false,
-      "compliance_base": [
-        "PlayIntegrityFork (custom.pif.json)"
-      ],
-      "compliance_role": "fingerprint/props de identidade"
-    },
-    {
-      "id": "M08",
-      "name": "Duck-ToolBox (banking / Play Integrity)",
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": true,
-      "kernel_level": false,
-      "zygisk_base": "Zygisk Next",
-      "compliance_base": [
-        "Zygisk Next",
-        "Tricky Store",
-        "PlayIntegrityFork"
-      ],
-      "compliance_role": "atestação/KeyMint + Play Integrity (MEETS_DEVICE_INTEGRITY)",
-      "hiding_base": {
-        "stack": "Zygisk Next + Zygisk Assistant + APatch 'Exclude modifications'",
-        "status": "source_approved_pending_device",
-        "source": "https://github.com/snake-4/Zygisk-Assistant (APatch users)",
-        "ref": "references/hiding-stack.json"
-      }
-    },
-    {
-      "id": "M09",
-      "name": "SAF (Storage Access Framework)",
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false
-    },
-    {
-      "id": "M10",
-      "name": "Rede/socket por app (netfilter/eBPF)",
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": true,
-      "kernel_evidence": "built_kernel",
-      "kernel_gate": "kernel_compat_check.sh"
-    },
-    {
-      "id": "M11",
-      "name": "Port-forward intranet",
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false
-    },
-    {
-      "id": "M12A",
-      "name": "MaxManager (CPU/GPU/thermal/I-O)",
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false
-    },
-    {
-      "id": "M12B",
-      "name": "GenieX (NPU / QAIRT)",
-      "root_required": true,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false
-    },
-    {
-      "id": "M13",
-      "name": "Ambient Open CI",
-      "root_required": false,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false
-    },
-    {
-      "id": "M14",
-      "name": "Snapshots por camada",
-      "root_required": false,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false
-    },
-    {
-      "id": "M15",
-      "name": "Release Artifact pre-USB",
-      "root_required": false,
-      "requires_root_engine": [],
-      "requires_susfs": false,
-      "mount_hide_global": false,
-      "needs_zygisk": false,
-      "kernel_level": false
-    }
-  ]
+ "schema": "evox-module-requirements/1",
+ "note": "Contrato de requisitos por módulo (não é a ordem de rollout; a ordem está em module-rollout-order.md).",
+ "modules": [
+  {
+   "id": "M01",
+   "name": "Root engine — flash do kernel compilado (KSU embutido) + KernelSU-Next Manager",
+   "is_root_engine": true,
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": true,
+   "kernel_evidence": "built_kernel",
+   "kernel_gate": "kernel_compat_check.sh",
+   "artifact": "Custom-build-pong-ksu-susfs-droidspaces"
+  },
+  {
+   "id": "M02",
+   "name": "Camera (GCam + HAL flags)",
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false
+  },
+  {
+   "id": "M03",
+   "name": "NikGapps Core (5 componentes) — Google mínimo",
+   "root_required": false,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false,
+   "note": "GmsCore + Phonesky + GSF + sync de contatos/calendário. Sem Chrome, Velvet ou Wellbeing."
+  },
+  {
+   "id": "M04",
+   "name": "Screen capture irrestrito",
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false
+  },
+  {
+   "id": "M05",
+   "name": "DroidSpaces (containers Linux)",
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": true,
+   "needs_zygisk": false,
+   "kernel_level": true,
+   "app": {
+    "name": "Droidspaces-OSS",
+    "version": "v7.1.0",
+    "released_at": "2026-10-27"
+   },
+   "requirements_ref": "skills/evox-rom-ci-optimizer/references/droidspaces-requirements.json",
+   "install_phase": "F0",
+   "install_position": 2,
+   "depends_on": [
+    "M01"
+   ],
+   "supported_engines": [
+    "apatch",
+    "kernelsu",
+    "sukisu"
+   ],
+   "kernel_evidence": "built_kernel",
+   "kernel_gate": "kernel_compat_check.sh"
+  },
+  {
+   "id": "M06",
+   "name": "Free-form windows",
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false
+  },
+  {
+   "id": "M07",
+   "name": "Fingerprint Google (props)",
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false,
+   "compliance_base": [
+    "PlayIntegrityFork",
+    "TEESimulator-RS",
+    "keybox.xml",
+    "VBMeta Fixer"
+   ],
+   "compliance_role": "props de identidade + atestação (o fingerprint sozinho não dá DEVICE)"
+  },
+  {
+   "id": "M08",
+   "name": "Duck-ToolBox (banking / Play Integrity)",
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": true,
+   "kernel_level": false,
+   "zygisk_base": "Zygisk Next (just_umount + linker builtin + memoria anonima)",
+   "compliance_base": [
+    "PlayIntegrityFork",
+    "TEESimulator-RS",
+    "keybox.xml",
+    "VBMeta Fixer"
+   ],
+   "compliance_role": "atestação/KeyMint + Play Integrity (MEETS_DEVICE_INTEGRITY)",
+   "hiding_base": "SUSFS (kernel + userspace) + KSU-Next Umount modules + Zygisk Next"
+  },
+  {
+   "id": "M09",
+   "name": "SAF (Storage Access Framework)",
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false
+  },
+  {
+   "id": "M10",
+   "name": "Rede/socket por app (netfilter/eBPF)",
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": true,
+   "kernel_evidence": "built_kernel",
+   "kernel_gate": "kernel_compat_check.sh"
+  },
+  {
+   "id": "M11",
+   "name": "Port-forward intranet",
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false
+  },
+  {
+   "id": "M12A",
+   "name": "MaxManager (CPU/GPU/thermal/I-O)",
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false
+  },
+  {
+   "id": "M12B",
+   "name": "GenieX (NPU / QAIRT)",
+   "root_required": true,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false
+  },
+  {
+   "id": "M13",
+   "name": "Ambient Open CI",
+   "root_required": false,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false
+  },
+  {
+   "id": "M14",
+   "name": "Snapshots por camada",
+   "root_required": false,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false
+  },
+  {
+   "id": "M15",
+   "name": "Release Artifact pre-USB",
+   "root_required": false,
+   "requires_root_engine": [],
+   "requires_susfs": false,
+   "mount_hide_global": false,
+   "needs_zygisk": false,
+   "kernel_level": false
+  }
+ ]
 }

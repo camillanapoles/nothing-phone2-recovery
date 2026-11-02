@@ -59,7 +59,7 @@ ck "Cuttlefish sem boot.img recusa" "exit" "$rc" "1"
 has "recusa cita boot image" "No boot image" "$(cat "$T/c2")" "No boot image"
 
 # ---- wrappers de build: recusas puras (sem toolchain) ------------------------
-( TOOLCHAIN=nao-existe bash "$ROOT/scripts/generate-build-matrix.sh" >"$T/g1" 2>&1 ); rc=$?
+( GITHUB_OUTPUT="" TOOLCHAIN=nao-existe bash "$ROOT/scripts/generate-build-matrix.sh" >"$T/g1" 2>&1 ); rc=$?
 ck "matriz recusa toolchain desconhecida" "exit" "$rc" "1"
 has "matriz aponta o toolchain inválido" "Unsupported toolchain" "$(cat "$T/g1")" "Unsupported toolchain"
 mkdir -p "$T/kdir"
@@ -86,13 +86,39 @@ mkdir -p "$T/rel2/dist-vazio"
 ck "dist sem imagem fica PENDENTE" "exit" "$rc" "3"
 has "mensagem diz que o ZIP não seria flashável" "não seria flashável" "$(cat "$T/p1b")" "não seria flashável"
 mkdir -p "$T/rel2/dist"; printf 'IMG\n' > "$T/rel2/dist/boot.img"
-( cd "$T/rel2" && PATH="/usr/bin:/bin" bash "$PKG" kernel-source "$T/rel2/dist" apatch >"$T/p2" 2>&1 ); rc=$?
-if command -v rsync >/dev/null 2>&1; then
-  ck "com rsync o empacotamento segue (não PENDENTE por ferramenta)" "diferente de 3" "$([ "$rc" = "3" ] && echo 3 || echo outro)" "outro"
-else
-  ck "sem rsync o empacotamento fica PENDENTE" "exit" "$rc" "3"
-  has "rsync ausente é dito explicitamente" "rsync" "$(cat "$T/p2")" "rsync"
-fi
+# O resultado deste trecho NÃO pode depender da máquina: template e PATH são controlados aqui.
+# (o mutante M98 sobrevivia no CI porque lá existe rsync e a rede deixa clonar o template)
+mkdir -p "$T/ak3tpl"; printf 'kernel.string=teste\n' > "$T/ak3tpl/anykernel.sh"
+mkdir -p "$T/bin-nor" "$T/bin-rs"
+for c in bash mkdir dirname basename cat cp rm sed sort mktemp find; do
+  p="$(command -v "$c" 2>/dev/null)" && ln -sf "$p" "$T/bin-nor/$c"
+done
+cp -a "$T/bin-nor/." "$T/bin-rs/" 2>/dev/null
+# shim de rsync: copia recursiva honrando --exclude=..., sem depender do binário do host
+cat > "$T/bin-rs/rsync" <<'RS'
+#!/usr/bin/env bash
+ex=""; pos=()
+for a in "$@"; do
+  case "$a" in
+    --exclude=*) ex="${a#--exclude=}" ;;
+    -a|--archive|-av) ;;
+    *) pos+=("$a") ;;
+  esac
+done
+src="${pos[0]:-.}"; dst="${pos[1]:-.}"
+mkdir -p "$dst"
+for f in "$src"* "$src".[!.]*; do
+  [ -e "$f" ] || continue
+  [ -n "$ex" ] && [ "$(basename "$f")" = "$ex" ] && continue
+  cp -a "$f" "$dst/" || exit 1
+done
+RS
+chmod +x "$T/bin-rs/rsync"
+( cd "$T/rel2" && AK3_TEMPLATE="$T/ak3tpl" PATH="$T/bin-nor" bash "$PKG" kernel-source "$T/rel2/dist" apatch >"$T/p2" 2>&1 ); rc=$?
+ck "sem rsync o empacotamento fica PENDENTE" "exit" "$rc" "3"
+has "rsync ausente é dito explicitamente" "rsync" "$(cat "$T/p2")" "rsync"
+( cd "$T/rel2" && AK3_TEMPLATE="$T/ak3tpl" PATH="$T/bin-rs" bash "$PKG" kernel-source "$T/rel2/dist" apatch >"$T/p2b" 2>&1 ); rc=$?
+ck "com rsync o empacotamento segue (não PENDENTE por ferramenta)" "diferente de 3" "$([ "$rc" = "3" ] && echo 3 || echo outro)" "outro"
 
 # ---- build de kernel: árvore ausente é PENDENTE, não sucesso ----------------
 ( bash "$ROOT/scripts/build-kernel-pong.sh" "$T/kernel-inexistente" >"$T/k1" 2>&1 ); rc=$?
@@ -106,6 +132,9 @@ ck "label da matriz identifica manager/kernel/toolchain/lto" \
   "$(python3 -c 'import json,re,sys;t=open(sys.argv[1]).read();print(json.loads(re.search(r"matrix=(\{.*\})",t,re.S).group(1))["label"])' "$T/matrix.out")" \
   "apatch-prebuilt-evolutionx-llvm-22.1.8-ltofull"
 ck "matriz registra o LTO escolhido" "ltofull" "$(grep -o 'lto[a-z]*' "$T/matrix.out" | head -1)" "ltofull"
+( GITHUB_OUTPUT="$T/matrix.1l" TOOLCHAIN=llvm-22.1.8 LTO=full bash "$ROOT/scripts/generate-build-matrix.sh" >/dev/null 2>&1 )
+ck "file command do runner recebe UMA linha (JSON compacto)" "uma linha" \
+  "$(wc -l < "$T/matrix.1l" | tr -d ' ')" "1"
 ( GITHUB_ENV="$T/env.out" KERNEL_SOURCE=lineage-pong bash "$ROOT/scripts/resolve-kernel-source.sh" >/dev/null 2>&1 )
 ck "resolução exporta a ref do kernel" "lineage-23.2" \
   "$(grep -m1 '^SOURCE_REF=' "$T/env.out" | cut -d= -f2)" "lineage-23.2"

@@ -263,7 +263,8 @@
         "pif-chiteroman"
       ],
       "verify": "BASIC integrity sem o motor de atestação instalado",
-      "status": "required"
+      "status": "required",
+      "proof_token": "PlayIntegrityFork"
     },
     {
       "id": "teesimulator-rs",
@@ -279,7 +280,8 @@
         "specter"
       ],
       "verify": "engine carregada e keystore2 interceptado",
-      "status": "required"
+      "status": "required",
+      "proof_token": "TEESimulator-RS"
     },
     {
       "id": "keybox",
@@ -294,7 +296,8 @@
       ],
       "verify": "keybox carregada sem erro e status não revogado",
       "status": "required",
-      "note": "material vazado e compartilhado: revogação é questão de tempo; falha tem de aparecer como PENDENTE"
+      "note": "material vazado e compartilhado: revogação é questão de tempo; falha tem de aparecer como PENDENTE",
+      "proof_token": "keybox.xml"
     },
     {
       "id": "vbmeta-fixer",
@@ -307,7 +310,8 @@
       ],
       "conflicts": [],
       "verify": "instalado depois de PIFork e do motor; boot sem erro de vbmeta",
-      "status": "required"
+      "status": "required",
+      "proof_token": "VBMeta Fixer"
     },
     {
       "id": "nohello",
