@@ -65,7 +65,7 @@ jobs:
         name: Fatiar o catálogo em SHARDS fatias
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import json, os
+          import json, os, sys
           cat = json.load(open("skills/evox-rom-ci-optimizer/references/mutation-catalog.json",
                               encoding="utf-8"))
           ids = [m["id"] for m in cat["mutants"]]
@@ -74,7 +74,8 @@ jobs:
           fatias = [f for f in fatias if f]
           print("shards=" + json.dumps([{"shard": i, "ids": ",".join(f)}
                                         for i, f in enumerate(fatias)]))
-          print(f"# {len(ids)} mutantes em {len(fatias)} shards")
+          # só a linha shards vai para $GITHUB_OUTPUT: comentário aqui quebra o parser
+          print(f"{len(ids)} mutantes em {len(fatias)} shards", file=sys.stderr)
           PY
         env:
           SHARDS: "8"
