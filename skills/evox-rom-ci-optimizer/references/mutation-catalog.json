@@ -1525,6 +1525,33 @@
    "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_fragment.sh",
    "strength": "semantic",
    "rationale": "fragmento: --check que sempre diz 'em sincronia' é a definição de prova maquiada"
+  },
+  {
+   "id": "M186",
+   "file": "scripts/stack_gate.py",
+   "find": "            if c in ativos:\n                p.append(f\"{l.get('id')} e {c} ativos ao mesmo tempo (conflito declarado)\")",
+   "replace": "            if False:\n                p.append(f\"{l.get('id')} e {c} ativos ao mesmo tempo (conflito declarado)\")",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_stack_gate.sh",
+   "strength": "semantic",
+   "rationale": "conflito ativo silenciado: dois engines de atestação (ou Shamiko + NoHello) passariam como combo válido"
+  },
+  {
+   "id": "M187",
+   "file": "scripts/stack_gate.py",
+   "find": "            if r in fase and fase[r] > fase[lid]:",
+   "replace": "            if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_stack_gate.sh",
+   "strength": "semantic",
+   "rationale": "ordem de fase ignorada: sequência que instala o dependente antes do pré-requisito passaria"
+  },
+  {
+   "id": "M188",
+   "file": "scripts/stack_gate.py",
+   "find": "            for l in d.get(\"layers\") or [] if not PIN_RE.match(str(l.get(\"pin\") or \"\"))]",
+   "replace": "            for l in [] ]",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_stack_gate.sh",
+   "strength": "semantic",
+   "rationale": "pin não verificado: 'latest' e versão solta viram pin válido e a rastreabilidade morre"
   }
  ],
  "retired": [

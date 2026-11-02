@@ -1,7 +1,7 @@
 # Raiz do workspace — atalhos de prova. A verdade está em AGENTS.md.
 SHELL := /usr/bin/env bash
 
-.PHONY: help escopo garantia pack pack-selftest kernel continuidade debitos closure fragmento m05 state state-reset test-state test-wrappers arch skills test prove
+.PHONY: help escopo garantia pack pack-selftest kernel continuidade debitos closure fragmento m05 stack state state-reset test-state test-wrappers arch skills test prove
 
 help:
 	@echo "make state        -> dry-run da higiene de estado (nada é alterado)"
@@ -21,6 +21,7 @@ help:
 	@echo "make debitos       -> débitos derivados dos gates + o passo que fecha cada um (0 fechado / 3 aberto / 1 inconsistente)"
 	@echo "make closure       -> o plano de fechamento é executável? (DAG, gates, comandos, staging antes do físico)"
 	@echo "make fragmento     -> o fragmento do pack bate com o contrato do DroidSpaces?"
+	@echo "make stack         -> combo + sequência: 15 invariantes, pin estrangeiro e PASS de cada passo"
 	@echo "make garantia     -> garantia prévia: 5 requisitos, com prova ou PENDENTE (exit 3)"
 	@echo "make escopo       -> o que é deste workspace × legado que manda NÃO usar""
 	@echo "make prove        -> tudo: test-state + wrappers + arch + skills"
@@ -45,6 +46,9 @@ garantia:
 
 fragmento:
 	@python3 scripts/kernel-fragment.py --root . --check
+
+stack:
+	@python3 scripts/stack_gate.py --root .
 
 debitos:
 	@python3 skills/evox-rom-ci-optimizer/scripts/debt_ledger.py --root .

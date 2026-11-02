@@ -15,7 +15,7 @@ LAYER ?= wave1
 TAG ?= v11.11-w1-clean
 SNAPSHOT_SRC ?= ./workspace/out
 
-.PHONY: help check test test-preflight test-rom test-gates test-kernel test-fragment test-continuity test-closure test-debitos test-stage test-ci scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
+.PHONY: help check test test-preflight test-rom test-gates test-kernel test-fragment test-continuity test-closure test-debitos test-stack test-stage test-ci scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
 
 help:
 	@echo "======================================================================="
@@ -31,6 +31,7 @@ help:
 	@echo " make test-continuity -> instrução de continuidade íntegra (cláusulas Q01-Q20)"
 	@echo " make test-closure -> plano de fechamento executável (K01-K16, 25 casos)"
 	@echo " make test-debitos -> ledger de débitos derivado dos gates (29 casos)"
+	@echo " make test-stack   -> contrato do combo e da sequência: 15 invariantes (27 casos)"
 	@echo " make test-stage   -> logica dos estagios A/B e bundle (54 casos, stubs, sem device)"
 	@echo " make scan         -> [M15/T3] scanner estatico dos 15 modulos (v3)"
 	@echo " make audit        -> matriz de conflitos -> $(OUT_DIR)/conflict_matrix_report.md"
@@ -82,6 +83,9 @@ test-closure:
 test-debitos:
 	@./tests/test_debt_ledger.sh
 
+test-stack:
+	@./tests/test_stack_gate.sh
+
 test-continuity:
 	@./tests/test_continuity_gate.sh
 
@@ -131,6 +135,7 @@ test-gates:
 	@./tests/test_continuity_gate.sh
 	@./tests/test_closure_gate.sh
 	@./tests/test_debt_ledger.sh
+	@./tests/test_stack_gate.sh
 
 mutation:
 	@python3 scripts/mutation_check.py --root ../..

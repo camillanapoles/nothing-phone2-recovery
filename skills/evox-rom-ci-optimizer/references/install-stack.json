@@ -1,0 +1,394 @@
+{
+  "schema": "evox-install-stack/1",
+  "note": "Fonte única do COMBO e da SEQUÊNCIA desta sessão. Nada aqui é opinião: cada camada tem pin verificável e cada passo tem critério de PASS falseável. scripts/stack_gate.py cobra invariante por invariante; doc nenhum manda mais que este arquivo. Pins estrangeiros (kernel, ROM, contrato de containers, fragmento) são conferidos contra os arquivos canônicos — se um deles mudar, o gate reprova em vez de divergir em silêncio.",
+  "decisions": {
+    "flavor": {
+      "value": "vanilla",
+      "decided_by": "user",
+      "date": "2026-11-02",
+      "rationale": "a build GApps traz Chrome/Velvet/Wellbeing privilegiados no /system; debloat systemless volta na OTA. Na vanilla o catálogo é declarado, não herdado."
+    },
+    "gapps": {
+      "value": "nikgapps-core",
+      "component_count": 5,
+      "components": ["GmsCore", "Phonesky", "GoogleServicesFramework", "ContactsSyncAdapter", "CalendarSyncAdapter"],
+      "excluded": ["chrome", "velvet", "wellbeing", "play-games", "google-files", "maps", "gmail", "photos"],
+      "decided_by": "user",
+      "date": "2026-11-02"
+    },
+    "integrity_engine": {
+      "value": "teesimulator-rs-enhanced",
+      "replaces": ["tricky-store", "tricky-store-oss"],
+      "decided_by": "user",
+      "date": "2026-11-02"
+    },
+    "keybox_automation": {
+      "value": "teesimulator-enhanced",
+      "alternative": "specter",
+      "decided_by": "user",
+      "date": "2026-11-02"
+    },
+    "screen_search": {
+      "value": "circletosearch",
+      "pin": "commit:e4f461417ed946668dbeaa11707e054d1a51cf4e",
+      "decided_by": "user",
+      "date": "2026-11-02",
+      "rationale": "tem motor de disparo próprio com pílula inferior (overlay, não hook de SystemUI) e OCR offline; a tradução de tela só existe neste ramo, não no release v0.5"
+    },
+    "hiding": {
+      "value": "susfs+ksu-app-profile+zygisk-next",
+      "decided_by": "user",
+      "date": "2026-11-02"
+    }
+  },
+  "forbidden": [
+    {"id": "shamiko", "why": "Zygisk Next >=1.3.0 integra a maior parte dele e bloqueia o carregamento; instalar gera estado inconsistente"},
+    {"id": "zygisk-assistant", "why": "abandonado; redundante com o Zygisk Next atual"},
+    {"id": "yurikey", "why": "abandonado em ago/2026 e reescrito como specter pelo próprio autor"},
+    {"id": "integrity-box", "why": "sem manutenção confiável; não desinstala limpo e disputa o mesmo arquivo de keybox"},
+    {"id": "tricky-store", "why": "fechado desde 1.1.0, sem keybox válida embutida e conflita com o motor escolhido"},
+    {"id": "mindthegapps", "why": "segundo provedor de GApps; conflita com o NikGapps Core"},
+    {"id": "microg", "why": "conflita com GMS real; teto de BASIC integrity e exige Play Store real de qualquer forma"},
+    {"id": "chrome", "why": "app que a usuária não quer; o WebView do sistema é o AOSP"},
+    {"id": "velvet", "why": "Google app: fonte de notificações e RAM que a usuária rejeitou"},
+    {"id": "wellbeing", "why": "consumo sem função pedida"}
+  ],
+  "layers": [
+    {
+      "id": "firmware-pong",
+      "name": "Firmware Nothing OS B4.0-251119-1654",
+      "kind": "system",
+      "pin": "pkg:nothingos-b4.0-251119-1654",
+      "requires": [],
+      "conflicts": [],
+      "verify": "About do aparelho confere com o base do pin do kernel",
+      "status": "required"
+    },
+    {
+      "id": "evox-vanilla",
+      "name": "Evolution X 11.11 Vanilla (A16)",
+      "kind": "system",
+      "pin": "build:EvolutionX-16.0-20260915-Pong-11.11",
+      "requires": ["firmware-pong"],
+      "conflicts": ["evox-gapps"],
+      "verify": "About mostra 11.11 e pm list packages sem chrome/velvet/wellbeing",
+      "status": "required"
+    },
+    {
+      "id": "evox-gapps",
+      "name": "Evolution X 11.11 variante GApps (não usada)",
+      "kind": "system",
+      "pin": "build:EvolutionX-16.0-20260915-Pong-11.11-gapps",
+      "requires": ["firmware-pong"],
+      "conflicts": ["evox-vanilla", "nikgapps-core"],
+      "verify": "n/a — variante descartada por decisão de flavor",
+      "status": "not_installed"
+    },
+    {
+      "id": "nikgapps-core",
+      "name": "NikGapps Core arm64-16 (5 componentes)",
+      "kind": "system",
+      "pin": "pkg:nikgapps-core-arm64-16",
+      "requires": ["evox-vanilla"],
+      "conflicts": ["mindthegapps", "microg", "evox-gapps"],
+      "verify": "Play Store presente; package list sem os excluídos",
+      "status": "required"
+    },
+    {
+      "id": "webview-aosp",
+      "name": "AOSP WebView do sistema",
+      "kind": "system",
+      "pin": "pkg:aosp-webview",
+      "requires": ["evox-vanilla"],
+      "conflicts": ["chrome"],
+      "verify": "dumpsys webviewupdate devolve provider válido",
+      "status": "required",
+      "note": "sem Chrome o provedor de WebView é o AOSP; não remover nem trocar por Trichrome"
+    },
+    {
+      "id": "kernel-build-e03",
+      "name": "Kernel compilado do E03 (tree lineage-23.2 + KSU-Next + SUSFS)",
+      "kind": "kernel",
+      "pin": "commit:4ec5491f6b5fd8776207a2a453d6b98b1928de7a",
+      "requires": [],
+      "conflicts": [],
+      "must_deliver": ["CONFIG_USER_NS", "CONFIG_PID_NS", "CONFIG_SYSVIPC", "CONFIG_POSIX_MQUEUE", "CONFIG_DEVTMPFS", "CONFIG_KSU", "SUSFS"],
+      "verify": "7 artefatos com sha256 + CONFIG_* do contrato conferidas na build compilada",
+      "status": "required"
+    },
+    {
+      "id": "ksu-next",
+      "name": "KernelSU-Next v3.4.2 (LKM sobre o kernel do E03)",
+      "kind": "root",
+      "pin": "tag:v3.4.2",
+      "requires": ["kernel-build-e03"],
+      "conflicts": ["apatch", "magisk"],
+      "verify": "su -c id devolve uid=0 e o manager concede root",
+      "status": "required"
+    },
+    {
+      "id": "susfs-userspace",
+      "name": "susfs4ksu userspace v1.5.2+_R28 (casa com o patch SUSFS do kernel)",
+      "kind": "hide",
+      "pin": "tag:v1.5.2+_R28",
+      "requires": ["ksu-next", "kernel-build-e03"],
+      "conflicts": [],
+      "verify": "ksu_susfs show version igual à versão do patch compilada no kernel",
+      "status": "required",
+      "note": "kernel com SUSFS >=1.5.2 sem este módulo falha com 'susfs not found'"
+    },
+    {
+      "id": "ksu-app-profile",
+      "name": "KSU-Next: Umount modules por app (App Profile)",
+      "kind": "hide",
+      "pin": "pkg:ksu-next-app-profile",
+      "requires": ["ksu-next", "susfs-userspace"],
+      "conflicts": [],
+      "verify": "toggle Umount modules ativo para cada app alvo",
+      "status": "required"
+    },
+    {
+      "id": "zygisk-next",
+      "name": "Zygisk Next v1.5.2 em modo just_umount + linker builtin + memoria anonima",
+      "kind": "hide",
+      "pin": "tag:v1.5.2",
+      "requires": ["ksu-next"],
+      "conflicts": ["zygisk-assistant", "rezygisk", "neozygisk", "shamiko"],
+      "verify": "zygiskd enforce-denylist just_umount; linker builtin; memory-type anonymous",
+      "status": "required",
+      "note": "binário fechado desde ~1.0 — dívida de auditoria registrada; NeoZygisk fica como candidato a validar, não default"
+    },
+    {
+      "id": "pifork",
+      "name": "PlayIntegrityFork (osm0sis)",
+      "kind": "integrity",
+      "pin": "tag:v16",
+      "requires": ["zygisk-next"],
+      "conflicts": ["pif-chiteroman"],
+      "verify": "BASIC integrity sem o motor de atestação instalado",
+      "status": "required"
+    },
+    {
+      "id": "teesimulator-rs",
+      "name": "TEESimulator-RS v6.0.1 build Enhanced",
+      "kind": "integrity",
+      "pin": "tag:v6.0.1-360-enhanced",
+      "requires": ["zygisk-next", "pifork"],
+      "conflicts": ["tricky-store", "specter"],
+      "verify": "engine carregada e keystore2 interceptado",
+      "status": "required"
+    },
+    {
+      "id": "keybox",
+      "name": "keybox.xml não revogada em /data/adb/tricky_store/",
+      "kind": "integrity",
+      "pin": "pkg:keybox-xml",
+      "requires": ["teesimulator-rs"],
+      "conflicts": ["yurikey"],
+      "verify": "keybox carregada sem erro e status não revogado",
+      "status": "required",
+      "note": "material vazado e compartilhado: revogação é questão de tempo; falha tem de aparecer como PENDENTE"
+    },
+    {
+      "id": "vbmeta-fixer",
+      "name": "VBMeta Fixer",
+      "kind": "integrity",
+      "pin": "pkg:vbmeta-fixer",
+      "requires": ["pifork", "teesimulator-rs"],
+      "conflicts": [],
+      "verify": "instalado depois de PIFork e do motor; boot sem erro de vbmeta",
+      "status": "required"
+    },
+    {
+      "id": "nohello",
+      "name": "NoHello v0.0.8 (whitelist)",
+      "kind": "hide",
+      "pin": "tag:v0.0.8",
+      "requires": ["zygisk-next"],
+      "conflicts": ["shamiko"],
+      "verify": "só entra se a matriz de detecção falhar; whitelist em /data/adb/nohello/whitelist",
+      "status": "conditional"
+    },
+    {
+      "id": "hma-oss",
+      "name": "HMA-OSS (esconder lista de apps)",
+      "kind": "hide",
+      "pin": "tag:hma-oss",
+      "requires": ["ksu-next"],
+      "conflicts": [],
+      "verify": "só entra se um app alvo enumerar pacotes instalados",
+      "status": "optional"
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini (Play Store)",
+      "kind": "app",
+      "pin": "pkg:com.google.android.apps.bard",
+      "requires": ["nikgapps-core"],
+      "conflicts": [],
+      "verify": "loga e responde",
+      "status": "required"
+    },
+    {
+      "id": "drive",
+      "name": "Drive (Play Store)",
+      "kind": "app",
+      "pin": "pkg:com.google.android.apps.docs",
+      "requires": ["nikgapps-core"],
+      "conflicts": [],
+      "verify": "sync de um arquivo ok; sem Drive, não há backup de dispositivo (Core não traz BackupTransport)",
+      "status": "optional"
+    },
+    {
+      "id": "circletosearch",
+      "name": "CircleToSearch (AKS-Labs) pinado",
+      "kind": "app",
+      "pin": "commit:e4f461417ed946668dbeaa11707e054d1a51cf4e",
+      "requires": ["evox-vanilla"],
+      "conflicts": [],
+      "verify": "7 critérios: sem GMS, pílula responde, não engole home, role de assistente, OCR offline, tradução no pin, sem notificação persistente",
+      "status": "required",
+      "note": "tradução de tela só existe no ramo pinado; release v0.5 não tem"
+    },
+    {
+      "id": "morphe",
+      "name": "Morphe v2.3.0 + YouTube patcheado + detach",
+      "kind": "app",
+      "pin": "tag:v2.3.0",
+      "requires": ["nikgapps-core", "ksu-next"],
+      "conflicts": [],
+      "verify": "sem ads e update do Play não sobrescreve (detach ativo)",
+      "status": "required"
+    },
+    {
+      "id": "gms-doze",
+      "name": "Universal GMS Doze 1.9.11",
+      "kind": "perf",
+      "pin": "tag:1.9.11",
+      "requires": ["nikgapps-core"],
+      "conflicts": [],
+      "verify": "Play Services aparece como otimizável; FCM continua entregando",
+      "status": "required"
+    }
+  ],
+  "phases": [
+    {
+      "id": "F0",
+      "title": "Contratos e cesta (nada no aparelho)",
+      "steps": [
+        {"id": "0.1", "action": "E03: árvore pinada + build do kernel", "layer": "kernel-build-e03", "pass": "7 artefatos presentes e sha256 conferido"},
+        {"id": "0.2", "action": "baixar firmware B4.0-251119-1654", "layer": "firmware-pong", "pass": "versão e hash registrados"},
+        {"id": "0.3", "action": "baixar ROM vanilla + NikGapps Core", "layer": "evox-vanilla", "pass": "hash das duas variantes conferido no manifesto"},
+        {"id": "0.4", "action": "baixar os 6 zips de módulo e os 4 APKs", "layer": "zygisk-next", "pass": "todo item com versão pinada e sha256"},
+        {"id": "0.5", "action": "backup do boot.img stock + ADB/fastboot", "layer": "ksu-next", "pass": "fastboot devices responde e backup tem .sha256"},
+        {"id": "0.6", "action": "gates do repo verdes", "layer": "kernel-build-e03", "pass": "make -s prove e make -s arch com exit 0"}
+      ]
+    },
+    {
+      "id": "F1",
+      "title": "Base do sistema — mesma sessão de recovery",
+      "steps": [
+        {"id": "1.1", "action": "flash do firmware nos dois slots", "layer": "firmware-pong", "pass": "base atualizada no About"},
+        {"id": "1.2", "action": "format data (não dirty flash)", "layer": "evox-vanilla", "pass": "storage limpo"},
+        {"id": "1.3", "action": "flash da ROM vanilla", "layer": "evox-vanilla", "pass": "About mostra 11.11"},
+        {"id": "1.4", "action": "flash do NikGapps Core sem reboot no meio", "layer": "nikgapps-core", "pass": "Play Store presente e os excluídos ausentes"},
+        {"id": "1.5", "action": "reboot", "layer": "evox-vanilla", "pass": "primeiro boot sem loop"}
+      ]
+    },
+    {
+      "id": "F2",
+      "title": "Saneamento do primeiro boot",
+      "steps": [
+        {"id": "2.1", "action": "setup sem restaurar backup", "layer": "evox-vanilla", "pass": "nenhum app restaurado"},
+        {"id": "2.2", "action": "auto-update do Play off", "layer": "nikgapps-core", "pass": "toggle desligado"},
+        {"id": "2.3", "action": "auto-sync e scan do Play Protect off", "layer": "nikgapps-core", "pass": "ambos off"},
+        {"id": "2.4", "action": "conferir WebView AOSP", "layer": "webview-aosp", "pass": "dumpsys webviewupdate com provider válido"},
+        {"id": "2.5", "action": "congelar OTA até o fim do ciclo", "layer": "evox-vanilla", "pass": "updater sem download em fila"}
+      ]
+    },
+    {
+      "id": "F3",
+      "title": "Root",
+      "steps": [
+        {"id": "3.1", "action": "flash do boot.img com KSU-Next LKM", "layer": "ksu-next", "pass": "su -c id devolve uid=0"},
+        {"id": "3.2", "action": "instalar manager do KSU-Next", "layer": "ksu-next", "pass": "manager concede root"},
+        {"id": "3.3", "action": "backup do boot já com root", "layer": "ksu-next", "pass": "arquivo e hash guardados"}
+      ]
+    },
+    {
+      "id": "F4",
+      "title": "Ocultação (um por reboot)",
+      "steps": [
+        {"id": "4.1", "action": "instalar susfs4ksu R28", "layer": "susfs-userspace", "pass": "ksu_susfs show version igual ao patch do kernel"},
+        {"id": "4.2", "action": "SUSFS: logs off, spoof de uname, make it sus", "layer": "susfs-userspace", "pass": "sem 'susfs not found'"},
+        {"id": "4.3", "action": "KSU-Next: Umount modules ON por app alvo", "layer": "ksu-app-profile", "pass": "toggle ativo por app"},
+        {"id": "4.4", "action": "Zygisk Next + os três comandos do zygiskd", "layer": "zygisk-next", "pass": "just_umount + builtin + anonymous aplicados sem reboot"},
+        {"id": "4.5", "action": "NoHello condicional", "layer": "nohello", "pass": "só se 4.6 falhar; nunca junto com shamiko"},
+        {"id": "4.6", "action": "matriz de detecção (Ruru/Duck Detector + 2 apps reais)", "layer": "zygisk-next", "pass": "sem root, sem zygisk, sem mount inconsistency, sem sus path"},
+        {"id": "4.7", "action": "HMA-OSS opcional", "layer": "hma-oss", "pass": "só se algum app enumerar pacotes"}
+      ]
+    },
+    {
+      "id": "F5",
+      "title": "Integridade (um por reboot)",
+      "steps": [
+        {"id": "5.1", "action": "PlayIntegrityFork", "layer": "pifork", "pass": "BASIC integrity verde"},
+        {"id": "5.2", "action": "TEESimulator-RS Enhanced", "layer": "teesimulator-rs", "pass": "engine carregada e keystore2 interceptado"},
+        {"id": "5.3", "action": "keybox.xml não revogada", "layer": "keybox", "pass": "status não revogado; se revogada, PENDENTE exit 3"},
+        {"id": "5.4", "action": "target.txt com com.android.vending e apps de One/Workspace", "layer": "teesimulator-rs", "pass": "apps listados"},
+        {"id": "5.5", "action": "security_patch dentro de 12 meses", "layer": "teesimulator-rs", "pass": "data coerente com o patch"},
+        {"id": "5.6", "action": "VBMeta Fixer depois de PIFork e do motor", "layer": "vbmeta-fixer", "pass": "boot sem erro de vbmeta"},
+        {"id": "5.7", "action": "checker de integridade", "layer": "teesimulator-rs", "pass": "DEVICE verde; STRONG só se necessário"},
+        {"id": "5.8", "action": "app real de One/Workspace", "layer": "gemini", "pass": "abre e autentica"}
+      ]
+    },
+    {
+      "id": "F6",
+      "title": "Apps",
+      "steps": [
+        {"id": "6.1", "action": "Gemini do Play Store", "layer": "gemini", "pass": "loga e responde"},
+        {"id": "6.2", "action": "Drive (se mantido)", "layer": "drive", "pass": "sync de um arquivo ok"},
+        {"id": "6.3", "action": "CircleToSearch do commit pinado + role de assistente", "layer": "circletosearch", "pass": "os 7 critérios, incluindo não engolir o swipe-up"},
+        {"id": "6.4", "action": "Morphe: patch do YouTube + mount + detach", "layer": "morphe", "pass": "sem ads e update do Play não sobrescreve"}
+      ]
+    },
+    {
+      "id": "F7",
+      "title": "Performance e bateria",
+      "steps": [
+        {"id": "7.1", "action": "Universal GMS Doze 1.9.11", "layer": "gms-doze", "pass": "GMS otimizável e FCM intacto"},
+        {"id": "7.2", "action": "restringir background de Drive/Gemini e desligar Find My Device", "layer": "gms-doze", "pass": "apps restritos sem perder notificação"},
+        {"id": "7.3", "action": "baseline de idle noturno e RAM", "layer": "gms-doze", "pass": "drain alvo e OTP chegando"}
+      ]
+    },
+    {
+      "id": "F8",
+      "title": "Fechamento por tópico",
+      "steps": [
+        {"id": "8.1", "action": "conferir ausência dos apps vetados", "layer": "nikgapps-core", "pass": "chrome/velvet/wellbeing ausentes"},
+        {"id": "8.2", "action": "conferir ocultação", "layer": "susfs-userspace", "pass": "SUSFS ativo e matriz de detecção limpa"},
+        {"id": "8.3", "action": "conferir integridade", "layer": "teesimulator-rs", "pass": "BASIC + DEVICE verdes; STRONG documentado"},
+        {"id": "8.4", "action": "conferir apps pedidos", "layer": "circletosearch", "pass": "Gemini, Drive (se mantido), YouTube patcheado e busca por gesto funcionando"},
+        {"id": "8.5", "action": "conferir política de notificação", "layer": "gemini", "pass": "só canais escolhidos ativos"},
+        {"id": "8.6", "action": "declarar backup e OTA", "layer": "nikgapps-core", "pass": "backup funciona ou está declarado como limitação; addon.d preserva GApps"}
+      ]
+    }
+  ],
+  "invariants": [
+    "schema",
+    "unique_ids",
+    "pins_format",
+    "steps_have_pass",
+    "phases_contiguous",
+    "requires_exist",
+    "requires_dag",
+    "phase_order",
+    "conflicts_symmetric",
+    "no_active_conflict",
+    "forbidden_absent",
+    "decisions_complete",
+    "foreign_pin_kernel",
+    "foreign_pin_rom",
+    "contract_configs"
+  ]
+}
