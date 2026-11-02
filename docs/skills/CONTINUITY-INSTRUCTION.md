@@ -3,7 +3,7 @@
 **Branch de origem:** `arena/863582fd-nothing-phone2-recovery` · **Skill:** `evox-rom-ci-optimizer` v3.1
 **Base:** PR #7 mergeado em `cdd5885` · **Alvo:** root e kernel perfeitos para DroidSpaces, integridade,
 root oculto, performance e estabilidade no Nothing Phone (2) `pong` / SM8475 / EvolutionX 11.11 (A16).
-**Provas da base:** `make -s prove` **648 casos / 31 suítes** · mutação **150/150 mortos por asserção** ·
+**Provas da base:** `make -s prove` **706 casos / 33 suítes** · mutação **160/160 mortos por asserção** ·
 `audit-loop` limpo · `escopo` limpo.
 
 Este documento é a primeira leitura de qualquer sessão nova. Ele carrega **continuidade, método,
@@ -50,8 +50,8 @@ Consequências que **nunca** podem ser violadas num refactor:
 
 | Prova | Número | Comando |
 |---|---|---|
-| Suítes | 648 casos / 31 suítes | `make -s prove` |
-| Mutações mortas por asserção | 150/150 | `make -s mutation` |
+| Suítes | 706 casos / 33 suítes | `make -s prove` |
+| Mutações mortas por asserção | 160/160 | `make -s mutation` |
 | Condições do pack com contra-exemplo | 10/10 | `make -s pack-selftest` |
 | Plano do kernel | 20/20 (`P01`–`P20`) | `make -s kernel` |
 | Pré-build do kernel | 22/26 (4 PEND nomeados) | `make -s kernel` |
@@ -323,6 +323,8 @@ verificado; (5) decisão de variante registrada pela usuária. Até lá, a respo
 4. `make -s kernel` com pendências **nomeadas** (nunca "quase pronto").
 5. `make -s pack` com estado honesto (`FALTA_PROVA` é resposta legítima).
 6. `make -s continuidade` — esta instrução contém as cláusulas obrigatórias e a verdade absoluta.
+6b. `make -s debitos` — todo débito aberto tem passo de fechamento (exit 3 é honesto; exit 1 não é);
+   `make -s closure` — o plano de fechamento é executável.
 7. Commit → push na branch da sessão → PR → **merge** → nova sessão.
 
 ---
@@ -345,6 +347,11 @@ pendente honesto é um turno; o custo de uma afirmação falsa é um device bric
 
 ## 18. Próximos passos ordenados (retomada imediata)
 
+O débito não é lista escrita à mão: `make -s debitos` **deriva** o estado dos gates e diz, para cada
+débito, o passo que o fecha, o comando e o critério. O plano executável está em
+`docs/skills/EXECUTION-PLAN.md` e é validado por `make -s closure` (DAG acíclico, gate com exit e
+critério, staging antes do físico). Hoje: **7 abertos de 7**.
+
 1. Pinar o commit (40 hex) do source → `B01`.
 2. Decidir o box (§11): **validar × fork × descartar**, com justificativa e rollback.
 3. Buildar `custom-build-pong-ksu-susfs-droidspaces` no Actions (draft + `SHA256SUMS` + attestation) → `B06`.
@@ -359,9 +366,11 @@ pendente honesto é um turno; o custo de uma afirmação falsa é um device bric
 ## 19. Comandos de retomada
 
 ```bash
-make -s prove                 # 648 casos / 31 suítes
-make -s mutation              # 150 mutantes, todos mortos por asserção
+make -s prove                 # 706 casos / 33 suítes
+make -s mutation              # 160 mutantes, todos mortos por asserção
 make -s continuidade          # esta instrução: cláusulas obrigatórias + verdade absoluta
+make -s debitos               # débitos derivados dos gates + passo que fecha cada um (exit 3)
+make -s closure               # o plano de fechamento é executável (K01–K16)
 make -s pack                  # solver: estado do par (motor × kernel) por dado
 make -s pack-selftest         # as 10 condições caem uma por vez
 make -s kernel                # plano P01–P20 + pré-build B01–B07 (exit 0/3)

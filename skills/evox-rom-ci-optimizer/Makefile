@@ -15,7 +15,7 @@ LAYER ?= wave1
 TAG ?= v11.11-w1-clean
 SNAPSHOT_SRC ?= ./workspace/out
 
-.PHONY: help check test test-preflight test-rom test-gates test-kernel test-continuity test-stage test-ci scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
+.PHONY: help check test test-preflight test-rom test-gates test-kernel test-continuity test-closure test-debitos test-stage test-ci scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
 
 help:
 	@echo "======================================================================="
@@ -28,6 +28,8 @@ help:
 	@echo " make test-gates   -> kernel x ROM x device (10) + rollout (13) + cache/guard4 (13)"
 	@echo " make test-kernel  -> plano do kernel: 20 regras de plano + 7 de pre-build (35 casos)"
 	@echo " make test-continuity -> instrução de continuidade íntegra (cláusulas Q01-Q20)"
+	@echo " make test-closure -> plano de fechamento executável (K01-K16, 25 casos)"
+	@echo " make test-debitos -> ledger de débitos derivado dos gates (29 casos)"
 	@echo " make test-stage   -> logica dos estagios A/B e bundle (54 casos, stubs, sem device)"
 	@echo " make scan         -> [M15/T3] scanner estatico dos 15 modulos (v3)"
 	@echo " make audit        -> matriz de conflitos -> $(OUT_DIR)/conflict_matrix_report.md"
@@ -73,6 +75,12 @@ test-preflight:
 test-rom:
 	@./tests/test_extract_rom_assets.sh
 
+test-closure:
+	@./tests/test_closure_gate.sh
+
+test-debitos:
+	@./tests/test_debt_ledger.sh
+
 test-continuity:
 	@./tests/test_continuity_gate.sh
 
@@ -116,6 +124,8 @@ test-gates:
 	@./tests/test_vacuity_scan.sh
 	@./tests/test_kernel_build_gate.sh
 	@./tests/test_continuity_gate.sh
+	@./tests/test_closure_gate.sh
+	@./tests/test_debt_ledger.sh
 
 mutation:
 	@python3 scripts/mutation_check.py --root ../..
