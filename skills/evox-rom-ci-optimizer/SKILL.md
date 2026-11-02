@@ -263,6 +263,7 @@ Nenhum deles é opcional; cada um tem script e teste próprios.
 | Gate | Pergunta que responde | Script | Exit |
 |---|---|---|---|
 | **G-kernel** | este kernel serve para ESTA build no `pong`? | `kernel_compat_check.sh --rom-assets … --candidate …` | 0 compatível · 3 incompatível |
+| **G-kernel-plan** | o plano do kernel atende item por item **antes** de buildar? | `kernel_build_gate.py --root . [--prebuild --kernel-tree … --config-json … --build-dir …]` | 0 pronto · 3 pendente · 1 falha · 4 entrada |
 | **G-pack** | qual par (motor × kernel) faz as 10 condições serem verdadeiras? | `root_pair_solver.py --root . [--json] [--selftest] [--write-decision]` | 0 par garantido · 3 falta prova · 1 impossível/ambíguo |
 | **G-motor** | o par escolhido fecha as 10 condições? | `root_engine_gate.py --engine … [--candidate …] [--kernel-evidence …] [--show-policy]` | 0 compatível · 3 pendente · 1 incompatível |
 | **G-escopo** | o que está valendo é deste workspace, ou é legado que manda o contrário? | `legacy_scope.py --root .` | 0 escopo limpo · 3 legado ativo |
@@ -384,11 +385,13 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `tests/test_root_decision.sh` | 33 cenários: contrato do pack (objetivo, 10 condições falseáveis, catálogos sem lista de proibidos, decisão gerada e conferida) |
 | `tests/test_root_engine_gate.sh` | 22 cenários: o gate é uma leitura do solver — C01..C10 por par, evidência de kernel injetada, sem motor default |
 | `tests/test_droidspaces_preflight.sh` | 26 cenários: contrato completo, fixtures que reprovam (sha inválido, sem M01, mount-hide global, placeholder, versão divergente), evidência de kernel e device via stub de `adb` |
+| `tests/test_kernel_build_gate.sh` | 35 cenários: plano real fecha 20/20, um contra-exemplo por regra (P01–P20), paridade com `droidspaces-requirements.json`, vacuidade recusada, pré-build PENDENTE sem insumo e PRONTO com árvore/config/artefatos materializados, determinismo |
 | `tests/test_stage_logic.sh` | 54 cenários **semânticos** dos estágios A/B e do bundle, com fixtures e stubs (nenhum insumo ausente vira sucesso) |
 | `tests/test_ci_workflow_lint.sh` | 12 cenários: cada trava removida é detectada |
 | `references/rollout-and-cache.md` | **Gates 3–5**: rollout canário (1 módulo por vez), ondas, cache versionado por SHA-256, política de tamanho |
 | `scripts/extract_rom_assets.sh` | Fecha a L4 pelo `.zip` oficial (kernel/KMI + hashes), sem depender do aparelho |
 | `scripts/kernel_compat_check.sh` | Gate 1 executável: `COMPATIBLE`/`INCOMPATIBLE` com motivos |
+| `scripts/kernel_build_gate.py` | **Plano do kernel**: `--plan` cobra 20 regras (alvo, fonte pinada, toolchain, defconfig+fragmentos, patches com política, configs do contrato e de módulo, FR/NFR falseáveis, ações com SHA, artefatos com hash, deploy, cobertura de módulos, riscos) e `--prebuild` cobra 7 (pin de 40 hex, ações com SHA, árvore com fragmento e patches, CONFIG_* provadas por evidência, artefatos gerados, paridade com o pack) |
 | `scripts/root_pair_solver.py` | **Solver do pack**: enumera todos os pares (motor × kernel), avalia as 10 condições (`pack-conditions.json`) e devolve PAR_GARANTIDO/FALTA_PROVA/IMPOSSIVEL/AMBIGUO — determinístico, sem nome de motor no código, com `--selftest` de falseabilidade |
 | `scripts/root_engine_gate.py` | Gate do motor: leitura do solver para um par — mostra C01..C10 com o motivo de cada falha e injeta evidência de kernel (`--kernel-evidence`) |
 | `scripts/legacy_scope.py` | Guarda de escopo: legado marcado ou ausente, canônico presente, conflito declarado ainda escrito |

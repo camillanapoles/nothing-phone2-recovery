@@ -1,7 +1,7 @@
 # Raiz do workspace — atalhos de prova. A verdade está em AGENTS.md.
 SHELL := /usr/bin/env bash
 
-.PHONY: help escopo garantia pack pack-selftest m05 state state-reset test-state test-wrappers arch skills test prove
+.PHONY: help escopo garantia pack pack-selftest kernel m05 state state-reset test-state test-wrappers arch skills test prove
 
 help:
 	@echo "make state        -> dry-run da higiene de estado (nada é alterado)"
@@ -16,6 +16,7 @@ help:
 	@echo "make pack         -> solver: qual par (motor × kernel) fecha as 10 condições, por dado"
 	@echo "make pack-selftest -> prova de falseabilidade das 10 condições (cada uma cai só por ela)"
 	@echo "make m05          -> DroidSpaces: contrato estático do M05"
+	@echo "make kernel        -> plano do kernel (P01–P20) e pré-build (B01–B07): 0 pronto / 3 pendente"
 	@echo "make garantia     -> garantia prévia: 5 requisitos, com prova ou PENDENTE (exit 3)"
 	@echo "make escopo       -> o que é deste workspace × legado que manda NÃO usar""
 	@echo "make prove        -> tudo: test-state + skills"
@@ -37,6 +38,9 @@ escopo:
 
 garantia:
 	@python3 skills/evox-rom-ci-optimizer/scripts/success_guarantee.py --root .
+
+kernel:
+	@python3 skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py --root . --prebuild
 
 m05:
 	@python3 skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py --root . --static

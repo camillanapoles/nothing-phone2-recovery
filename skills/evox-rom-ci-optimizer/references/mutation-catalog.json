@@ -1291,6 +1291,60 @@
    "test": "skills/evox-rom-ci-optimizer/tests/test_success_guarantee.sh",
    "strength": "semantic",
    "rationale": "se nenhum kernel do catálogo consegue o trio, R5 é impossível e não pendente"
+  },
+  {
+   "id": "M160",
+   "file": "skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py",
+   "find": "    falta = sorted(contrato_real - contrato_plan)\n",
+   "replace": "    falta = []\n",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_build_gate.sh",
+   "strength": "semantic",
+   "rationale": "P06: se o plano ignorar o que o pack exige, a paridade some e C06 fica sem prova"
+  },
+  {
+   "id": "M161",
+   "file": "skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py",
+   "find": "    sem_prova = [r.get(\"id\") for r in todas if not (r.get(\"verified_by\") and r.get(\"falsified_by\"))]",
+   "replace": "    sem_prova = []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_build_gate.sh",
+   "strength": "semantic",
+   "rationale": "P10: requisito sem falsificação vira decoração"
+  },
+  {
+   "id": "M162",
+   "file": "skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py",
+   "find": "    add(\"P16_artefatos\", OK if precisos <= nomes else FAIL,",
+   "replace": "    add(\"P16_artefatos\", OK if True else FAIL,",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_build_gate.sh",
+   "strength": "semantic",
+   "rationale": "P16: sem boot.img/config/kernel-config não há o que instalar nem o que conferir"
+  },
+  {
+   "id": "M163",
+   "file": "skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py",
+   "find": "    add(\"P19_cobertura_de_modulos\", OK if not descobertos and not vazios else FAIL,",
+   "replace": "    add(\"P19_cobertura_de_modulos\", OK if True else FAIL,",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_build_gate.sh",
+   "strength": "semantic",
+   "rationale": "P19: módulo sem critério de validação não pode contar como coberto"
+  },
+  {
+   "id": "M164",
+   "file": "skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py",
+   "find": "    add(\"B01_fonte_pinada\", OK if HEX40.match(pin) else PEND,",
+   "replace": "    add(\"B01_fonte_pinada\", OK if True else PEND,",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_build_gate.sh",
+   "strength": "semantic",
+   "rationale": "B01: source sem commit fixado é build irreprodutível, não pronto"
+  },
+  {
+   "id": "M165",
+   "file": "skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py",
+   "find": "        falta = sorted(c for c in exigidas if str(cfgs.get(c, \"n\")) not in (\"y\", \"m\"))",
+   "replace": "        falta = []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_build_gate.sh",
+   "strength": "semantic",
+   "rationale": "B05: config ausente na evidência é PENDENTE (é o que destrava C06)"
   }
  ],
  "retired": [

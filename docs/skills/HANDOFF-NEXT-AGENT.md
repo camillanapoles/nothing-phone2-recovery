@@ -1,7 +1,13 @@
 # Handoff — instrução de prosseguimento (próximo agente)
 
 **Estado:** branch `arena/863582fd-nothing-phone2-recovery` · skill `evox-rom-ci-optimizer` v3.1
-**Data:** 2026-11-01 · **Suíte:** `make -s prove` verde · mutação **102/102 mortos por asserção**
+**Data:** 2026-11-01 · **Suíte:** `make -s prove` verde (619 casos / 30 suítes) · mutação **145/145 mortos por asserção**
+
+> **Leia antes:** `docs/skills/CONTINUITY-INSTRUCTION.md` (memória, método, mandato, aprendizados,
+> anti-padrões e como resolver dúvida). Para a kernel: `docs/skills/KERNEL-REQUIREMENTS.md`
+> (requisitos e critério de 100% por módulo) e `docs/skills/KERNEL-BUILD-TEST-PLAN.md`
+> (build no GitHub Actions, box de kernel, plano de teste do par). Este handoff cobre P1/P2/P3 e a
+> operação do pack.
 
 Este documento é a instrução operacional. Ele **não autoriza** nenhuma decisão de produto em nome
 da usuária. O que está decidido está listado como decidido; o que falta está listado como pergunta.

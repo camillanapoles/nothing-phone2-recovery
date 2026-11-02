@@ -28,6 +28,7 @@ SCRIPTS=(
   "$SK/scripts/session_open.py"
   "$SK/scripts/architecture_guard.py"
   "$SK/scripts/contradiction_scan.py"
+  "$SK/scripts/kernel_build_gate.py"
   "$SK/assets/00_slot_router.sh"
   "$SK/assets/watchdog_anti_bootloop_service.sh"
   "$ROOT/scripts/audit-flashable-zip.sh"

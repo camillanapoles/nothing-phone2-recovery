@@ -232,6 +232,7 @@ audit-fsm/             FSM determinístico + API + probes (contrato executável)
 scripts/               state_reset.sh + scripts gerentes
 config/                managers.json, toolchains (dados de gerência)
 docs/skills/           inventário, handoff, índice de legado
+                       (retomada de sessão: CONTINUITY-INSTRUCTION.md + HANDOFF-NEXT-AGENT.md)
 tests/                 regressão do estado (state_reset)
 state/                 runtime local (quarentena, relatórios) — fora do Git
 ```
