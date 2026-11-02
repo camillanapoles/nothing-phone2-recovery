@@ -82,14 +82,15 @@
   }
  ],
  "configuration_rules": [
-  "No APatch Manager: habilitar 'Exclude modifications' (umount) para CADA app que precisa não ver root",
-  "No Zygisk Next: desligar 'Enforce DenyList' quando houver a opção",
+  "No KSU-Next: 'Umount modules' (App Profile) ligado para CADA app que precisa não ver root",
+  "No Zygisk Next: enforce-denylist just_umount + linker builtin + memory-type anonymous (estado verificável por comando)",
   "Um único dono da escrita de identidade (R04): Tricky Store + PIFork, nunca dois spoofers",
-  "Shamiko e Mountify continuam PROIBIDOS (conflito declarado no config-map do aparelho)"
+  "Shamiko e Mountify continuam PROIBIDOS (conflito declarado no config-map do aparelho)",
+  "SUSFS userspace (susfs4ksu) com versão CASADA ao patch do kernel: sem ele o par acusa 'susfs not found'"
  ],
  "what_is_not_possible": [
   "Ocultação 'perfeita' não é demonstrável: existe sempre uma superfície de detecção (syscalls, timing, attestation). O que é demonstrável é o conjunto de apps testados com resultado PASS.",
-  "SUSFS (hiding em kernel) está fora por decisão; sem ele, apps que detectam root por linha de kernel/KPM podem continuar detectando — isso é limite da Decisão A, não bug de configuração."
+  "Ocultação perfeita não é demonstrável; o que é demonstrável é a matriz de apps testados (docs/skills/HIDING-STACK.md). O SUSFS agora é camada OBRIGATÓRIA do combo (references/install-stack.json, fase F4)."
  ],
  "sources": [
   "https://github.com/bmax121/APatch (README: requer CONFIG_KALLSYMS=y + CONFIG_KALLSYMS_ALL=y)",

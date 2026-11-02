@@ -1,3 +1,9 @@
+> **SUPERSEDIDO para o combo e para a ordem de instalação (2026-11-02).** A fila vigente é
+> `docs/skills/INSTALL-SEQUENCE.md`, derivada de `references/install-stack.json` e cobrada por
+> `make stack`. Este documento continua válido como **histórico da Decisão C** (fila M01–M15 sob
+> APatch) e como registro dos conflitos declarados; qualquer instrução de módulo aqui que contrarie
+> o `install-stack.json` **perde**.
+
 # Sequência aprovada de instalação e módulos — Decisão C (ratificada 2026-11-01)
 
 > **Escopo:** `pong` (Nothing Phone 2) · build pinada `EvolutionX-16.0-20260915-Pong-11.11` (A16/API 36)

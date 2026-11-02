@@ -32,6 +32,7 @@ PLAN = f"{SK}/references/kernel-build-plan.json"
 ROM = f"{SK}/references/rom-artifacts.json"
 REQ = f"{SK}/references/droidspaces-requirements.json"
 FRAG = "kernel/fragments/evox_pong_pack.config"
+DECISIONS = f"{SK}/references/decisions.json"
 
 PIN_RE = re.compile(r"^(commit:[0-9a-f]{7,40}|tag:[^\s]+|build:[^\s]+|sha256:[0-9a-f]{64}|pkg:[^\s]+)$")
 ACTIVE = ("required", "conditional", "optional")
@@ -241,6 +242,37 @@ def i_foreign_pin_rom(d, ctx):
             for l in camadas if l.get("pin") != esperado]
 
 
+def i_decision_sync(d, ctx):
+    """O registro de decisão (versionado) não pode divergir do contrato."""
+    try:
+        dec = json.loads(ctx["dec"] or "{}")
+    except json.JSONDecodeError:
+        return ["decisions.json inválido"]
+    if not dec:
+        return []
+    p = []
+    dec_ = d.get("decisions") or {}
+    if (dec.get("build") or {}).get("flavor") != (dec_.get("flavor") or {}).get("value"):
+        p.append(f"flavor no registro ({dec.get('build', {}).get('flavor')}) != contrato "
+                 f"({(dec_.get('flavor') or {}).get('value')})")
+    camadas = {l.get("id"): l for l in d.get("layers") or []}
+    ativos = [i for i, l in camadas.items() if l.get("status") != "not_installed"]
+    mods = dec.get("modules") or []
+    if len(mods) != len(ativos):
+        p.append(f"registro tem {len(mods)} módulos, contrato tem {len(ativos)} camadas ativas")
+    for m in mods:
+        l = camadas.get(m.get("id"))
+        if l is None:
+            p.append(f"módulo {m.get('id')!r} não existe no contrato")
+        elif m.get("pin") != l.get("pin"):
+            p.append(f"{m.get('id')}: pin do registro ({m.get('pin')}) != contrato ({l.get('pin')})")
+    kpin = (dec.get("kernel") or {}).get("pin")
+    klayer = [l for l in d.get("layers") or [] if l.get("kind") == "kernel"]
+    if kpin and klayer and klayer[0].get("pin") != f"commit:{kpin}":
+        p.append(f"pin do kernel no registro ({kpin}) != contrato ({klayer[0].get('pin')})")
+    return p
+
+
 def i_contract_configs(d, ctx):
     fonte = "\n".join([ctx["req"] or "", ctx["frag"] or "", ctx["plan"] or ""])
     p = []
@@ -267,12 +299,13 @@ INVARIANTES = {
     "foreign_pin_kernel": i_foreign_pin_kernel,
     "foreign_pin_rom": i_foreign_pin_rom,
     "contract_configs": i_contract_configs,
+    "decision_sync": i_decision_sync,
 }
 
 ORDEM = ["schema", "unique_ids", "pins_format", "steps_have_pass", "phases_contiguous",
          "requires_exist", "requires_dag", "phase_order", "conflicts_symmetric",
          "no_active_conflict", "forbidden_absent", "decisions_complete",
-         "foreign_pin_kernel", "foreign_pin_rom", "contract_configs"]
+         "foreign_pin_kernel", "foreign_pin_rom", "contract_configs", "decision_sync"]
 
 
 def roda(root: str) -> tuple[int, dict]:
@@ -290,6 +323,7 @@ def roda(root: str) -> tuple[int, dict]:
         "rom": carrega(root, ROM, faltando),
         "req": carrega(root, REQ, faltando),
         "frag": carrega(root, FRAG, faltando),
+        "dec": carrega(root, DECISIONS, faltando),
     }
     checks = []
     for nome in d.get("invariantes_ativos") or d.get("invariants") or ORDEM:
@@ -297,7 +331,7 @@ def roda(root: str) -> tuple[int, dict]:
         if fn is None:
             checks.append({"check": nome, "state": "fail", "detail": "invariante desconhecido"})
             continue
-        if nome.startswith("foreign_") or nome == "contract_configs":
+        if nome.startswith("foreign_") or nome in ("contract_configs", "decision_sync"):
             if faltando:
                 checks.append({"check": nome, "state": "pending",
                                "detail": f"insumo ausente: {sorted(set(faltando))}"})
