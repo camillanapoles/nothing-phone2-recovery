@@ -1345,6 +1345,51 @@
    "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_build_gate.sh",
    "strength": "semantic",
    "rationale": "B05: config ausente na evidência é PENDENTE (é o que destrava C06)"
+  },
+  {
+   "id": "M166",
+   "file": "skills/evox-rom-ci-optimizer/scripts/continuity_gate.py",
+   "find": "    faltando = [c for c in citados if not candidatos(root, c)]",
+   "replace": "    faltando = []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_continuity_gate.sh",
+   "strength": "semantic",
+   "rationale": "Q18: caminho citado que não existe torna a instrução impossível de seguir"
+  },
+  {
+   "id": "M167",
+   "file": "skills/evox-rom-ci-optimizer/scripts/continuity_gate.py",
+   "find": "        literais = [i for i in ids_de_motor(root) if f'\"{i}\"' in codigo or f\"'{i}'\" in codigo]",
+   "replace": "        literais = []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_continuity_gate.sh",
+   "strength": "semantic",
+   "rationale": "Q20: se o solver citar motor por nome, a escolha deixa de ser por dado"
+  },
+  {
+   "id": "M168",
+   "file": "skills/evox-rom-ci-optimizer/scripts/continuity_gate.py",
+   "find": "    ruins = [a for a in pedidos if a not in alvos]",
+   "replace": "    ruins = []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_continuity_gate.sh",
+   "strength": "semantic",
+   "rationale": "Q19: comando de retomada que não existe no Makefile quebra a próxima sessão"
+  },
+  {
+   "id": "M169",
+   "file": "skills/evox-rom-ci-optimizer/scripts/continuity_gate.py",
+   "find": "        add(cid, bool(corpo.strip()) and bool(re.search(rx, corpo)),",
+   "replace": "        add(cid, True,",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_continuity_gate.sh",
+   "strength": "semantic",
+   "rationale": "cláusulas: se toda cláusula passa sem conteúdo, o handoff vira decoração"
+  },
+  {
+   "id": "M170",
+   "file": "skills/evox-rom-ci-optimizer/scripts/continuity_gate.py",
+   "find": "    add(\"Q00_documento\", n_linhas >= 120, f\"{n_linhas} linhas (mínimo 120)\")",
+   "replace": "    add(\"Q00_documento\", True, f\"{n_linhas} linhas\")",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_continuity_gate.sh",
+   "strength": "semantic",
+   "rationale": "Q00: instrução de 3 linhas não é instrução de continuidade"
   }
  ],
  "retired": [
