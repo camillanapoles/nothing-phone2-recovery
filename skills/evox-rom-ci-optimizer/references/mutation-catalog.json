@@ -1552,6 +1552,15 @@
    "test": "skills/evox-rom-ci-optimizer/tests/test_stack_gate.sh",
    "strength": "semantic",
    "rationale": "pin não verificado: 'latest' e versão solta viram pin válido e a rastreabilidade morre"
+  },
+  {
+   "id": "M189",
+   "file": "scripts/stack_gate.py",
+   "find": "    try:\n        dec = json.loads(ctx[\"dec\"] or \"{}\")",
+   "replace": "    return []\n    try:\n        dec = json.loads(ctx[\"dec\"] or \"{}\")",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_stack_gate.sh",
+   "strength": "semantic",
+   "rationale": "registro de decisão deixa de ser conferido: o contrato e a decisão podem divergir e o gate diz OK"
   }
  ],
  "retired": [

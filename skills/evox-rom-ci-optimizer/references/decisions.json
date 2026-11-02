@@ -1,0 +1,223 @@
+{
+ "schema": "evox-session/1",
+ "note": "REGISTRO VIVO e versionado. Antes ficava em workspace/ (ignorado pelo git) e sumia a cada troca de branch: P1 voltava a 'decisão ausente'. O gate stack_gate.py confere que este arquivo não diverge de install-stack.json.",
+ "build": {
+  "flavor": "vanilla",
+  "flavor_source": "user",
+  "rationale": "a build GApps traz Chrome/Velvet/Wellbeing privilegiados no /system; debloat systemless volta na OTA. Na vanilla o catálogo é declarado, não herdado.",
+  "variant_manifest": "skills/evox-rom-ci-optimizer/references/rom-artifacts.json",
+  "zip_path": null,
+  "zip_sha256": null
+ },
+ "installs": [
+  {
+   "tool": "payload-dumper-go",
+   "needed_for": "extrair boot.img do payload.bin",
+   "authorized": true
+  },
+  {
+   "tool": "magiskboot",
+   "needed_for": "unpack/repack do boot.img",
+   "authorized": true
+  },
+  {
+   "tool": "adb",
+   "needed_for": "sideload da ROM/GApps e coleta pós-flash",
+   "authorized": true
+  },
+  {
+   "tool": "ksud",
+   "needed_for": "instalar módulos no KSU-Next",
+   "authorized": true
+  }
+ ],
+ "kernel": {
+  "choice": "kernelsu-next + susfs (build E03)",
+  "rationale": "LKM com SUSFS no kernel: ocultação em nível de kernel e namespaces do contrato do DroidSpaces. Sem build certificado não há root nem containers.",
+  "pin": "4ec5491f6b5fd8776207a2a453d6b98b1928de7a",
+  "plan": "skills/evox-rom-ci-optimizer/references/kernel-build-plan.json"
+ },
+ "modules": [
+  {
+   "id": "firmware-pong",
+   "name": "Firmware Nothing OS B4.0-251119-1654",
+   "phase": "F0",
+   "pin": "pkg:nothingos-b4.0-251119-1654",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "evox-vanilla",
+   "name": "Evolution X 11.11 Vanilla (A16)",
+   "phase": "F0",
+   "pin": "build:EvolutionX-16.0-20260915-Pong-11.11",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "nikgapps-core",
+   "name": "NikGapps Core arm64-16 (5 componentes)",
+   "phase": "F1",
+   "pin": "pkg:nikgapps-core-arm64-16",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "webview-aosp",
+   "name": "AOSP WebView do sistema",
+   "phase": "F2",
+   "pin": "pkg:aosp-webview",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "kernel-build-e03",
+   "name": "Kernel compilado do E03 (tree lineage-23.2 + KSU-Next + SUSFS)",
+   "phase": "F0",
+   "pin": "commit:4ec5491f6b5fd8776207a2a453d6b98b1928de7a",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "ksu-next",
+   "name": "KernelSU-Next v3.4.2 (LKM sobre o kernel do E03)",
+   "phase": "F0",
+   "pin": "tag:v3.4.2",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "susfs-userspace",
+   "name": "susfs4ksu userspace v1.5.2+_R28 (casa com o patch SUSFS do kernel)",
+   "phase": "F4",
+   "pin": "tag:v1.5.2+_R28",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "ksu-app-profile",
+   "name": "KSU-Next: Umount modules por app (App Profile)",
+   "phase": "F4",
+   "pin": "pkg:ksu-next-app-profile",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "zygisk-next",
+   "name": "Zygisk Next v1.5.2 em modo just_umount + linker builtin + memoria anonima",
+   "phase": "F0",
+   "pin": "tag:v1.5.2",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "pifork",
+   "name": "PlayIntegrityFork (osm0sis)",
+   "phase": "F5",
+   "pin": "tag:v16",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "teesimulator-rs",
+   "name": "TEESimulator-RS v6.0.1 build Enhanced",
+   "phase": "F5",
+   "pin": "tag:v6.0.1-360-enhanced",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "keybox",
+   "name": "keybox.xml não revogada em /data/adb/tricky_store/",
+   "phase": "F5",
+   "pin": "pkg:keybox-xml",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "vbmeta-fixer",
+   "name": "VBMeta Fixer",
+   "phase": "F5",
+   "pin": "pkg:vbmeta-fixer",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "nohello",
+   "name": "NoHello v0.0.8 (whitelist)",
+   "phase": "F4",
+   "pin": "tag:v0.0.8",
+   "status": "conditional",
+   "approved": true,
+   "trigger": "só entra se a matriz de detecção falhar"
+  },
+  {
+   "id": "hma-oss",
+   "name": "HMA-OSS (esconder lista de apps)",
+   "phase": "F4",
+   "pin": "tag:hma-oss",
+   "status": "optional",
+   "approved": true,
+   "trigger": "só entra se necessário (Drive / app que enumera pacotes)"
+  },
+  {
+   "id": "gemini",
+   "name": "Gemini (Play Store)",
+   "phase": "F5",
+   "pin": "pkg:com.google.android.apps.bard",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "drive",
+   "name": "Drive (Play Store)",
+   "phase": "F6",
+   "pin": "pkg:com.google.android.apps.docs",
+   "status": "optional",
+   "approved": true,
+   "trigger": "só entra se necessário (Drive / app que enumera pacotes)"
+  },
+  {
+   "id": "circletosearch",
+   "name": "CircleToSearch (AKS-Labs) pinado",
+   "phase": "F6",
+   "pin": "commit:e4f461417ed946668dbeaa11707e054d1a51cf4e",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "morphe",
+   "name": "Morphe v2.3.0 + YouTube patcheado + detach",
+   "phase": "F6",
+   "pin": "tag:v2.3.0",
+   "status": "required",
+   "approved": true
+  },
+  {
+   "id": "gms-doze",
+   "name": "Universal GMS Doze 1.9.11",
+   "phase": "F7",
+   "pin": "tag:1.9.11",
+   "status": "required",
+   "approved": true
+  }
+ ],
+ "canary": {
+  "avd_seconds": 60,
+  "physical_min": 10,
+  "avc_baseline": 0,
+  "approved": true
+ },
+ "cache": {
+  "inline_max_mb": 25,
+  "retention_days": 5,
+  "prune_days": 90,
+  "approved": true
+ },
+ "usb": {
+  "policy": "produção: somente após 10/10 no emulador",
+  "acknowledged": true
+ },
+ "stack_ref": "skills/evox-rom-ci-optimizer/references/install-stack.json",
+ "stack_gate": "python3 scripts/stack_gate.py --root ."
+}

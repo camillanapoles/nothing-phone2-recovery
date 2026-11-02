@@ -77,7 +77,7 @@ def derivar(root: str) -> tuple[dict[str, dict], list[str]]:
     rc, dec = roda(root, [f"{SK}/scripts/session_open.py", "check", "--json"])
     if rc != 0:
         falta = (dec.get("pending") or dec.get("missing") or dec.get("gaps")
-                 or ["decisão ausente (nada gravado em workspace/decision.json)"])
+                 or ["decisão ausente (nada gravado em references/decisions.json)"])
         debitos["P1"] = {"estado": "aberto", "origem": "session_open.py check",
                          "evidencia": f"pendente: {falta if isinstance(falta, str) else ', '.join(map(str, falta))}"}
 

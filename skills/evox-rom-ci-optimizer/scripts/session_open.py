@@ -112,6 +112,10 @@ def _pending(doc: dict) -> list[str]:
 
 DECIDED_BY = "agent-context"
 
+# Registro versionado: fica no repositório porque workspace/ é ignorado pelo git — decisão gravada
+# em caminho ignorado some na troca de branch e o débito P1 volta a "decisão ausente".
+DECISION_TRACKED = "skills/evox-rom-ci-optimizer/references/decisions.json"
+
 P10_P13 = {
     "P10": {"decision": "Duck-ToolBox consolidado, sem separar por padrão",
             "rationale": "um pacote cobre banking+Play Integrity; separar só se o "
@@ -225,9 +229,11 @@ def main(argv: list[str]) -> int:
         return 0
     if cmd == "check":
         as_json = "--json" in args
-        path = "workspace/decision.json"
+        path = DECISION_TRACKED
         if "--file" in args:
             path = args[args.index("--file") + 1]
+        elif os.path.exists("workspace/decision.json"):
+            path = "workspace/decision.json"
         if not os.path.isfile(path):
             print(f"[ERRO] decisão ausente: {path} (rode o comando template)", file=sys.stderr)
             return 4

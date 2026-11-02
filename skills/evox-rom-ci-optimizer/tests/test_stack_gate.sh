@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # stack_gate.py — o contrato do combo/sequência só vale se REPROVAR quando o dado quebra.
-# 27 casos: 9 de sanidade/CLI, 16 de invariante (cada um isolado no seu próprio fixture) + 2 de PENDENTE.
+# 29 casos: 9 de sanidade/CLI, 17 de invariante (cada um no seu fixture) + 3 de PENDENTE/registro.
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
@@ -65,7 +65,8 @@ PY
 
 novo(){ local d="$1"; mkdir -p "$d/$SKD" "$d/kernel/fragments" "$d/scripts"
   cp "$ROOT/$SKD/install-stack.json" "$ROOT/$SKD/kernel-build-plan.json" \
-     "$ROOT/$SKD/rom-artifacts.json" "$ROOT/$SKD/droidspaces-requirements.json" "$d/$SKD/"
+     "$ROOT/$SKD/rom-artifacts.json" "$ROOT/$SKD/droidspaces-requirements.json" \
+     "$ROOT/$SKD/decisions.json" "$d/$SKD/"
   cp "$ROOT/kernel/fragments/evox_pong_pack.config" "$d/kernel/fragments/"
   cp "$K" "$d/scripts/"; printf '%s' "$d"; }
 
@@ -87,7 +88,7 @@ out=$(python3 "$K" --root "$ROOT"); rc=$?
 ck "workspace real: contrato íntegro (exit 0)" "0" "$rc"
 ck "declara as 9 fases F0..F8" "9" "$(printf '%s' "$out" | sed -n 's/.*· \([0-9]\+\) fases ·.*/\1/p')"
 ck "declara 21 camadas" "21" "$(printf '%s' "$out" | sed -n 's/.*· \([0-9]\+\) camadas ·.*/\1/p')"
-ck "15/15 invariantes verdes" "15/15" "$(printf '%s' "$out" | sed -n 's/.*OK · \([0-9]\+\)\/\([0-9]\+\) invariantes.*/\1\/\2/p')"
+ck "16/16 invariantes verdes" "16/16" "$(printf '%s' "$out" | sed -n 's/.*OK · \([0-9]\+\)\/\([0-9]\+\) invariantes.*/\1\/\2/p')"
 ck "--json devolve veredito OK" "OK" "$(python3 "$K" --root "$ROOT" --json | python3 -c 'import json,sys;print(json.load(sys.stdin)["verdict"])')"
 ck "--help sai 0" "0" "$(python3 "$K" --help >/dev/null 2>&1; echo $?)"
 ck "raiz inexistente é entrada inválida" "4" "$(python3 "$K" --root "$T/nada" >/dev/null 2>&1; echo $?)"
@@ -135,6 +136,21 @@ ck "plano do kernel ausente vira PENDENTE (exit 3)" "3" \
   "$(python3 "$D/scripts/stack_gate.py" --root "$D" >/dev/null 2>&1; echo $?)"
 ck "e o veredito diz PENDENTE" "PENDENTE" \
   "$(python3 "$D/scripts/stack_gate.py" --root "$D" --json 2>/dev/null | python3 -c 'import json,sys;print(json.load(sys.stdin).get("verdict"))')"
+
+# o registro de decisão (versionado) tem de casar com o contrato — e sumir não é "verde"
+D=$(novo "$T/registro")
+python3 -c "
+import json,sys
+p='$D/$SKD/decisions.json'
+d=json.load(open(p,encoding='utf-8')); d['build']['flavor']='gapps'
+json.dump(d,open(p,'w',encoding='utf-8'))
+"
+ck "registro com flavor divergente reprova (decision_sync)" "fail" \
+  "$(python3 "$D/scripts/stack_gate.py" --root "$D" --json | python3 -c 'import json,sys;c=[x for x in json.load(sys.stdin)["checks"] if x["check"]=="decision_sync"];print("fail" if c and c[0]["state"]=="fail" else "nao-falhou")')"
+
+D2=$(novo "$T/sem-registro"); rm -f "$D2/$SKD/decisions.json"
+ck "registro ausente vira PENDENTE (exit 3)" "3" \
+  "$(python3 "$D2/scripts/stack_gate.py" --root "$D2" >/dev/null 2>&1; echo $?)"
 
 printf '%s\n' "-----------------------------------------------------------------------"
 printf 'TOTAL: %d PASS / %d FAIL\n' "$P" "$F"
