@@ -1,0 +1,16 @@
+{
+ "schema": "evox-hiding-stack/1",
+ "note": "fixture: uma camada de kernel que exige 'root' + 'susfs'",
+ "layers": [
+  {
+   "id": "camada-x",
+   "name": "Camada X (fixture)",
+   "needs": [
+    "root",
+    "susfs"
+   ],
+   "engine_only": null,
+   "status": "fixture"
+  }
+ ]
+}

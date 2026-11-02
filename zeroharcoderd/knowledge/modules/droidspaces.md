@@ -1,3 +1,9 @@
+> **⚠️ HISTÓRICO — NÃO EXECUTAR.** Este documento descreve a receita de **kernel próprio** do
+> DroidSpaces (`droidspaces-android14-5.10`, patches sysvipc). A Decisão A ratificada em 2026-11-01
+> (`skills/evox-rom-ci-optimizer/references/root-decision.json`) proíbe kernel de terceiro/compilado.
+> Fonte canônica atual: `skills/evox-rom-ci-optimizer/references/droidspaces-requirements.json`
+> e `docs/skills/APPROVED-INSTALL-SEQUENCE.md`. Mantido apenas como registro histórico.
+
 # Module: Droidspaces — Custom Kernel Build Framework
 
 > Custom kernel build for Nothing Phone 2 with SYSVIPC + POSIX_MQUEUE patches.

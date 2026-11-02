@@ -1,0 +1,193 @@
+# ARQUIVO HISTORICO — SUPERSEDIDO por references/evox-ci-validator.yml
+# Mantido apenas como registro da arquitetura anterior (QEMU/KVM + gate inline).
+# Nao usar em execucao: nao tem trava AG, nem quarentena, nem probe A/B.
+name: Evolution X 11.11 Pre-Flight ROM Optimizer & Emulator Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      evox_rom_url:
+        description: 'URL direta ou Release da ROM Evolution X 11.11 (.zip)'
+        required: true
+        type: string
+      root_solution:
+        description: 'Motor de Root para pre-injecao offline'
+        required: true
+        default: 'apatch'
+        type: choice
+        options:
+          - apatch
+          - kernelsu
+          - magisk
+          - none
+      enable_debloat:
+        description: 'Aplicar perfil de Debloat Seguro (Android 16 Safe-List)'
+        required: false
+        default: true
+        type: boolean
+  push:
+    branches: [ main ]
+    paths:
+      - 'modules/**'
+      - 'kernel_patches/**'
+      - 'tweaks/**'
+      - '.github/workflows/evox-11-11-prevalidate.yml'
+
+env:
+  ANDROID_API_LEVEL: 36
+  EVOX_VERSION: "11.11"
+
+jobs:
+  # =========================================================================
+  # JOB 1: EVOX-FORGE — Extracao da Imagem Base, Auditoria Estatica e Patching
+  # =========================================================================
+  forge-and-audit-rom:
+    name: "EVOX-FORGE: Extract, Audit Conflicts & Patch Offline"
+    runs-on: ubuntu-24.04
+    outputs:
+      kmi_version: ${{ steps.kmi_probe.outputs.kmi }}
+      audit_status: ${{ steps.conflict_audit.outputs.status }}
+    steps:
+      - name: Checkout Repository (Modules, KPMs & Tweaks)
+        uses: actions/checkout@v4
+
+      - name: Install ROM Engineering Arsenal
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            aria2 unzip lz4 brotli zstd python3 python3-pip \
+            erofs-utils android-sdk-libsparse-utils e2fsprogs \
+             jq bc file binutils
+
+      - name: Setup payload-dumper-go & magiskboot & kptools
+        run: |
+          mkdir -p "$HOME/bin"
+          echo "$HOME/bin" >> $GITHUB_PATH
+          curl -sL https://github.com/ssut/payload-dumper-go/releases/download/1.2.2/payload-dumper-go_1.2.2_linux_amd64.tar.gz | tar -xz -C "$HOME/bin" payload-dumper-go
+          curl -sL https://github.com/bmax121/KernelPatch/releases/latest/download/kptools-linux -o "$HOME/bin/kptools"
+          chmod +x "$HOME/bin/"*
+
+      - name: Download & Cache Evolution X 11.11 Base Image
+        if: ${{ github.event.inputs.evox_rom_url != '' }}
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/extract_evox_base.sh --rom "${{ github.event.inputs.evox_rom_url }}" --out ./workspace/extracted
+
+      - name: Extract Kernel KMI & Verify Kallsyms (GKI 2.0)
+        id: kmi_probe
+        run: |
+          if [ -f workspace/extracted/boot.img ]; then
+            KMI_STR=$(strings workspace/extracted/boot.img | grep -E "Linux version [0-9]+\.[0-9]+\.[0-9]+-android[0-9]+-[0-9]+" | head -n 1 || echo "6.1.99-android14-11-evox")
+            echo "Detected Kernel Banner: $KMI_STR"
+            echo "kmi=$KMI_STR" >> $GITHUB_OUTPUT
+          else
+            echo "kmi=6.1.99-android14-11-simulated" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Deterministic Conflict & Pre-Boot Audit (T02)
+        id: conflict_audit
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/audit_rom_conflicts.sh \
+            --modules-dir ./modules \
+            --kpm-dir ./kernel_patches \
+            --tweaks-dir ./tweaks \
+            --extracted-dir ./workspace/extracted \
+            --safelist ./references/android16-evox-safelist.json \
+            --report-out ./workspace/conflict_matrix_report.md
+          ./scripts/build_safe_module_bundle.sh --out ./workspace/out
+          echo "status=PASS" >> $GITHUB_OUTPUT
+
+      - name: Upload Audited Overlay & Patched Boot Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: evox-11-11-staging-layer
+          path: |
+            workspace/conflict_matrix_report.md
+            workspace/extracted/*.json
+            workspace/extracted/*.sha256
+            workspace/out/*
+            modules/
+            tweaks/
+
+  # =========================================================================
+  # JOB 2: CI-SANDBOX-PROBE — Emulacao KVM Android 16 (API 36) & Boot Gate
+  # =========================================================================
+  emulator-boot-validation:
+    name: "CI-SANDBOX-PROBE: Android 16 (API 36) KVM Boot & Conflict Test"
+    needs: forge-and-audit-rom
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Staging Layer
+        uses: actions/download-artifact@v4
+        with:
+          name: evox-11-11-staging-layer
+          path: ./staging
+
+      - name: Enable KVM Hardware Acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -la /dev/kvm
+
+      - name: Execute Android 16 (API 36) Emulator Pre-Flight Smoke Test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7_pro
+          emulator-options: -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            echo "=== [CI-SANDBOX-PROBE] Conectando ao Gemeo Digital Android 16 ==="
+            adb wait-for-device
+            adb shell "until [ \"\$(getprop sys.boot_completed)\" = \"1\" ]; do sleep 2; done"
+            echo "SDK Verificado: $(adb shell getprop ro.build.version.sdk)"
+
+            echo "=== [1/4] Simulando Estagio post-fs-data.sh & system.prop dos Modulos ==="
+            START_TS=$(date +%s)
+            for mod_prop in $(find ./modules ./tweaks ./assets -name "*.prop" 2>/dev/null); do
+              echo "Validando propriedades de: $mod_prop"
+              while IFS='=' read -r key val; do
+                [[ -z "$key" || "$key" =~ ^# ]] && continue
+                echo "  -> Prop test: $key=$val"
+              done < "$mod_prop"
+            done
+            END_TS=$(date +%s)
+            ELAPSED=$((END_TS - START_TS))
+            echo "Tempo de post-fs-data simulado: ${ELAPSED}s (Limite < 8s)"
+            if [ "$ELAPSED" -ge 8 ]; then
+              echo "ERRO FATAL: Timeout de post-fs-data excedido!"
+              exit 1
+            fi
+
+            echo "=== [2/4] Verificando Integridade de Pacotes contra RescueParty ==="
+            adb shell dumpsys package > staging/emulator_packages.txt
+            adb shell dumpsys activity processes > staging/emulator_processes.txt
+
+            echo "=== [3/4] Coletando Telemetria de Crashes e SELinux (avc: denied) ==="
+            adb logcat -d -b crash > staging/logcat_crash.log
+            adb shell "dmesg | grep -iE 'avc: denied|oom-killer|panic' || true" > staging/selinux_audit.log
+
+            if grep -qE "RescueParty|FATAL EXCEPTION IN SYSTEM PROCESS" staging/logcat_crash.log; then
+              echo "VETO DO INQUISITOR: Crash critico de sistema detectado no logcat!"
+              cat staging/logcat_crash.log
+              exit 1
+            fi
+            echo "=== [4/4] Emulacao Concluida com ZERO Conflitos Fatais ==="
+
+      - name: Upload Pre-Flight Telemetry & Production Bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evox-11-11-validated-release-bundle
+          path: |
+            staging/conflict_matrix_report.md
+            staging/logcat_crash.log
+            staging/selinux_audit.log
+            staging/workspace/out/*

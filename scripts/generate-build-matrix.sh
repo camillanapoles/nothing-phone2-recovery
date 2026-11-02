@@ -6,6 +6,12 @@
 
 set -euo pipefail
 
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  echo "uso: $(basename "$0") — só executa com argumentos explícitos"
+  sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
 # Load configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"

@@ -1,0 +1,150 @@
+# act-local: true
+# =============================================================================
+# Pong A/B HIL — pipeline LOCAL (nektos/act), NÃO roda no GitHub.
+# Fica fora de .github/workflows/ de propósito: nenhum push dispara fastboot.
+#
+# Rodar:  act -W workflows-local -j static-audit
+#         act -W workflows-local -j stage-slot --input test_slot=b --input mutate=true
+#         act -W workflows-local -j promote
+#
+# Pré-requisitos: Linux + Docker com /dev/bus/usb, adb/fastboot no host,
+#                 celular com depuração USB e bootloader destravado.
+# =============================================================================
+name: Pong A/B HIL (local)
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_slot:
+        description: "Slot de staging (_b por padrão)"
+        default: "b"
+        type: choice
+        options: [b, a]
+      prod_slot:
+        description: "Slot estável de fallback"
+        default: "a"
+        type: choice
+        options: [a, b]
+      mutate:
+        description: "false = só valida (sem flash)"
+        default: false
+        type: boolean
+      promote:
+        description: "Promover módulos aprovados ao final"
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  static-audit:
+    name: Fase 1 · auditoria estática (sem tocar no device)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scanner de conflitos + lint de workflow
+        run: |
+          python3 skills/evox-rom-ci-optimizer/scripts/static_conflict_scanner.py \
+            --modules-dir ./modules --out ./workspace/conflict_report.json --strict
+          python3 skills/evox-rom-ci-optimizer/scripts/ci_workflow_lint.py \
+            workflows-local/pong-ab-hil.yml
+      - name: Sintaxe dos scripts do slot router
+        run: sh -n skills/evox-rom-ci-optimizer/assets/00_slot_router.sh
+
+  stage-slot:
+    name: Fase 2/3 · quarentena + flash no slot de staging + boot monitorado
+    needs: static-audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      TEST_SLOT: ${{ inputs.test_slot }}
+      PROD_SLOT: ${{ inputs.prod_slot }}
+      MUTATE: ${{ inputs.mutate }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ferramentas e device
+        run: |
+          command -v adb >/dev/null || { echo "adb ausente"; exit 3; }
+          command -v fastboot >/dev/null || { echo "fastboot ausente"; exit 3; }
+          adb wait-for-device
+          echo "[i] slot atual: $(adb shell getprop ro.boot.slot_suffix | tr -d '\r')"
+      - name: Recusar staging == produção
+        run: |
+          [ "$TEST_SLOT" != "$PROD_SLOT" ] || { echo "staging e produção iguais"; exit 3; }
+      - name: Exigir que o slot estável esteja marcado successful
+        run: |
+          OUT="$(fastboot getvar slot-successful:${PROD_SLOT} 2>&1 || true)"
+          echo "$OUT"
+          case "$OUT" in *yes*) ;; *) echo "slot ${PROD_SLOT} não está successful — abort"; exit 3 ;; esac
+      - name: Backup verificado do boot dos dois slots
+        run: |
+          mkdir -p workspace/backup
+          for s in "$PROD_SLOT" "$TEST_SLOT"; do
+            adb exec-out "su -c 'dd if=/dev/block/by-name/boot_$s bs=1M 2>/dev/null'" \
+              > "workspace/backup/boot_$s.img"
+            sha256sum "workspace/backup/boot_$s.img" >> workspace/backup/SHA256SUMS
+          done
+      - name: Quarentena ANTES de trocar de slot (proteção do /data compartilhado)
+        run: |
+          adb push skills/evox-rom-ci-optimizer/assets/00_slot_router.sh /data/local/tmp/
+          adb shell "su -c 'mkdir -p /data/adb && cp /data/local/tmp/00_slot_router.sh /data/adb/ && chmod 755 /data/adb/00_slot_router.sh'"
+          adb shell "su -c '/data/adb/00_slot_router.sh quarantine'"
+          adb shell "su -c '/data/adb/00_slot_router.sh status'"
+      - name: Flash no slot de staging
+        if: inputs.mutate == true
+        run: |
+          adb reboot bootloader
+          fastboot wait-for-device
+          fastboot flash "boot_${TEST_SLOT}" ./workspace/out/boot_patched.img
+          fastboot --set-active="${TEST_SLOT}"
+          fastboot reboot
+      - name: Boot monitorado + gate de slot
+        if: inputs.mutate == true
+        run: |
+          timeout 180 bash -c 'until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = "1" ]; do sleep 2; done' \
+            || { echo "boot não concluiu — rollback"; adb reboot bootloader; fastboot --set-active="${PROD_SLOT}"; fastboot reboot; exit 1; }
+          BOOTED="$(adb shell getprop ro.boot.slot_suffix | tr -d '\r')"
+          echo "[i] bootou em $BOOTED"
+          [ "$BOOTED" = "_${TEST_SLOT}" ] || { echo "bootloader reverteu para $BOOTED"; exit 1; }
+      - name: Evidência do boot (SELinux, crash, módulos)
+        if: inputs.mutate == true
+        run: |
+          bash skills/evox-rom-ci-optimizer/scripts/sandbox_rollout.sh \
+            --modules ./modules --state ./workspace/rollout.json \
+            --evidence ./workspace/evidence --boot-timeout 60 --observe 30 --wave W1 \
+            || { adb shell "su -c '/data/adb/00_slot_router.sh quarantine'"; exit 1; }
+
+  promote:
+    name: Fase 4 · promoção incremental (só com PASS)
+    needs: stage-slot
+    if: inputs.promote == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exigir evidência verde do canário
+        run: |
+          python3 skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh \
+            status --state ./workspace/rollout.json --json
+          python3 - <<'PY'
+          import json
+          d = json.load(open("workspace/rollout.json"))
+          bad = [m["module"] for m in d["modules"] if m["state"] != "passed"]
+          assert not bad, f"módulos não aprovados: {bad}"
+          print("todos os módulos do ledger estão passed")
+          PY
+      - name: Ativar aprovados e confirmar boot no slot de staging
+        # HAL boot_control nao e garantida no Pong: nao usamos `bootctl`.
+        run: |
+          adb shell "su -c '/data/adb/00_slot_router.sh activate'"
+          boot="$(adb shell getprop sys.boot_completed | tr -d '\r')"
+          slot="$(adb shell getprop ro.boot.slot_suffix | tr -d '\r')"
+          echo "boot_completed=$boot slot=$slot"
+          [ "$boot" = "1" ] || { echo "ERRO: boot_completed=$boot"; exit 1; }
+          [ "$slot" = "_${{ inputs.staging }}" ] || { echo "ERRO: slot $slot != _${{ inputs.staging }}"; exit 1; }
+      - name: Snapshot da promoção
+        run: |
+          adb shell "su -c '/data/adb/00_slot_router.sh status'" | tee workspace/backup/slot_state.txt
+          sha256sum workspace/backup/*.img >> workspace/backup/SHA256SUMS || true

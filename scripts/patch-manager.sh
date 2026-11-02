@@ -5,12 +5,23 @@
 
 set -euo pipefail
 
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  echo "uso: $(basename "$0") — só executa com argumentos explícitos"
+  sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 source "${REPO_ROOT}/config/pong.env"
 
 KERNEL_DIR="${1:-kernel-source}"
 MANAGER="${2:-apatch}"
+
+if [[ ! -d "${KERNEL_DIR}" ]]; then
+  echo "[PENDENTE] arvore de kernel ausente: ${KERNEL_DIR} — nenhum patch aplicado" >&2
+  exit 3
+fi
 
 echo "=== Applying ${MANAGER} patch to ${KERNEL_DIR} ==="
 

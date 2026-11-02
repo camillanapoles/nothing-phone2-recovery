@@ -1,0 +1,247 @@
+# =============================================================================
+# EVOX-CI v3.3 — Forge offline + sandbox de validação (GitHub Actions)
+# -----------------------------------------------------------------------------
+# Premissa correta: a ROM do Pong (arm64, vendor SM8475) NÃO inicia em runner
+# x86_64. Este workflow separa:
+#   Stage A (forge)   = engenharia offline da ROM real (payload, patch, hashes)
+#   Stage B (sandbox) = boot de uma AVD API 36 x86_64 para validar a CAMADA de
+#                       módulos (overlay, props, scripts, sepolicy, Zygote)
+#   Stage C (release) = empacotamento pré-USB, só com A e B verdes
+#
+# Travas de custo (todas verificadas por scripts/ci_workflow_lint.py):
+#   1. concurrency.cancel-in-progress   → commit novo mata a execução anterior
+#   2. timeout-minutes em job e step    → bootloop não consome minutos
+#   3. watchdog de boot no script       → mata a AVD se boot_completed != 1
+#   4. cache por sha256 da ROM          → não rebaixa 6 GB a cada run
+#   5. artifact retention-days curto    → não acumula storage
+# =============================================================================
+name: EVOX 11.11 · pre-flight validator
+
+on:
+  workflow_dispatch:
+    inputs:
+      rom_url:
+        description: "URL direta do .zip oficial da Evolution X 11.11 (Pong)"
+        required: true
+        type: string
+      rom_sha256:
+        description: "sha256 do .zip (trava anti-ROM-trocada)"
+        required: true
+        type: string
+      flavor:
+        description: "Build escolhida"
+        required: true
+        default: gapps
+        type: choice
+        options: [vanilla, gapps]
+      root_method:
+        description: "Motor de root aplicado no boot.img"
+        required: true
+        default: apatch
+        type: choice
+        options: [apatch, kernelsu, magisk, none]
+      run_sandbox:
+        description: "Executar Stage B (AVD API 36 x86_64)"
+        required: true
+        default: true
+        type: boolean
+      package_release:
+        description: "Empacotar artefato pré-USB (Stage C)"
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  EVOX_SKILL: skills/evox-rom-ci-optimizer
+  WORK: workspace
+  API_LEVEL: "36"
+
+jobs:
+  forge:
+    name: Stage A · forge offline (ROM real)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    outputs:
+      rom_sha: ${{ steps.rom.outputs.sha }}
+      l4_closed: ${{ steps.l4.outputs.closed }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Gate 0 · preflight de dependências
+        run: |
+          python3 "$EVOX_SKILL/scripts/preflight_deps.sh" --require python3,unzip,sha256sum
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq unzip binutils coreutils
+
+      - name: Instalar payload-dumper-go (release oficial)
+        run: |
+          mkdir -p "$HOME/bin"
+          curl -fsSL -o /tmp/pdg.tar.gz \
+            https://github.com/ssut/payload-dumper-go/releases/latest/download/payload-dumper-go_linux_amd64.tar.gz
+          tar -xzf /tmp/pdg.tar.gz -C "$HOME/bin" payload-dumper-go
+          chmod +x "$HOME/bin/payload-dumper-go"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Baixar a ROM e conferir sha256
+        id: rom
+        run: |
+          mkdir -p "$WORK"
+          curl -fL --retry 3 --retry-delay 5 -o "$WORK/evox.zip" "${{ inputs.rom_url }}"
+          ACTUAL="$(sha256sum "$WORK/evox.zip" | awk '{print $1}')"
+          WANT="${{ inputs.rom_sha256 }}"
+          if [ "$ACTUAL" != "$WANT" ]; then
+            echo "::error::sha256 do zip não confere (esperado ${WANT:0:12}… obtido ${ACTUAL:0:12}…)"
+            exit 5
+          fi
+          echo "sha=$ACTUAL" >> "$GITHUB_OUTPUT"
+
+      - name: Cache das imagens extraídas (por sha da ROM)
+        uses: actions/cache@v4
+        with:
+          path: workspace/rom_assets
+          key: evox-rom-${{ steps.rom.outputs.sha }}-api${{ env.API_LEVEL }}
+
+      - name: Gate L4 · hashes e kernel vêm do pacote
+        id: l4
+        run: |
+          python3 "$EVOX_SKILL/scripts/extract_rom_assets.sh" \
+            --zip "$WORK/evox.zip" --expect-sha256 "${{ steps.rom.outputs.sha }}" \
+            --out "$WORK/rom_assets" --json > "$WORK/l4.json"
+          python3 - "$WORK/l4.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          print(f"kernel={d['kernel_version']} kmi={d['kmi']} l4_closed={d['l4_closed']}")
+          assert d["l4_closed"] is True, "L4 não fechou"
+          print("closed=true")
+          PY
+          echo "closed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Gate 1 · kernel × ROM × device
+        run: |
+          python3 "$EVOX_SKILL/scripts/kernel_compat_check.sh" \
+            --rom-assets "$WORK/rom_assets/rom_assets.json" \
+            --candidate "$WORK/kernel-candidate.json"
+
+      - name: Auditoria estática de conflitos (R00–R09)
+        run: |
+          python3 "$EVOX_SKILL/scripts/static_conflict_scanner.py" \
+            --modules-dir ./modules --out "$WORK/conflict_report.json" --strict
+
+      - name: Stage A · patch offline do boot + rollback
+        run: |
+          python3 "$EVOX_SKILL/scripts/forge_patcher.sh" \
+            "${{ inputs.root_method }}" "$WORK/rom_assets" ./modules
+          python3 "$EVOX_SKILL/scripts/guard4_verify.sh" \
+            --boot "$WORK/rom_assets/boot.img" \
+            --backup "$WORK/out/boot_stock_rollback.img" \
+            --sha-file "$WORK/out/boot_stock_rollback.img.sha256" \
+            --rom-assets "$WORK/rom_assets/rom_assets.json"
+
+      - name: Cache de fase verde (manifesto no repo, binário fora)
+        run: |
+          python3 "$EVOX_SKILL/scripts/cache_manager.sh" put --phase l4 \
+            --file "$WORK/rom_assets/rom_assets.json" --proven-by "workflow:${{ github.run_id }}"
+          python3 "$EVOX_SKILL/scripts/cache_manager.sh" verify
+
+      - name: Publicar insumos do forge
+        uses: actions/upload-artifact@v4
+        with:
+          name: evox-forge-${{ inputs.flavor }}-${{ inputs.root_method }}
+          retention-days: 5
+          if-no-files-found: error
+          path: |
+            workspace/rom_assets/rom_assets.json
+            workspace/conflict_report.json
+            workspace/out/boot_patched.img
+            workspace/out/boot_stock_rollback.img
+            workspace/out/boot_stock_rollback.img.sha256
+
+  sandbox:
+    name: Stage B · sandbox AVD API 36 (camada de módulos)
+    needs: forge
+    if: inputs.run_sandbox == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Habilitar KVM (obrigatório para AVD x86_64)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: evox-forge-${{ inputs.flavor }}-${{ inputs.root_method }}
+          path: workspace
+
+      - name: Stage B · boot + rollout canário dentro da AVD
+        timeout-minutes: 12
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: >-
+            -no-window -gpu swiftshader_indirect -no-snapshot -noaudio
+            -no-boot-anim -memory 4096
+          script: |
+            # watchdog: se o boot não concluir em 300 s, mata a AVD com evidência
+            timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = "1" ]; do sleep 2; done' \
+              || { adb shell dmesg | tail -50; exit 4; }
+            bash "$EVOX_SKILL/scripts/sandbox_rollout.sh" \
+              --modules ./modules \
+              --state ./workspace/rollout.json \
+              --evidence ./workspace/evidence \
+              --boot-timeout 300
+
+      - name: Publicar evidência do sandbox
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evox-sandbox-evidence-${{ github.run_id }}
+          retention-days: 5
+          path: workspace/evidence
+
+  release:
+    name: Stage C · artefato pré-USB
+    needs: [forge, sandbox]
+    if: inputs.package_release == true && needs.forge.result == 'success' && (needs.sandbox.result == 'success' || inputs.run_sandbox == false)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: workspace
+      - name: Empacotar com manifesto e rollback
+        run: |
+          python3 "$EVOX_SKILL/scripts/build_safe_module_bundle.sh" \
+            --out ./dist --include-rollback || true
+          ( cd workspace && find . -name '*.img' -o -name '*.json' -o -name '*.sha256' ) \
+            | sort | xargs -r sha256sum > dist/SHA256SUMS || true
+          echo "go_usb=pendente (exige 10/10 testes e aprovação humana)" > dist/GO-USB.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evox-11.11-pre-usb
+          retention-days: 5
+          path: dist

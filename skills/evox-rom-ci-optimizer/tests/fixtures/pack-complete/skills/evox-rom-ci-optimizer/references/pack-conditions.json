@@ -1,0 +1,150 @@
+{
+ "schema": "evox-pack-conditions/1",
+ "note": "As 10 condições do pack. Nenhuma nomeia motor ou kernel: cada uma é uma regra sobre o PAR (motor × kernel). `breaker` é o contra-exemplo declarado usado pelo selftest — condição sem contra-exemplo é recusada (vacuidade).",
+ "conditions": [
+  {
+   "id": "C01",
+   "name": "o motor entrega root de verdade (artefato pinado)",
+   "feature": "M01 · root",
+   "rule": "engine_root",
+   "params": {},
+   "why": "motor sem artefato pinado é promessa, não instalação",
+   "breaker": {
+    "file": "root-engines.json",
+    "pointer": "/engines/0/artifact/version",
+    "action": "set",
+    "value": ""
+   }
+  },
+  {
+   "id": "C02",
+   "name": "o kernel serve o motor escolhido",
+   "feature": "M01 × kernel",
+   "rule": "kernel_serves_engine",
+   "params": {},
+   "why": "motor que vive no kernel precisa de um kernel que o embuta; motor de userspace não",
+   "breaker": {
+    "file": "kernel-candidates.json",
+    "pointer": "/candidates/0/kernel_supports",
+    "action": "set",
+    "value": []
+   }
+  },
+  {
+   "id": "C03",
+   "name": "o kernel declara a build pinada, o modelo e a API",
+   "feature": "integridade da base",
+   "rule": "build_match",
+   "params": {},
+   "why": "suporte genérico não é suporte à build; a regra do projeto exige declaração da build exata",
+   "breaker": {
+    "file": "kernel-candidates.json",
+    "pointer": "/candidates/0/supported_rom_builds",
+    "action": "set",
+    "value": []
+   }
+  },
+  {
+   "id": "C04",
+   "name": "o kernel é mantido (não é EOL)",
+   "feature": "estabilidade",
+   "rule": "kernel_maintained",
+   "params": {},
+   "why": "release parado não é mais estável; é superfície sem correção",
+   "breaker": {
+    "file": "kernel-candidates.json",
+    "pointer": "/candidates/0/developer_support/declared",
+    "action": "set",
+    "value": false
+   }
+  },
+  {
+   "id": "C05",
+   "name": "o DroidSpaces aceita o motor",
+   "feature": "M05",
+   "rule": "droid_engine",
+   "params": {},
+   "why": "o runtime declara em contrato quais motores suporta; fora dessa lista o M05 não sobe",
+   "breaker": {
+    "file": "droidspaces-requirements.json",
+    "pointer": "/constraints/supported_engines",
+    "action": "set",
+    "value": []
+   }
+  },
+  {
+   "id": "C06",
+   "name": "o kernel tem todas as CONFIG_* que o pack exige",
+   "feature": "M05 · kernel",
+   "rule": "droid_configs",
+   "params": {},
+   "why": "config provada por evidência (L4/build), nunca por intenção",
+   "breaker": {
+    "file": "kernel-candidates.json",
+    "pointer": "/candidates/0/configs_proven",
+    "action": "remove",
+    "value": "CONFIG_SYSVIPC"
+   }
+  },
+  {
+   "id": "C07",
+   "name": "os patches de kABI do DroidSpaces estão aplicados",
+   "feature": "M05 · kABI",
+   "rule": "kabi_patch",
+   "params": {},
+   "why": "em GKI, ligar SYSVIPC/IPC_NS/POSIX_MQUEUE sem o patch da versão dá bootloop",
+   "breaker": {
+    "file": "kernel-candidates.json",
+    "pointer": "/candidates/0/patches_present",
+    "action": "set",
+    "value": []
+   }
+  },
+  {
+   "id": "C08",
+   "name": "existe camada de ocultação utilizável pelo par",
+   "feature": "root oculto",
+   "rule": "hiding_available",
+   "params": {},
+   "why": "ocultação é obrigatória; camada cujas capacidades o par não tem não conta",
+   "breaker": {
+    "file": "hiding-stack.json",
+    "pointer": "/layers/0/needs",
+    "action": "set",
+    "value": [
+     "capacidade-inexistente"
+    ]
+   }
+  },
+  {
+   "id": "C09",
+   "name": "todos os módulos têm as capacidades que pedem",
+   "feature": "M02…M15",
+   "rule": "modules_capabilities",
+   "params": {},
+   "why": "módulo que exige root/Zygisk/SUSFS e o par não entrega é feature quebrada",
+   "breaker": {
+    "file": "root-engines.json",
+    "pointer": "/engines/0/capabilities",
+    "action": "set",
+    "value": [
+     "root"
+    ]
+   }
+  },
+  {
+   "id": "C10",
+   "name": "existe rollback e plano de OTA para o par",
+   "feature": "continuidade",
+   "rule": "rollback_ota",
+   "params": {},
+   "why": "sem voltar ao stock e sem plano de update, o pack não é sustentável",
+   "breaker": {
+    "file": "root-engines.json",
+    "pointer": "/engines/0/ota_plan",
+    "action": "set",
+    "value": ""
+   }
+  }
+ ]
+}

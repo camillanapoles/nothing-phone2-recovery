@@ -1,0 +1,162 @@
+{
+ "schema": "evox-kernel-candidates/1",
+ "note": "Candidatos com data, hash e suporte DECLARADO. Nenhum é marcado como permitido ou proibido: o solver avalia as 10 condições (build, manutenção, configs, kABI, rollback) e o veredito sai dos dados. `configs_proven` só recebe CONFIG_* que vieram de evidência (L4 ou kernel compilado), nunca de declaração de intenção.",
+ "rom_target": {
+  "build": "EvolutionX-16.0-20260915-Pong-11.11",
+  "android_api": 36,
+  "device": "pong",
+  "soc": "SM8475"
+ },
+ "candidates": [
+  {
+   "id": "custom-build-pong-ksu-susfs-droidspaces",
+   "name": "Kernel pong 5.10 (GKI) compilado por nós: KernelSU-Next + SUSFS + patches kABI do DroidSpaces",
+   "origin": "custom-build",
+   "requires_build": true,
+   "build_from": "LineageOS android_kernel_nothing_sm8475 (lineage-23.2) + gki_defconfig",
+   "patches": [
+    "001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch (DroidSpaces)",
+    "002.5.10_or_lower_use_android_abi_padding_for_posix_mqueue.patch (DroidSpaces)",
+    "SUSFS4KSU (simonpunk) para KernelSU-Next",
+    "KernelSU-Next: integração KSU no kernel"
+   ],
+   "configs_extra": [
+    "CONFIG_KSU=y",
+    "CONFIG_KPM=y",
+    "CONFIG_SUSFS=y",
+    "CONFIG_SYSVIPC=y",
+    "CONFIG_POSIX_MQUEUE=y",
+    "CONFIG_IPC_NS=y",
+    "CONFIG_DEVTMPFS=y",
+    "CONFIG_NET_NS=y"
+   ],
+   "model": "pong",
+   "soc": "SM8475",
+   "android_api": 36,
+   "android_release": "16",
+   "kmi": "android13-5.10 (a confirmar na L4)",
+   "kernel_base": "5.10",
+   "supported_rom_builds": [
+    "EvolutionX-16.0-20260915-Pong-11.11"
+   ],
+   "developer_support": {
+    "declared": true,
+    "source": "build próprio do projeto (scripts/build-kernel-pong.sh)",
+    "notes": "suporte declarado por construção: compilamos do source do device para a build pinada"
+   },
+   "source_url": "https://github.com/LineageOS/android_kernel_nothing_sm8475",
+   "sha256": "",
+   "status": "candidate_unverified",
+   "kernel_supports_susfs": true,
+   "kernel_supports_kernelsu": true,
+   "evidence": "PENDENTE: (1) build reprodutível com sha256 do Image, (2) kernel_compat_check exit 0 contra a L4, (3) boot provado em AVD/staging antes do físico",
+   "kernel_supports": [
+    "kernelsu",
+    "sukisu"
+   ],
+   "gki": true,
+   "patches_present": [
+    "001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch",
+    "002.5.10_or_lower_use_android_abi_padding_for_posix_mqueue.patch"
+   ],
+   "configs_proven": [],
+   "rollback": "boot_stock_rollback.img (sha256 verificado) — volta ao kernel da ROM",
+   "stale_days": 0
+  },
+  {
+   "id": "stock-evolutionx",
+   "name": "Kernel stock da Evolution X 11.11 (boot.img do payload.bin)",
+   "model": "pong",
+   "soc": "SM8475",
+   "android_api": 36,
+   "android_release": "16",
+   "kmi": "a-extrair-na-L4",
+   "kernel_base": "a-extrair-na-L4",
+   "supported_rom_builds": [
+    "EvolutionX-16.0-20260915-Pong-11.11"
+   ],
+   "developer_support": {
+    "declared": true,
+    "source": "https://cdn.evolution-x.org/Pong/16/",
+    "notes": "é o kernel que acompanha a build pinada; risco de terceiro = zero"
+   },
+   "source_url": "https://cdn.evolution-x.org/Pong/16/EvolutionX-16.0-20260915-Pong-11.11-Official.zip",
+   "sha256": "79236f9b4259cf5df124dcd7176f8b4c30de0d755e189e8a4224a03e365422fb",
+   "status": "baseline",
+   "kernel_supports_susfs": false,
+   "kernel_supports_kernelsu": false,
+   "evidence": "kernel_compat_check fecha quando a L4 extrair boot.img/KMI da build.",
+   "origin": "stock-rom",
+   "kernel_supports": [],
+   "gki": true,
+   "patches_present": [],
+   "configs_proven": [],
+   "rollback": "é a própria imagem stock (backup byte-idêntico obrigatório)",
+   "stale_days": 0
+  },
+  {
+   "id": "meteoric-v6-pong",
+   "name": "Meteoric Kernel V6-Pong (KernelSU-Next + SUSFS)",
+   "model": "pong",
+   "soc": "SM8475",
+   "android_api": 31,
+   "android_release": "12/13/15 (declarado pelo autor)",
+   "kmi": "android12-5.10",
+   "kernel_base": "5.10",
+   "supported_rom_builds": [],
+   "developer_support": {
+    "declared": false,
+    "source": "https://github.com/HELLBOY017/kernel_nothing_sm8475/releases/tag/V6-Pong",
+    "notes": "último release V6-Pong em 2025-06-19; repo sem push desde 2025-07-02; guia do device marca Meteoric como EOL e sem suporte a NOS 4.0+"
+   },
+   "source_url": "https://github.com/HELLBOY017/kernel_nothing_sm8475/releases/download/V6-Pong/Meteoric-KernelSU-Next-V6-Pong-250620-0846.zip",
+   "sha256": "",
+   "status": "rejected_eol",
+   "kernel_supports_susfs": true,
+   "kernel_supports_kernelsu": true,
+   "evidence": "Não declara suporte à build 2026-09-15 (A16/API 36); release tem ~17 meses e o device guide o classifica como EOL.",
+   "origin": "third-party",
+   "kernel_supports": [
+    "kernelsu",
+    "sukisu"
+   ],
+   "gki": true,
+   "patches_present": [],
+   "configs_proven": [],
+   "rollback": "boot_stock_rollback.img",
+   "stale_days": 500
+  },
+  {
+   "id": "np2-kernel-lineageos-v3.0.5",
+   "name": "NP² Kernel (ReSukiSU + SUSFS + BaseBandGuard) — variante LineageOS",
+   "model": "pong",
+   "soc": "SM8475",
+   "android_api": 33,
+   "android_release": "13 GKI (5.10.246)",
+   "kmi": "android13-5.10",
+   "kernel_base": "5.10",
+   "supported_rom_builds": [],
+   "developer_support": {
+    "declared": true,
+    "source": "https://github.com/MiguVT/NP2_Kernel/releases/tag/v3.0.5",
+    "notes": "declara 'LineageOS / Custom ROMs' e Linux 5.10.246; NÃO declara a build Evolution X 11.11 (A16) — suporte genérico não é suporte à build"
+   },
+   "source_url": "https://github.com/MiguVT/NP2_Kernel/releases/download/v3.0.5/kernel-LineageOS-NP2-ReSukiSU.zip",
+   "sha256": "b9eb9f75f58a456cfd3f1b9ec858475738cd3844e1b48e533a2d497343aa641d",
+   "status": "candidate_unverified",
+   "kernel_supports_susfs": true,
+   "kernel_supports_kernelsu": true,
+   "evidence": "release ativo (v3.0.5, 2026-08-12) e hash publicado; falta L4 da build pinada (KMI/base) e declaração explícita para a build.",
+   "origin": "third-party",
+   "kernel_supports": [
+    "kernelsu",
+    "sukisu"
+   ],
+   "gki": true,
+   "patches_present": [],
+   "configs_proven": [],
+   "rollback": "boot_stock_rollback.img",
+   "stale_days": 81
+  }
+ ]
+}

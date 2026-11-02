@@ -5,6 +5,12 @@
 
 set -euo pipefail
 
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  echo "uso: $(basename "$0") — só executa com argumentos explícitos"
+  sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 source "${REPO_ROOT}/config/pong.env"
@@ -18,16 +24,16 @@ echo "=== Cuttlefish Validation ==="
 
 # Check if CVD is available
 if ! command -v cvd &>/dev/null; then
-  echo "  [SKIP] Cuttlefish (cvd) not found — skipping validation"
+  echo "  [PENDENTE] Cuttlefish (cvd) ausente — validação NÃO executada (skip não é aprovação)"
   echo "  [INFO] Install: https://source.android.com/docs/devices/cuttlefish/get-started"
-  exit 0
+  exit 3
 fi
 
 # Check if CVD is running
 if ! cvd list 2>/dev/null | grep -q "running"; then
-  echo "  [SKIP] No running Cuttlefish instance"
+  echo "  [PENDENTE] Nenhuma instância Cuttlefish rodando — validação NÃO executada"
   echo "  [INFO] Start with: cvd start"
-  exit 0
+  exit 3
 fi
 
 # Validate boot image

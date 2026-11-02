@@ -5,11 +5,21 @@
 
 set -euo pipefail
 
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  echo "uso: $(basename "$0") — só executa com argumentos explícitos"
+  sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 source "${REPO_ROOT}/config/pong.env"
 
 KERNEL_DIR="${1:-kernel-source}"
+# variáveis de toolchain podem não existir no ambiente (set -u não deve derrubar o script)
+ANDROID_CLANG_BIN="${ANDROID_CLANG_BIN:-}"
+ANDROID_CLANG_2024_BIN="${ANDROID_CLANG_2024_BIN:-}"
+LLVM_22_1_8_BIN="${LLVM_22_1_8_BIN:-}"
 DIST_DIR="${KERNEL_DIR}/${DIST_DIR}"
 OUT_DIR="${KERNEL_DIR}/${OUT_DIR}"
 
@@ -63,10 +73,9 @@ mkdir -p "${DIST_DIR}" "${OUT_DIR}"
 
 # Check if kernel source exists
 if [[ ! -f "${KERNEL_DIR}/Makefile" ]] && [[ ! -f "${KERNEL_DIR}/kleaf.bzl" ]]; then
-  echo "  [BUILD] Kernel source not found at ${KERNEL_DIR}"
-  echo "  [BUILD] Skipping kernel build — using prebuilt artifact path"
-  echo "  [BUILD] Set KERNEL_SOURCE=gki-source or lineage-pong to build from source"
-  exit 0
+  echo "  [PENDENTE] Kernel source not found at ${KERNEL_DIR} — nada foi compilado"
+  echo "  [INFO] Set KERNEL_SOURCE=gki-source ou lineage-pong para compilar do código"
+  exit 3
 fi
 
 # Determine build method

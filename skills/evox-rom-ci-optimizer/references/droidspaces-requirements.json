@@ -1,0 +1,151 @@
+{
+  "schema": "evox-droidspaces/1",
+  "module_id": "M05",
+  "name": "DroidSpaces (containers Linux nativos)",
+  "role": "container runtime LXC-like sobre o kernel do pong; não é app, é runtime + daemon",
+  "app": {
+    "project": "ravindu644/Droidspaces-OSS",
+    "version": "v7.1.0",
+    "released_at": "2026-10-27",
+    "apk": {
+      "name": "Droidspaces-universal-v7.1.0-4344dc5.apk",
+      "size_bytes": 13356637,
+      "sha256": "36ab4466c732dc6d47136013ebab9a6c1742f38ced41a3d2acf0f7f155b930b6",
+      "url": "https://github.com/ravindu644/Droidspaces-OSS/releases/download/v7.1.0/Droidspaces-universal-v7.1.0-4344dc5.apk"
+    },
+    "cli_tarball": {
+      "name": "droidspaces-v7.1.0-4344dc5.tar.gz",
+      "size_bytes": 1148795,
+      "sha256": "910d4ab3846a1c81a80414f3e391d9695f3e88c8f1ae8243dcf80e1b9425f192",
+      "url": "https://github.com/ravindu644/Droidspaces-OSS/releases/download/v7.1.0/droidspaces-v7.1.0-4344dc5.tar.gz"
+    },
+    "sha256sums_url": "https://github.com/ravindu644/Droidspaces-OSS/releases/download/v7.1.0/SHA256SUMS",
+    "manager": "apd (APatch) / app Droidspaces"
+  },
+  "install": {
+    "phase": "F0",
+    "wave": "W1",
+    "position": 2,
+    "after": [
+      "M01"
+    ],
+    "before": [
+      "M03",
+      "M07",
+      "M08",
+      "M12A",
+      "M12B"
+    ],
+    "method": "apd module install /sdcard/modules/Droidspaces.zip",
+    "never": [
+      "instalar antes do root (M01) estar com PASS no ledger",
+      "reiniciar com o daemon ainda subindo (aguardar boot estável)",
+      "instalar Shamiko, Mountify ou LSPosed-Riru junto (conflito declarado)"
+    ]
+  },
+  "kernel": {
+    "configs_required": [
+      "CONFIG_SYSVIPC",
+      "CONFIG_POSIX_MQUEUE",
+      "CONFIG_NAMESPACES",
+      "CONFIG_UTS_NS",
+      "CONFIG_IPC_NS",
+      "CONFIG_PID_NS",
+      "CONFIG_NET_NS",
+      "CONFIG_USER_NS",
+      "CONFIG_CGROUPS",
+      "CONFIG_CGROUP_PIDS",
+      "CONFIG_CGROUP_FREEZER",
+      "CONFIG_SECCOMP"
+    ],
+    "evidence_source": "L4 (payload.bin -> boot.img -> /proc/config.gz ou IKCONFIG extraído) ou kernel candidato certificado",
+    "min_kernel_base": "5.10",
+    "source": "custom-build",
+    "custom_kernel_allowed": true,
+    "custom_kernel_path": "required_under_decision_C",
+    "note": "Decisão C: o kernel é compilado por nós com os patches oficiais do DroidSpaces (kABI + IPC). O kernel stock continua tecnicamente incapaz (stock_rom_verdict=impossible).",
+    "official_source": "https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Kernel-Configuration.md",
+    "official_line": "Droidspaces needs kernel features that most stock Android kernels leave out: PID and IPC namespaces, a few networking pieces and devtmpfs.",
+    "gki_chains_required": {
+      "why": "No GKI, ligar SYSVIPC/IPC_NS/POSIX_MQUEUE desloca o kABI e faz o aparelho bootloopar com os módulos do vendor",
+      "patches_5_10": [
+        "001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch (ou alternativa da pasta)",
+        "002.5.10_or_lower_use_android_abi_padding_for_posix_mqueue.patch"
+      ],
+      "quote": "These are not optional. Without the patch for your kernel version, enabling the IPC options bootloops the device."
+    },
+    "abi_trio_not_in_stock_gki": [
+      "CONFIG_SYSVIPC",
+      "CONFIG_POSIX_MQUEUE",
+      "CONFIG_IPC_NS"
+    ],
+    "stock_rom_verdict": "impossible",
+    "stock_rom_verdict_reason": "O trio que desloca o kABI não existe no kernel stock do GKI 5.10 e habilitá-lo exige patch compilado no kernel. Kernel stock + Decisão A => M05 IMPOSSÍVEL, não pendente.",
+    "check_command": "app Droidspaces > Settings > Requirements > Check Requirements",
+    "patches_required": [
+      "001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch (ou alternativa da pasta)",
+      "002.5.10_or_lower_use_android_abi_padding_for_posix_mqueue.patch"
+    ]
+  },
+  "runtime": {
+    "namespaces": [
+      "pid",
+      "net",
+      "uts",
+      "ipc",
+      "user",
+      "mnt"
+    ],
+    "proc_checks": [
+      "/proc/sysvipc/shm",
+      "/proc/sysvipc/sem",
+      "/proc/sysvipc/msg",
+      "/proc/sys/kernel/posix-mqueue/qsize"
+    ],
+    "paths": [
+      "/data/local/Droidspaces/bin",
+      "/data/adb/modules/droidspaces_kernel",
+      "/data/adb/service.d"
+    ],
+    "daemon": "service.d/droidspaces.sh (sobe o daemon no boot, sem bloquear post-fs-data)",
+    "root_required": true
+  },
+  "constraints": {
+    "mount_hide_global": false,
+    "reason": "R03: mount-hide global do SUSFS esconde o próprio rootfs dos containers (DroidSpaces quebra)",
+    "selinux": "Enforcing",
+    "supported_engines": [
+      "apatch",
+      "kernelsu",
+      "sukisu"
+    ],
+    "unsupported_engines": [
+      "magisk"
+    ],
+    "unsupported_reason": "caminho validado é APatch/ksu; Magisk não é o motor escolhido na matriz"
+  },
+  "rollback": {
+    "disable": "remover /data/adb/modules/droidspaces_kernel e reiniciar (containers param; sistema intacto)",
+    "boot": "boot_stock_rollback.img (não é necessário para desinstalar o módulo)"
+  },
+  "sources": [
+    "https://github.com/ravindu644/Droidspaces-OSS/releases/tag/v7.1.0",
+    "zeroharcoderd/knowledge/modules/droidspaces.md",
+    "zeroharcoderd/knowledge/config-map/apatch-evolutionx-droidspaces.md",
+    "skills/evox-rom-ci-optimizer/references/module-rollout-order.md"
+  ],
+  "isolation": {
+    "purpose": "containers com isolamento completo, sem hooks de terceiros (Decisão A: sem SUSFS, sem kernel próprio)",
+    "required_configs": [
+      "CONFIG_USER_NS",
+      "CONFIG_PID_NS"
+    ],
+    "required_namespaces": [
+      "user",
+      "pid"
+    ],
+    "why": "USER_NS é o que dá identidade de root dentro do container; PID_NS é o que separa os processos. Sem os dois, o DroidSpaces sobe 'pela metade' e o isolamento é só cosmeticamente diferente.",
+    "if_absent": "M05 = BLOQUEADO (exit 3 no preflight); a saída permitida é nova decisão sua, nunca kernel compilado",
+    "official_basis": "Documentation/Kernel-Configuration.md: PID/IPC namespaces e CONFIG_USER_NS ('Fix for docker unsafe procfs error')"
+  }
+}

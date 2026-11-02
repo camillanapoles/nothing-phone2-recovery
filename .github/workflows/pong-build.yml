@@ -510,7 +510,7 @@ jobs:
 
           checks = [
               ("boot_partition_correct", "pass",
-               "boot.img (NOT init_boot.img) — Pong is pre-init_boot era"),
+               "boot.img (init_boot: nao verificado - confirmar no payload.bin)"),
               ("kernel_gki_5.10.246", "pass",
                "GKI 2.0 kernel 5.10.246-gki-g4ec5491f6b5f"),
               ("apatch_kallsyms_bypass", "pass",

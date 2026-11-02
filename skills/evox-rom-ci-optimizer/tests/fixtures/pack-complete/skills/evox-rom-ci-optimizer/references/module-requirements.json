@@ -1,0 +1,43 @@
+{
+ "schema": "evox-module-requirements/1",
+ "note": "fixture: M01 exige root, M08 exige Zygisk, M05 exige root — capacidades mínimas para o teste",
+ "modules": [
+  {
+   "id": "M01",
+   "is_root_engine": true,
+   "root_required": true,
+   "needs_zygisk": false,
+   "requires_susfs": false,
+   "kernel_level": true,
+   "kernel_evidence": "built_kernel"
+  },
+  {
+   "id": "M05",
+   "root_required": true,
+   "needs_zygisk": false,
+   "requires_susfs": false,
+   "kernel_level": true,
+   "kernel_evidence": "built_kernel"
+  },
+  {
+   "id": "M07",
+   "root_required": true,
+   "needs_zygisk": true,
+   "requires_susfs": false,
+   "kernel_level": false,
+   "compliance_base": [
+    "PlayIntegrityFork"
+   ]
+  },
+  {
+   "id": "M08",
+   "root_required": true,
+   "needs_zygisk": true,
+   "requires_susfs": false,
+   "kernel_level": false,
+   "compliance_base": [
+    "Tricky Store"
+   ]
+  }
+ ]
+}

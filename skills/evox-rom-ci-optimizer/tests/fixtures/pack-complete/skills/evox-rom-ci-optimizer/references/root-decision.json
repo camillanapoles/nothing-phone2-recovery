@@ -1,0 +1,50 @@
+{
+ "best": {
+  "engine": "engine-x",
+  "failed": [],
+  "kernel": "kernel-x"
+ },
+ "conditions": {
+  "C01": "o motor entrega root de verdade (artefato pinado)",
+  "C02": "o kernel serve o motor escolhido",
+  "C03": "o kernel declara a build pinada, o modelo e a API",
+  "C04": "o kernel é mantido (não é EOL)",
+  "C05": "o DroidSpaces aceita o motor",
+  "C06": "o kernel tem todas as CONFIG_* que o pack exige",
+  "C07": "os patches de kABI do DroidSpaces estão aplicados",
+  "C08": "existe camada de ocultação utilizável pelo par",
+  "C09": "todos os módulos têm as capacidades que pedem",
+  "C10": "existe rollback e plano de OTA para o par"
+ },
+ "derived_from": [
+  "skills/evox-rom-ci-optimizer/references/pack-objective.json",
+  "skills/evox-rom-ci-optimizer/references/pack-conditions.json",
+  "skills/evox-rom-ci-optimizer/references/root-engines.json",
+  "skills/evox-rom-ci-optimizer/references/kernel-candidates.json",
+  "skills/evox-rom-ci-optimizer/references/droidspaces-requirements.json",
+  "skills/evox-rom-ci-optimizer/references/module-requirements.json",
+  "skills/evox-rom-ci-optimizer/references/hiding-stack.json"
+ ],
+ "generated": true,
+ "generated_by": "root_pair_solver.py",
+ "note": "Arquivo DERIVADO. Não se escreve motor nem kernel à mão aqui: o par é consequência das 10 condições avaliadas pelo solver. Editar este arquivo à mão quebra --check-decision (e a suíte).",
+ "objective": "all_conditions_true",
+ "pairs": [
+  {
+   "engine": "engine-x",
+   "failed": [],
+   "kernel": "kernel-x",
+   "verdict": "PAR_GARANTIDO"
+  }
+ ],
+ "schema": "evox-root-decision/2",
+ "selected": [
+  {
+   "engine": "engine-x",
+   "kernel": "kernel-x"
+  }
+ ],
+ "single_method": true,
+ "tied": [],
+ "verdict": "PAR_GARANTIDO"
+}

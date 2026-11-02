@@ -1,0 +1,76 @@
+{
+  "schema": "evox-kernel-pair-options/1",
+  "note": "Pares motor × kernel para 2026, com o que cada um custa. Nenhum é escolhido aqui: a decisão vigente continua sendo a A até a usuária ratificar outra.",
+  "date": "2026-11-01",
+  "facts": {
+    "droidspaces_needs": "SYSVIPC + POSIX_MQUEUE + IPC_NS (e kABI patch no GKI) — 'most stock Android kernels leave them out'",
+    "gki_penalty": "sem os patches, ligar o trio desloca o kABI e o aparelho entra em bootloop",
+    "apatch_needs": ["CONFIG_KALLSYMS=y", "CONFIG_KALLSYMS_ALL=y"],
+    "zygisk_on_apatch": "funciona via Zygisk Next (README do Zygisk Assistant, seção KernelSU & APatch users)"
+  },
+  "releases_2026": {
+    "apatch": {"tag": "11282", "published_at": "2026-10-15", "pinned_in_project": "v11219", "drift": true},
+    "kernelsu-next": {"tag": "v3.4.2", "published_at": "2026-10-13"},
+    "zygisk-next": {"tag": "v1.5.2", "published_at": "2026-10-15", "sha256": "ce50b13fecb9e4456db69ef17b715f7cfbc094004dd9f30f7d6348dfab619a96"},
+    "zygisk-assistant": {"tag": "v2.1.4", "published_at": "2025-02-23", "stale_days": 616},
+    "np2-kernel": {"tag": "v3.0.5", "published_at": "2026-08-12", "sha256": "b9eb9f75…a641d", "declares_build": false}
+  },
+  "options": [
+    {
+      "id": "A",
+      "pair": "APatch + kernel stock da ROM",
+      "engine": "apatch",
+      "kernel": "stock-rom",
+      "droidspaces": "IMPOSSIVEL",
+      "hiding": "Zygisk Next + Zygisk Assistant (userspace)",
+      "integrity": "Tricky Store + PIFork",
+      "status": "RATIFICADA (2026-11-01)",
+      "custo": "zero build de kernel; perde DroidSpaces e não tem hiding em nível de kernel"
+    },
+    {
+      "id": "B",
+      "pair": "APatch + kernel próprio SEM SUSFS, com os patches do DroidSpaces",
+      "engine": "apatch",
+      "kernel": "custom-build (LineageOS pong 5.10 + patches kABI/SYSVIPC/MQ)",
+      "droidspaces": "POSSIVEL (com kABI patch)",
+      "hiding": "Zygisk Next + Zygisk Assistant",
+      "integrity": "Tricky Store + PIFork",
+      "status": "CANDIDATA",
+      "custo": "1 build de kernel (scripts/build-kernel-pong.sh) + patches; mantém motor único e a proibição de SUSFS; OTA manual",
+      "por_que": "é o menor desvio da Decisão A que ainda entrega DroidSpaces: muda só o kernel, não o motor nem a política de SUSFS"
+    },
+    {
+      "id": "C",
+      "pair": "KernelSU-Next v3.4.2 / SukiSU + kernel próprio COM SUSFS + patches DroidSpaces",
+      "engine": "kernelsu|sukisu",
+      "kernel": "custom-build",
+      "droidspaces": "POSSIVEL",
+      "hiding": "SUSFS (nível de kernel) + Zygisk Next",
+      "integrity": "Tricky Store + PIFork",
+      "status": "CANDIDATA",
+      "custo": "troca o motor (fim do 'APatch único'), libera SUSFS, build de kernel com KSU+SUSFS+patches; OTA manual",
+      "por_que": "é a combinação mais forte para ocultação em 2026, ao preço de trocar o motor e compilar mais coisa"
+    },
+    {
+      "id": "D",
+      "pair": "Kernel pronto de terceiro (NP² v3.0.5) + KernelSU-Next",
+      "engine": "kernelsu",
+      "kernel": "np2-kernel-lineageos-v3.0.5",
+      "droidspaces": "DESCONHECIDO (não declara os CONFIG_* do DroidSpaces)",
+      "hiding": "SUSFS",
+      "status": "CANDIDATA",
+      "custo": "zero build, mas depende de kernel de terceiro que não declara suporte à build 2026-09-15; hoje é candidate_unverified",
+      "por_que": "se o mantenedor publicar a lista de CONFIG_* e o suporte à build, vira o caminho mais rápido"
+    }
+  ],
+  "recommendation": {
+    "id": "B",
+    "why": "os três pedidos (DroidSpaces + ocultação + integridade) são inalcançáveis com kernel stock; B é o único que satisfaz os três mudando só o kernel — preserva motor único APatch e a proibição de SUSFS",
+    "if_she_wants_max_hiding": "C entrega ocultação de kernel (SUSFS), ao preço de trocar o motor",
+    "what_is_needed_to_decide": [
+      "L4 do pacote (KMI/base reais + CONFIG_KALLSYMS)",
+      "fonte do kernel pong disponível e buildável (scripts/build-kernel-pong.sh já existe)",
+      "aceite explícito de OTA manual / perda de integridade de OTA"
+    ]
+  }
+}

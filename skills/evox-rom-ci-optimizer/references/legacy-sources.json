@@ -1,0 +1,60 @@
+{
+  "schema": "evox-legacy-sources/1",
+  "rule": "Fonte canônica é a deste workspace, sob a Decisão A. Material do passado que instrui diferente ou está marcado como HISTÓRICO no topo, ou está ausente do repositório. Instrução legada nunca vira fila.",
+  "canonical": [
+    "skills/evox-rom-ci-optimizer/references/root-decision.json",
+    "skills/evox-rom-ci-optimizer/references/root-engines.json",
+    "skills/evox-rom-ci-optimizer/references/kernel-candidates.json",
+    "skills/evox-rom-ci-optimizer/references/droidspaces-requirements.json",
+    "skills/evox-rom-ci-optimizer/references/hiding-stack.json",
+    "skills/evox-rom-ci-optimizer/references/module-requirements.json",
+    "skills/evox-rom-ci-optimizer/references/kernel-pair-options.json",
+    "docs/skills/APPROVED-INSTALL-SEQUENCE.md"
+  ],
+  "legacy": [
+    {
+      "path": "zeroharcoderd/knowledge/modules/droidspaces.md",
+      "kind": "file",
+      "banner": "HISTÓRICO — NÃO EXECUTAR",
+      "reason": "receita de kernel próprio (droidspaces-android14-5.10 + patches sysvipc) proibida pela Decisão A",
+      "replaced_by": "skills/evox-rom-ci-optimizer/references/droidspaces-requirements.json"
+    },
+    {
+      "path": "ci-build-full/build-package/instructions/install-guide.md",
+      "kind": "file",
+      "banner": "HISTÓRICO — NÃO EXECUTAR",
+      "reason": "ordem do guia põe o DroidSpaces por último; a fila ratificada instala o M05 em F0 posição 2",
+      "replaced_by": "docs/skills/APPROVED-INSTALL-SEQUENCE.md"
+    },
+    {
+      "path": "skills/evox-rom-ci-optimizer/references/archive",
+      "kind": "dir",
+      "banner": "",
+      "reason": "pipeline CI v2.0 e skill antigos, substituídos pela arquitetura atual",
+      "replaced_by": "skills/evox-rom-ci-optimizer/SKILL.md"
+    }
+  ],
+  "removed": [
+    {"path": "init_plan.md", "reason": "plano inicial, substituído pela árvore de decisões"},
+    {"path": "modules.md", "reason": "lista antiga de módulos, substituída por module-requirements.json"},
+    {"path": "docs/plans", "reason": "planos de recuperação de versões anteriores das build"},
+    {"path": "docs/GOVERNANCE.md", "reason": "governança antiga, substituída por AGENTS.md"},
+    {"path": ".pi/tasks", "reason": "evidências de harness de outra sessão"},
+    {"path": ".atl", "reason": "registro de skills de outra sessão"},
+    {"path": "docs/ssot", "reason": "estado consolidado de sessões anteriores"}
+  ],
+  "documented_conflicts": [
+    {
+      "id": "ordem_droidspaces",
+      "doc": "docs/skills/APPROVED-INSTALL-SEQUENCE.md",
+      "must_mention": "install-guide",
+      "why": "o conflito de ordem precisa continuar declarado enquanto o guia antigo existir"
+    },
+    {
+      "id": "kernel_proprio_droidspaces",
+      "doc": "docs/skills/APPROVED-INSTALL-SEQUENCE.md",
+      "must_mention": "custom_kernel_path",
+      "why": "a proibição do kernel próprio do DroidSpaces tem de estar escrita na sequência aprovada"
+    }
+  ]
+}
