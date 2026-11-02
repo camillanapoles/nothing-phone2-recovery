@@ -289,18 +289,18 @@ jobs:
         id: fsm
         if: always()
         # Exit 3 = cobertura incompleta: o passo reprova de propósito (fuga de validação).
-        run: make -s fsm-prova FSM_LEDGER=workspace/audit/mutation-consolidado.json FSM_DB="sqlite+aiosqlite:///workspace/audit/fsm.db"
+        run: make -s fsm-prova FSM_LEDGER=workspace/audit/mutation-consolidado.json FSM_DB="sqlite+aiosqlite:///state/proof/fsm.db"
 
       - name: Auditoria do banco (declarado × linhas) + run_id no resumo
         if: always()
         run: |
-          PYTHONPATH=audit-fsm/src python3 -m audit_fsm proof-runs --db "sqlite+aiosqlite:///workspace/audit/fsm.db" || true
-          RUN_ID=$(PYTHONPATH=audit-fsm/src python3 -m audit_fsm proof-runs --db "sqlite+aiosqlite:///workspace/audit/fsm.db" --json \
+          PYTHONPATH=audit-fsm/src python3 -m audit_fsm proof-runs --db "sqlite+aiosqlite:///state/proof/fsm.db" || true
+          RUN_ID=$(PYTHONPATH=audit-fsm/src python3 -m audit_fsm proof-runs --db "sqlite+aiosqlite:///state/proof/fsm.db" --json \
             | python3 -c 'import json,sys; runs=json.load(sys.stdin); print(runs[0]["id"] if runs else "")')
           if [ -n "$RUN_ID" ]; then
             echo "run_id: \`$RUN_ID\`" >> "$GITHUB_STEP_SUMMARY"
             PYTHONPATH=audit-fsm/src python3 -m audit_fsm proof-verify "$RUN_ID" \
-              --db "sqlite+aiosqlite:///workspace/audit/fsm.db" || true
+              --db "sqlite+aiosqlite:///state/proof/fsm.db" || true
           else
             echo "::warning::nenhuma execução de prova foi gravada no banco"
           fi
@@ -310,6 +310,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: proof-ledger
-          path: workspace/audit/fsm.db
+          path: state/proof/fsm.db
           if-no-files-found: warn
           retention-days: 90

@@ -1711,6 +1711,16 @@
    "rationale": "importar num run_id inexistente viraria item órfão em silêncio",
    "note": null,
    "strength": "semantic"
+  },
+  {
+   "id": "M206",
+   "file": "scripts/counts_gate.py",
+   "find": "            if escrito != esperado:\n                probs.append(f\"{rel}:{linha_n} par de {nome}:",
+   "replace": "            if False:\n                probs.append(f\"{rel}:{linha_n} par de {nome}:",
+   "test": "tests/test_counts_gate.sh",
+   "rationale": "CT3 aceitaria qualquer par N/N numa linha de mutação — a forma que escapava do CT1 voltaria a passar",
+   "note": null,
+   "strength": "semantic"
   }
  ],
  "retired": [

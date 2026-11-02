@@ -193,8 +193,9 @@ Ciclo por comando (o que o CI roda por shard): `proof-start` (inicial) → `proo
   **1** = divergência (a run declara mais do que as linhas sustentam).
 - Ids são `uuid5` de `source_hash:target` / `run_id:item_id`: reimportar não duplica e uma origem
   editada muda a identidade da execução.
-- O banco da prova é **separado do banco de sessão**: fica em `workspace/audit/fsm.db`, portanto o
-  `state_reset` (§4.4) não apaga a cobertura. Apagar prova é ato explícito, não efeito colateral.
+- O banco da prova é **separado do banco de sessão**: fica em `state/proof/fsm.db` — fora de
+  `workspace/` (que é efêmero por contrato, RC11) e fora do banco que o `state_reset` (§4.4) apaga.
+  Apagar cobertura é ato explícito, não efeito colateral.
 - No CI (`.github/workflows/proof.yml`), o job `relatorio` grava o banco e publica `proof-ledger`
   com `if: always()` — inclusive quando a cobertura está incompleta, que é o caso que importa.
 

@@ -106,11 +106,12 @@ test: test-state
 # Ledger de prova no audit-fsm: a cobertura sai do JSON da máquina e passa a viver no banco,
 # auditável por run_id. Exit: 0 completa e coerente · 3 incompleta · 1 divergente.
 FSM_LEDGER ?= workspace/audit/mutation-latest.json
-FSM_DB ?= sqlite+aiosqlite:///workspace/audit/fsm.db
+FSM_DB ?= sqlite+aiosqlite:///state/proof/fsm.db
 FSM := PYTHONPATH=audit-fsm/src python3 -m audit_fsm
 
 fsm-prova:
 	@test -f "$(FSM_LEDGER)" || { echo "[fsm] PENDENTE: $(FSM_LEDGER) ausente (rode make mutation)"; exit 3; }
+	@mkdir -p state/proof
 	@run_id=$$($(FSM) proof-start "$(FSM_LEDGER)" --db "$(FSM_DB)" --json | python3 -c 'import json,sys;print(json.load(sys.stdin)["run_id"])') && \
 	 $(FSM) proof-import "$(FSM_LEDGER)" --run-id "$$run_id" --db "$(FSM_DB)" && \
 	 $(FSM) proof-finalize "$$run_id" --db "$(FSM_DB)"

@@ -4,6 +4,19 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · versão 
 
 ## [0.2.0] — 2026-11-02
 
+### Integração com main (PR #18) — colisão de ids de mutante
+
+O #18 foi mergeado em main depois do #16 e registrou `M198`/`M199` para o gate RC11
+(`scripts/refactor_gate.py`). Esta feature já tinha usado `M198`–`M203`: o merge era "limpo"
+e deixava **ids duplicados** no catálogo. Resolvido mantendo os ids de main (publicados) e
+renumerando os seis da camada de prova para **`M200`–`M205`**.
+
+Também no merge: o banco da prova **não** pode morar em `workspace/` — o #18 classificou
+`workspace/audit` como *ephemeral* (RC11) e `workspace/` é limpo a cada sessão. Passou para
+`state/proof/fsm.db` (`state/` é gitignored e o `state_reset` não o apaga): cobertura durável
+sem violar a política de artefatos.
+
+
 ### Adicionado — S9, ledger de prova durável
 
 A cobertura de mutação deixa de ser um JSON da máquina que rodou e passa a ser **tabela do FSM**,

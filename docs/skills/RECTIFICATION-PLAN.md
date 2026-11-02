@@ -155,6 +155,18 @@ Todo número que aparece em doc, workflow ou comentário é conferido contra a f
 | passos do plano | `len(steps)` do `closure-plan.json` |
 | fatias do CI | input `shards` (padrão 8), limitado a `len(ids)` — cobertura continua total |
 
+Formas cobertas por três checagens (a terceira nasceu na auditoria do merge com o #18):
+
+| check | o que pega |
+|---|---|
+| `CT1_numeros_derivados` | número **colado** na palavra (`<n>/<n> mortos`, `<n> camadas`, `até M<id>`) |
+| `CT2_ci_sem_lista_de_ids` | workflow com `--only "M01,M02"` na mão (escopo tem de vir do plano) |
+| `CT3_par_na_linha_da_familia` | par `<n>/<n>` em **qualquer** posição da linha que fale de mutação/refatoração/contrato — pega célula de tabela (`\| Mutações mortas \| <n>/<n> \|`) e frase (`cobriu <n>/<n>`) |
+
+O CT3 existe porque o CT1 exigia o número colado: `main` chegou a ter **três** ocorrências velhas
+passando verde (tabela do `CONTINUITY-INSTRUCTION`, `EVOLUTION-LEDGER`, `ARCHITECTURE-DECISION`).
+Agora a palavra-chave vale para a linha inteira.
+
 Prova do crescimento: `tests/test_counts_gate.sh` acrescenta um mutante ao catálogo (N→N+1) num
 workspace temporário e exige **reprovação**; corrigindo o texto, o mesmo fixture volta a passar.
 Ou seja: o gate não é "sempre vermelho", é derivado.
