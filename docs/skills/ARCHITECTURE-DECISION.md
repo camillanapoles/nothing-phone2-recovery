@@ -173,7 +173,7 @@ skills/evox-rom-ci-optimizer/scripts/audit_loop.sh   # AG + scan + cobertura + v
 make -s mutation                              # falseabilidade: catálogo inteiro, 0 sobreviventes
 make -s prove                                 # estado + guard + 15 suítes + eval
 python3 skills/evox-rom-ci-optimizer/scripts/architecture_guard.py --self-test
-python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --file workspace/decision.json --json
+python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --json   # lê references/decisions.json (versionado)
 ```
 
 ## 6. O que continua dependendo da usuária

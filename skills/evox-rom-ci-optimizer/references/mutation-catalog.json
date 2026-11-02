@@ -1633,6 +1633,24 @@
    "strength": "semantic",
    "rationale": "workflow poderia carregar lista de ids na mão e o escopo do CI não seria cobrado",
    "id": "M197"
+  },
+  {
+   "id": "M198",
+   "file": "scripts/refactor_gate.py",
+   "find": "                if any(t in seg for t in vetados):",
+   "replace": "                if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
+   "strength": "semantic",
+   "rationale": "decisao/ledger/pin podem voltar para o workspace (limpo a cada sessao) e o gate diz OK"
+  },
+  {
+   "id": "M199",
+   "file": "scripts/refactor_gate.py",
+   "find": "                if not any(alvo == x or alvo.startswith(x + \"/\") for x in permitidos):",
+   "replace": "                if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
+   "strength": "semantic",
+   "rationale": "caminho novo do workspace entra sem classificacao no artifact-paths.json"
   }
  ],
  "retired": [

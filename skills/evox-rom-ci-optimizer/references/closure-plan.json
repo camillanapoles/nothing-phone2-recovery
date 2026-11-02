@@ -221,7 +221,7 @@
     "E09"
    ],
    "gate": {
-    "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh record --state workspace/rollout.json --module M01 --evidence <evidência>",
+    "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh record --state skills/evox-rom-ci-optimizer/references/rollout-ledger.json --module M01 --evidence <evidência>",
     "expect_exit": 0,
     "criterion": "M01 PASS no ledger canário, com evidência e uptime mínimo"
    },
@@ -260,7 +260,7 @@
     "E11"
    ],
    "gate": {
-    "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh status --state workspace/rollout.json --json",
+    "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh status --state skills/evox-rom-ci-optimizer/references/rollout-ledger.json --json",
     "expect_exit": 0,
     "criterion": "M01/M05/M07/M08 com PASS e sem módulo aberto em paralelo"
    },
@@ -279,7 +279,7 @@
     "E12"
    ],
    "gate": {
-    "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh status --state workspace/rollout.json --json",
+    "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh status --state skills/evox-rom-ci-optimizer/references/rollout-ledger.json --json",
     "expect_exit": 0,
     "criterion": "cada módulo com PASS próprio (M12A e M12B separados) e nenhum PASS herdado"
    },

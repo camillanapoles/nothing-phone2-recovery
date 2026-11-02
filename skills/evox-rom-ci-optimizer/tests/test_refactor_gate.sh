@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # refactor_gate.py — "refatoração completa" só é verdade se o gate REPROVAR quando um consumidor
-# fica para trás. 19 casos: 4 de sanidade/CLI + 12 falsificações (RC1…RC10) + CLI de execução parcial.
+# fica para trás. Sanidade/CLI + 14 falsificações (RC1…RC11); inclui os 2 modos de falha do RC11
+# (caminho não classificado e caminho durável dentro do workspace, que é limpo a cada sessão).
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
@@ -21,10 +22,10 @@ copiar(){
 
 # ---------------------------------------------------------------- 0. sanidade
 out="$(cd "$ROOT" && python3 "$K" --root . 2>&1)"; rc=$?
-ck "repo real: gate passa 10/10" "0" "$rc"
+ck "repo real: gate passa 11/11" "0" "$rc"
 case "$out" in
-  *"10/10"*) ok "repo real imprime 10/10" "10/10" ;;
-  *) bad "repo real imprime 10/10" "$(printf '%s' "$out" | tail -1)" ;;
+  *"11/11"*) ok "repo real imprime 11/11" "11/11" ;;
+  *) bad "repo real imprime 11/11" "$(printf '%s' "$out" | tail -1)" ;;
 esac
 
 # ---------------------------------------------------------------- 1. CLI
@@ -153,6 +154,15 @@ PY'
 
 falsificar RC9_ledger_duravel "RC9: ledger aponta decisão para arquivo não versionado" '
 sed -i "s#references/decisions.json#workspace/decision.json#g" skills/evox-rom-ci-optimizer/scripts/debt_ledger.py'
+
+falsificar RC11_nada_duravel_no_workspace "RC11: caminho do workspace não classificado" '
+printf "\nCACHE_DIR=\"\${EVOX_CACHE:-./workspace/cache_novo}\"\n" >> skills/evox-rom-ci-optimizer/scripts/cache_manager.sh'
+
+falsificar RC11_nada_duravel_no_workspace "RC11: ledger durável escondido em subpasta permitida" '
+printf "\nLEDGER=\"\${LEDGER:-./workspace/audit/rollout.json}\"\n" >> skills/evox-rom-ci-optimizer/scripts/cache_manager.sh'
+
+falsificar RC11_nada_duravel_no_workspace "RC11: decisão durável volta para o workspace" '
+printf "\n> A decisão fica em \`workspace/decision.json\`.\n" >> AGENTS.md'
 
 # ---------------------------------------------------------------- veredito
 echo

@@ -209,7 +209,7 @@ jobs:
               || { adb shell dmesg | tail -50; exit 4; }
             bash "$EVOX_SKILL/scripts/sandbox_rollout.sh" \
               --modules ./modules \
-              --state ./workspace/rollout.json \
+              --state ./skills/evox-rom-ci-optimizer/references/rollout-ledger.json \
               --evidence ./workspace/evidence \
               --boot-timeout 300
 

@@ -14,9 +14,10 @@ Ordem obrigatória (a usuária respondeu P1–P8 em 2026-11-01 e isso virou cont
 
 Comandos:
   session_open.py questions                 # imprime as perguntas na ordem
-  session_open.py template --out FILE       # cria decision.json com campos vazios
+  session_open.py template [--out FILE]     # cria a decisão versionada (default:
+                                           # references/decisions.json)
   session_open.py check --file FILE [--json]# exit 0 completo · 3 pendente · 4 inválido
-  session_open.py auto --out FILE          # preenche só o que é decisão delegada
+  session_open.py auto [--out FILE]         # preenche só o que é decisão delegada
                                            # (P10–P13); P1/P2/P3 continuam humanas
 """
 from __future__ import annotations
@@ -208,15 +209,19 @@ def main(argv: list[str]) -> int:
             print(f"  {pid} · {q}\n        → {detail}")
         return 0
     if cmd == "template":
-        out = "workspace/decision.json"
+        out = DECISION_TRACKED
         if "--out" in args:
             out = args[args.index("--out") + 1]
+        elif os.path.exists(out):
+            print(f"[ERRO] a decisão versionada já existe: {out} "
+                  "(use --out para um rascunho; sobrescrever apagaria a decisão)", file=sys.stderr)
+            return 4
         os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
         json.dump(SKELETON, open(out, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
         print(f"[session] template criado: {out} — preencha antes de baixar/instalar")
         return 0
     if cmd == "auto":
-        out = "workspace/decision.json"
+        out = DECISION_TRACKED
         if "--out" in args:
             out = args[args.index("--out") + 1]
         os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
@@ -243,8 +248,6 @@ def main(argv: list[str]) -> int:
         path = DECISION_TRACKED
         if "--file" in args:
             path = args[args.index("--file") + 1]
-        elif os.path.exists("workspace/decision.json"):
-            path = "workspace/decision.json"
         if not os.path.isfile(path):
             print(f"[ERRO] decisão ausente: {path} (rode o comando template)", file=sys.stderr)
             return 4

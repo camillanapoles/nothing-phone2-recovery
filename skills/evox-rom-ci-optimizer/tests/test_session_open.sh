@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Protocolo de abertura: decisão registrada antes de baixar/instalar (8 casos)
+# Protocolo de abertura: decisão registrada antes de baixar/instalar (20 casos).
+# Dois deles cobrem o achado N2: a decisão é versionada e `check` NÃO dá precedência a
+# workspace/decision.json (o workspace é limpo a cada sessão).
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; S="$HERE/../scripts/session_open.py"
 P=0; F=0
@@ -80,6 +82,27 @@ PYH
 python3 "$S" auto --out "$D3" >/dev/null 2>&1
 ck "auto limpa variante herdada" "None" \
   "$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["build"]["flavor"])' "$D3")" "None"
+
+# arquivo do workspace NÃO tem precedência: mesmo completo, `check` lê o registro versionado
+W2="$T/sem-workspace"
+mkdir -p "$W2/workspace" "$W2/skills/evox-rom-ci-optimizer/references"
+cp "$HERE/../references/decisions.json" "$W2/skills/evox-rom-ci-optimizer/references/decisions.json"
+python3 "$S" template --out "$W2/workspace/decision.json" >/dev/null 2>&1
+python3 - "$W2/workspace/decision.json" <<'PYW'
+import json,sys
+p=sys.argv[1]; d=json.load(open(p))
+d["build"].update({"flavor":"vanilla","flavor_source":"usuária","zip_path":"/x/r.zip","zip_sha256":"a"*64})
+d["consent"]={k:True for k in (d.get("consent") or {})}
+json.dump(d,open(p,"w"))
+PYW
+ck "check ignora workspace/decision.json (sem precedência)" "fora do workspace" \
+  "$(cd "$W2" && python3 "$S" check --json 2>/dev/null \
+     | python3 -c 'import json,sys;print(json.load(sys.stdin)["file"])')" \
+  "skills/evox-rom-ci-optimizer/references/decisions.json"
+ck "template recusa sobrescrever a decisão versionada" "4" \
+  "$(cd "$T/sem-workspace" && mkdir -p skills/evox-rom-ci-optimizer/references \
+      && cp "$HERE/../references/decisions.json" skills/evox-rom-ci-optimizer/references/ \
+      && python3 "$S" template >/dev/null 2>&1; echo $?)" "4"
 
 echo "-----------------------------------------------------------------------"
 echo "TOTAL: $P PASS / $F FAIL"; [ "$F" -eq 0 ] || exit 1

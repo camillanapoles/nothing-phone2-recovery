@@ -1,0 +1,123 @@
+{
+ "schema": "evox-artifact-paths/1",
+ "note": "Mapa único de TODO caminho `workspace/...` citado no repositório. `workspace/` está no .gitignore e é limpo a cada sessão: nada que precise sobreviver (decisão, ledger de rollout, cache da ROM, pin de sha256) pode morar lá. O gate RC11 (scripts/refactor_gate.py) reprova caminho não classificado e caminho durável dentro do workspace.",
+ "roots": {
+  "durable": "skills/evox-rom-ci-optimizer/references",
+  "cache": "${EVOX_CACHE:-$HOME/.cache/evox}",
+  "work": "workspace"
+ },
+ "durable": {
+  "decision": "skills/evox-rom-ci-optimizer/references/decisions.json",
+  "rollout_ledger": "skills/evox-rom-ci-optimizer/references/rollout-ledger.json",
+  "contract": "skills/evox-rom-ci-optimizer/references/install-stack.json",
+  "rom_pins": "${EVOX_CACHE:-$HOME/.cache/evox}/evox.env"
+ },
+ "work_paths": {
+  "workspace/audit": {
+   "class": "ephemeral",
+   "why": "relatórios de execução (mutação, varredura, cobertura, loop) — reescritos a cada rodada"
+  },
+  "workspace/evidence": {
+   "class": "ephemeral",
+   "why": "evidência coletada na rodada; o que vale é o veredito copiado para o ledger"
+  },
+  "workspace/conflict_report.json": {
+   "class": "ephemeral",
+   "why": "saída do scanner de conflito por rodada"
+  },
+  "workspace/conflict_matrix_report.md": {
+   "class": "ephemeral",
+   "why": "saída legível do scanner de conflito por rodada"
+  },
+  "workspace/out": {
+   "class": "derived",
+   "regen": "patch_boot_offline.sh / build_safe_module_bundle.sh a partir do cache",
+   "why": "imagens repackadas; o insumo (zip) vive no cache"
+  },
+  "workspace/extracted": {
+   "class": "derived",
+   "regen": "extract_evox_base.sh --rom <zip do cache>",
+   "why": "partições extraídas do zip"
+  },
+  "workspace/rom_assets": {
+   "class": "derived",
+   "regen": "extract_rom_assets.sh sobre o zip do cache",
+   "why": "boot/vbmeta/configs extraídos por rodada"
+  },
+  "workspace/l4": {
+   "class": "derived",
+   "regen": "extract_rom_assets.sh (L4)",
+   "why": "evidência L4 do pacote; recalculada do zip"
+  },
+  "workspace/backup": {
+   "class": "derived",
+   "regen": "backup do boot stock a partir do zip do cache",
+   "why": "imagem de rollback; reconstruível sem o aparelho"
+  },
+  "workspace/staging": {
+   "class": "derived",
+   "regen": "build_safe_module_bundle.sh",
+   "why": "pacote de módulos em preparação"
+  },
+  "workspace/kernels": {
+   "class": "derived",
+   "regen": "resolve-kernel-source.sh / build do kernel",
+   "why": "candidato de kernel em avaliação"
+  }
+ },
+ "forbidden_in_work": [
+  "decision.json",
+  "decisions.json",
+  "rollout.json",
+  "rollout-ledger.json",
+  "evox.env",
+  "base_rom",
+  "artifacts"
+ ],
+ "scan": {
+  "code": [
+   "scripts/*.py",
+   "scripts/*.sh",
+   "skills/*/scripts/*.py",
+   "skills/*/scripts/*.sh",
+   "skills/*/Makefile",
+   "skills/Makefile",
+   "Makefile",
+   ".github/workflows/*.yml",
+   "workflows-local/*.yml"
+  ],
+  "data": [
+   "skills/*/references/*.json",
+   "skills/*/references/*.yml"
+  ],
+  "live_docs": [
+   "AGENTS.md",
+   "README.md",
+   "docs/skills/ARCHITECTURE-DECISION.md",
+   "docs/skills/INSTALL-SEQUENCE.md",
+   "docs/skills/PENDING-DECISIONS.md",
+   "docs/skills/HANDOFF-NEXT-AGENT.md",
+   "docs/skills/CONTINUITY-INSTRUCTION.md",
+   "docs/skills/APPROVED-INSTALL-SEQUENCE.md",
+   "skills/evox-rom-ci-optimizer/SKILL.md",
+   "skills/evox-rom-ci-optimizer/references/session-opening.md",
+   "skills/evox-rom-ci-optimizer/references/rollout-and-cache.md",
+   "skills/evox-rom-ci-optimizer/references/module-rollout-order.md",
+   "docs/skills/VANILLA-VS-GAPPS.md",
+   "skills/BOOT.md"
+  ],
+  "historical": [
+   "skills/*/references/archive/*",
+   "docs/skills/TIMELINE-AUDIT.md",
+   "docs/skills/EVOLUTION-LEDGER.md",
+   "docs/skills/NEXT-SESSION-REPORT.md",
+   "docs/skills/FINAL-ORCHESTRATION-REPORT.md",
+   "docs/skills/VALIDATION-REPORT.md",
+   "docs/skills/RECTIFICATION-PLAN.md",
+   "docs/skills/FALSIFIABILITY-REPORT.md",
+   "docs/skills/HANDOFF-BRIEF.md",
+   "docs/skills/AUDIT-CONTRADICTIONS.md"
+  ],
+  "self": "skills/evox-rom-ci-optimizer/references/artifact-paths.json"
+ }
+}

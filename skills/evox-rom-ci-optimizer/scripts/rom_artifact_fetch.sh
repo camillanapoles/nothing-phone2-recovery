@@ -13,14 +13,18 @@
 #                         [--env-out FILE] [--verify] [--json]
 #   --verify  não usa rede: só confere arquivos existentes contra o pin
 #
+# Destino padrão: ${EVOX_CACHE:-$HOME/.cache/evox}/artifacts (+ pins em .../evox.env),
+# FORA do workspace — que é limpo a cada sessão e levaria o zip de 2,4 GB e os sha256
+# pinados embora. Sobrescreva com --dest/--env-out ou EVOX_ARTIFACTS_DIR/EVOX_ENV_FILE.
 # Exit: 0 ok · 2 uso · 3 rede/egress · 4 drift/arquivo divergente · 5 ferramenta ausente
 set -uo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 MANIFEST="${ROM_MANIFEST:-$HERE/../references/rom-artifacts.json}"
 CURL_BIN="${ROM_FETCH_CURL:-curl}"
-VARIANT=""; DEST="${EVOX_ARTIFACTS_DIR:-$HERE/../../../workspace/artifacts}"
-LOCK=""; ENVOUT="${EVOX_ENV_FILE:-$HERE/../../../workspace/evox.env}"; VERIFY=0; JSON=0
+CACHE="${EVOX_CACHE:-$HOME/.cache/evox}"
+VARIANT=""; DEST="${EVOX_ARTIFACTS_DIR:-$CACHE/artifacts}"
+LOCK=""; ENVOUT="${EVOX_ENV_FILE:-$CACHE/evox.env}"; VERIFY=0; JSON=0
 
 while [ $# -gt 0 ]; do
   case "$1" in

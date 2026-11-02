@@ -112,7 +112,7 @@ jobs:
         if: inputs.mutate == true
         run: |
           bash skills/evox-rom-ci-optimizer/scripts/sandbox_rollout.sh \
-            --modules ./modules --state ./workspace/rollout.json \
+            --modules ./modules --state ./skills/evox-rom-ci-optimizer/references/rollout-ledger.json \
             --evidence ./workspace/evidence --boot-timeout 60 --observe 30 --wave W1 \
             || { adb shell "su -c '/data/adb/00_slot_router.sh quarantine'"; exit 1; }
 
@@ -127,10 +127,10 @@ jobs:
       - name: Exigir evidência verde do canário
         run: |
           python3 skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh \
-            status --state ./workspace/rollout.json --json
+            status --state ./skills/evox-rom-ci-optimizer/references/rollout-ledger.json --json
           python3 - <<'PY'
           import json
-          d = json.load(open("workspace/rollout.json"))
+          d = json.load(open("skills/evox-rom-ci-optimizer/references/rollout-ledger.json"))
           bad = [m["module"] for m in d["modules"] if m["state"] != "passed"]
           assert not bad, f"módulos não aprovados: {bad}"
           print("todos os módulos do ledger estão passed")
