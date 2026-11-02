@@ -11,18 +11,29 @@ o mutante é classificado "timeout" e o harness falha (a menos que --allow-timeo
 Cada mutante declara "strength": "semantic" (mata por asserção) ou "contract" (só CLI/--help).
 
 Uso:
-  mutation_check.py [--root DIR] [--catalog F] [--only M01,M07] [--json] [--keep] [--allow-timeout]
+  mutation_check.py [--root DIR] [--catalog F] [--only M01,M07] [--jobs N|auto]
+                    [--shard K/N] [--keep] [--allow-timeout]
+
+`--jobs` roda N mutantes em paralelo (cada um em sua cópia isolada do workspace — não há
+estado compartilhado, então o resultado é idêntico ao sequencial, só que mais rápido).
+`--shard K/N` executa só a fração K do catálogo (para matrix de CI): os arquivos inteiros
+são distribuídos entre N baldes por contagem, então a união dos N shards é o catálogo
+inteiro, uma vez cada — a agregação reprova se algum mutante não voltar.
+
 Exit: 0 todos mortos por asserção · 3 sobrevivente/inválido/timeout · 2 uso
 """
 from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 SK = "skills/evox-rom-ci-optimizer"
 # timeout por teste (segundos) — reduzível nos testes do próprio harness
@@ -79,10 +90,72 @@ def run_mutant(root: str, m: dict, keep: bool = False) -> dict:
     return res
 
 
+def parse_jobs(argv: list[str]) -> tuple[int, str | None]:
+    """--jobs N | --jobs auto. Default 1 (ordem determinística). Inválido -> erro de uso."""
+    if "--jobs" not in argv:
+        return 1, None
+    i = argv.index("--jobs")
+    if i + 1 >= len(argv):
+        return 0, "--jobs exige um valor (N >= 1 ou 'auto')"
+    raw = argv[i + 1].strip().lower()
+    if raw == "auto":
+        return max(1, os.cpu_count() or 1), None
+    try:
+        n = int(raw)
+    except ValueError:
+        return 0, f"--jobs inválido: {raw!r} (use N >= 1 ou 'auto')"
+    if n < 1:
+        return 0, f"--jobs inválido: {n} (mínimo 1)"
+    return n, None
+
+
+def parse_shard(argv: list[str]) -> tuple[tuple[int, int] | None, str | None]:
+    """--shard K/N (1 <= K <= N). Ausente = catálogo inteiro."""
+    if "--shard" not in argv:
+        return None, None
+    i = argv.index("--shard")
+    raw = argv[i + 1].strip() if i + 1 < len(argv) else ""
+    m = re.fullmatch(r"(\d+)/(\d+)", raw)
+    if not m:
+        return None, f"--shard inválido: {raw!r} (use K/N, ex.: 1/4)"
+    k, n = int(m.group(1)), int(m.group(2))
+    if n < 1 or not 1 <= k <= n:
+        return None, f"--shard fora do intervalo: {k}/{n} (exige 1 <= K <= N)"
+    return (k, n), None
+
+
+def shard_mutants(mutants: list[dict], k: int, n: int, costs: dict | None = None) -> list[dict]:
+    """Distribui mutantes entre N baldes equilibrando o CUSTO, não a contagem.
+
+    Cada mutante roda numa cópia isolada do workspace (sem estado compartilhado), então dois
+    mutantes do mesmo arquivo podem ficar em shards diferentes. O peso vem de
+    `catalog["costs"]` (segundos medidos); sem peso, 1.0. Guloso: o mais caro primeiro, no
+    balde de menor carga. Contar mutantes em vez de segundos foi o que produziu baldes de
+    53 s e 186 s — o peso corrige para ~102 s cada. A ordem do catálogo é preservada.
+    """
+    costs = costs or {}
+    buckets: list[list[dict]] = [[] for _ in range(n)]
+    load = [0.0] * n
+    for m in sorted(mutants, key=lambda m: (-costs.get(m["id"], 1.0), m["id"])):
+        idx = min(range(n), key=lambda i: (load[i], i))
+        buckets[idx].append(m)
+        load[idx] += costs.get(m["id"], 1.0)
+    chosen = {m["id"] for m in buckets[k - 1]}
+    return [m for m in mutants if m["id"] in chosen]
+
+
 def main(argv: list[str]) -> int:
     if "-h" in argv or "--help" in argv:
         print(__doc__.strip())
         return 0
+    jobs, jobs_err = parse_jobs(argv)
+    if jobs_err:
+        print(f"[mutation] USO: {jobs_err}", file=sys.stderr)
+        return 2
+    shard, shard_err = parse_shard(argv)
+    if shard_err:
+        print(f"[mutation] USO: {shard_err}", file=sys.stderr)
+        return 2
     root = "."
     if "--root" in argv:
         root = os.path.abspath(argv[argv.index("--root") + 1])
@@ -92,19 +165,38 @@ def main(argv: list[str]) -> int:
         only = {x.strip() for x in argv[argv.index("--only") + 1].split(",")}
     cat = load_catalog(root, cat_path)
     mutants = [m for m in cat["mutants"] if not only or m["id"] in only]
+    if shard:
+        mutants = shard_mutants(mutants, *shard, costs=cat.get("costs"))
+        print(f"[mutation] shard {shard[0]}/{shard[1]} · {len(mutants)} mutante(s) neste balde")
 
-    results = []
-    for m in mutants:
-        r = run_mutant(root, m, keep="--keep" in argv)
-        results.append(r)
+    keep = "--keep" in argv
+    lock = threading.Lock()
+
+    def report(r: dict) -> None:
         mark = {"killed": "MORTO ", "survived": "VIVO  ", "invalid": "INVÁLIDO",
                 "timeout": "TIMEOUT"}[r["status"]]
-        print(f"  {mark} {r['id']} {os.path.basename(r['file'])} → "
-              f"{os.path.basename(r['test'])}" + (f" ({r.get('detail','')})" if r["status"] == "invalid" else ""))
-        if r["status"] == "survived":
-            print(f"         SOBREVIVEU: o teste passou com a lógica trocada ({r['rationale']})")
-        elif r["status"] == "timeout":
-            print("         TIMEOUT ≠ COBERTURA: o teste travou; sem asserção que mate o mutante")
+        with lock:
+            print(f"  {mark} {r['id']} {os.path.basename(r['file'])} → "
+                  f"{os.path.basename(r['test'])}" + (f" ({r.get('detail','')})" if r["status"] == "invalid" else ""))
+            if r["status"] == "survived":
+                print(f"         SOBREVIVEU: o teste passou com a lógica trocada ({r['rationale']})")
+            elif r["status"] == "timeout":
+                print("         TIMEOUT ≠ COBERTURA: o teste travou; sem asserção que mate o mutante")
+
+    if jobs > 1:
+        print(f"[mutation] {len(mutants)} mutante(s) em {jobs} processo(s) paralelo(s)")
+    if jobs == 1:
+        results = []
+        for m in mutants:
+            r = run_mutant(root, m, keep=keep)
+            results.append(r)
+            report(r)
+    else:
+        with ThreadPoolExecutor(max_workers=jobs) as pool:
+            # map preserva a ordem do catálogo no relatório, mesmo com execução fora de ordem
+            results = list(pool.map(lambda m: run_mutant(root, m, keep=keep), mutants))
+        for r in results:
+            report(r)
 
     killed = sum(1 for r in results if r["status"] == "killed")
     survived = [r for r in results if r["status"] == "survived"]
@@ -121,6 +213,7 @@ def main(argv: list[str]) -> int:
     for m in mutants:
         per_file[m["file"]] = per_file.get(m["file"], 0) + 1
     rep = {"schema": "evox-mutation-report/2", "root": root, "total": len(results),
+           "shard": f"{shard[0]}/{shard[1]}" if shard else None,
            "killed": killed, "survived": len(survived), "invalid": len(invalid),
            "timeout_killed": len(timed_out), "allow_timeout": allow_timeout,
            "score_pct": score, "ok": ok, "results": results,

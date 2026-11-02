@@ -1,0 +1,217 @@
+name: Prove
+
+# A prova (test-state + wrappers + arch + skills 725 casos + 168 mutantes) rodando em runner
+# hospedado, com retorno ITEM A ITEM: cada suíte vira um bundle JSON com paridade declarada ×
+# observada e digest sha256; o job `aggregate` valida os bundles de volta e reprova se algum
+# item faltar. Nenhum passo aqui toca o aparelho (flash é humano, Stage D).
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prove-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SK: skills/evox-rom-ci-optimizer
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # 1. Suítes determinísticas (2 núcleos locais: 52 s; 4 vCPU no runner: ~1 min)
+  # ───────────────────────────────────────────────────────────────────────────
+  static:
+    name: Suítes (item a item)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Rodar cada suíte e emitir um bundle de itens
+        run: |
+          set -uo pipefail
+          mkdir -p workspace/proof
+          rc_geral=0
+
+          run_cases () {                       # suíte de casos: PASS/FAIL + TOTAL no log
+            local suite="$1"; shift
+            "$@" > "workspace/proof/$suite.log" 2>&1; local code=$?
+            printf '%s\n' "$code" > "workspace/proof/$suite.exit"
+            python3 "$SK/scripts/proof_items.py" --log "workspace/proof/$suite.log" \
+              --suite "$suite" --out "workspace/proof/$suite.json" > /dev/null
+            echo "  [$suite] exit=$code"
+            return 0
+          }
+
+          run_gate () {                        # suíte-gate: o exit code é o veredito
+            local suite="$1"; shift
+            "$@" > "workspace/proof/$suite.log" 2>&1; local code=$?
+            printf '%s\n' "$code" > "workspace/proof/$suite.exit"
+            python3 "$SK/scripts/proof_items.py" --log "workspace/proof/$suite.log" \
+              --suite "$suite" --mode gate --exit-code "$code" \
+              --out "workspace/proof/$suite.json" > /dev/null
+            echo "  [$suite] exit=$code"
+            return 0
+          }
+
+          run_cases state        tests/test_state_reset.sh
+          run_cases wrappers     tests/test_wrapper_stages.sh
+          run_gate  arch         python3 "$SK/scripts/architecture_guard.py"
+          run_gate  validate     python3 skills/tools/validate_skills.py
+          run_gate  core-check   make -s -C "$SK" check
+          run_cases scanner      make -s -C "$SK" test
+          run_cases preflight    make -s -C "$SK" test-preflight
+          run_cases rom          make -s -C "$SK" test-rom
+          run_cases gates        make -s -C "$SK" test-gates
+          run_cases ci           make -s -C "$SK" test-ci
+          run_cases guard        make -s -C skills/android16-root-guardian test
+          run_gate  eval         python3 skills/tools/eval_skills.py
+
+          # valida de volta: qualquer item FAIL, paridade quebrada ou digest errado = 3
+          python3 "$SK/scripts/proof_items.py" --validate workspace/proof/*.json \
+            --summary-md /tmp/static.md || rc_geral=$?
+          cat /tmp/static.md >> "$GITHUB_STEP_SUMMARY"
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import glob, json
+          itens = sum(len(json.load(open(f))["items"]) for f in glob.glob("workspace/proof/*.json"))
+          print(f"\n**{itens} itens coletados em {len(glob.glob('workspace/proof/*.json'))} suítes**\n")
+          PY
+          exit "$rc_geral"
+
+      - name: Guardar os bundles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-static
+          path: workspace/proof/
+          retention-days: 7
+          if-no-files-found: error
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # 2. Mutação em 4 shards × 2 processos (165 s sequenciais → ~60 s por runner)
+  # ───────────────────────────────────────────────────────────────────────────
+  mutation:
+    name: Mutação shard ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Matar os mutantes do shard
+        run: |
+          set -uo pipefail
+          mkdir -p workspace/proof
+          python3 "$SK/scripts/mutation_check.py" --root . \
+            --shard "${{ matrix.shard }}/4" --jobs 2 || code=$?
+          code="${code:-0}"
+          printf '%s\n' "$code" > "workspace/proof/mutation-${{ matrix.shard }}.exit"
+          python3 "$SK/scripts/proof_items.py" \
+            --mutation workspace/audit/mutation.json \
+            --suite "mutation-${{ matrix.shard }}" \
+            --out "workspace/proof/mutation-${{ matrix.shard }}.json" > /dev/null
+          # exit 3 do harness = mutante vivo/inválido; o veredito é do aggregate, mas o job
+          # também fica vermelho para o log não mentir
+          exit "$code"
+
+      - name: Guardar o relatório do shard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-mut-${{ matrix.shard }}
+          path: |
+            workspace/proof/
+            workspace/audit/mutation.json
+          retention-days: 7
+          if-no-files-found: error
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # 3. Agregação: todo mutante tem de voltar, todo item tem de fechar
+  # ───────────────────────────────────────────────────────────────────────────
+  aggregate:
+    name: Agregação item a item
+    needs: [static, mutation]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Baixar os bundles dos shards
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          pattern: proof-mut-*
+          path: workspace/proof
+          merge-multiple: true
+
+      - name: Baixar os bundles das suítes
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          name: proof-static
+          path: workspace/proof
+
+      - name: Validar item a item (faltou shard = reprovado)
+        run: |
+          set -uo pipefail
+          falhas=0
+
+          # 1) nenhum shard pode faltar: 4 bundles de mutação + 12 suítes
+          for n in 1 2 3 4; do
+            [ -f "workspace/proof/mutation-$n.json" ] || { echo "::error::shard $n não retornou"; falhas=1; }
+          done
+          for s in state wrappers arch validate core-check scanner preflight rom gates ci guard eval; do
+            [ -f "workspace/proof/$s.json" ] || { echo "::error::suíte $s não retornou"; falhas=1; }
+          done
+          [ "$falhas" -eq 0 ] || exit 3
+
+          # 2) o catálogo inteiro tem de voltar, exatamente uma vez
+          python3 - <<'PY'
+          import glob, json, sys
+          cat = json.load(open("skills/evox-rom-ci-optimizer/references/mutation-catalog.json"))
+          esperado = {m["id"] for m in cat["mutants"]}
+          vistos, dup = [], set()
+          for f in sorted(glob.glob("workspace/proof/mutation-*.json")):
+              for it in json.load(open(f))["items"]:
+                  mid = it["name"]
+                  if mid in vistos:
+                      dup.add(mid)
+                  vistos.append(mid)
+          faltando = sorted(esperado - set(vistos))
+          sobrando = sorted(set(vistos) - esperado)
+          print(f"[aggregate] catálogo {len(esperado)} · voltaram {len(set(vistos))} · "
+                f"faltando {len(faltando)} · duplicados {len(dup)} · fora do catálogo {len(sobrando)}")
+          if faltando or dup or sobrando:
+              print("::error::partição de mutantes quebrada", faltando[:5], sorted(dup)[:5], sobrando[:5])
+              sys.exit(3)
+          PY
+          [ "$?" -eq 0 ] || falhas=1
+
+          # 3) validação de cada bundle (digest, paridade, contiguidade, FAIL)
+          python3 "$SK/scripts/proof_items.py" --validate workspace/proof/*.json \
+            --summary-md /tmp/agg.md || falhas=1
+          cat /tmp/agg.md >> "$GITHUB_STEP_SUMMARY"
+          exit "$falhas"

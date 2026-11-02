@@ -10,7 +10,7 @@ help:
 	@echo "make test-wrappers -> wrappers de release: auditoria de ZIP/Cuttlefish/build (34 casos)"
 	@echo "make arch         -> travas de arquitetura (AG1..AG21)"
 	@echo "make audit-loop   -> auditoria em loop até convergir (AG + contradições + cobertura + suítes)"
-	@echo "make mutation     -> falseabilidade: 102 mutantes têm de ser mortos por asserção"
+	@echo "make mutation     -> falseabilidade: 168 mutantes mortos por asserção (JOBS=auto)"
 	@echo "make vacuity       -> análise estática de testes viciados (V1–V6)"
 	@echo "make skills       -> harness completo das 8 skills (validate+testes+eval)"
 	@echo "make pack         -> solver: qual par (motor × kernel) fecha as 10 condições, por dado"
@@ -73,8 +73,10 @@ arch:
 audit-loop:
 	@skills/evox-rom-ci-optimizer/scripts/audit_loop.sh
 
+JOBS ?= auto
+
 mutation:
-	@python3 skills/evox-rom-ci-optimizer/scripts/mutation_check.py --root .
+	@python3 skills/evox-rom-ci-optimizer/scripts/mutation_check.py --root . --jobs $(JOBS)
 
 vacuity:
 	@python3 skills/evox-rom-ci-optimizer/scripts/test_vacuity_scan.py --root .

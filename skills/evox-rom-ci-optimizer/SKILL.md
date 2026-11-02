@@ -356,7 +356,10 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `scripts/rom_artifact_fetch.sh` | **Coleta determinística** dos dois zips da mesma build: pin por sha256, atômico, retomável, drift = exit 4, env fixo em `workspace/evox.env` |
 | `references/rom-artifacts.json` | Manifesto pinado (Vanilla + GApps, build 2026-09-15) — única fonte de nome/URL/build |
 | `tests/test_rom_artifact_fetch.sh` | 18 cenários: pin, idempotência, drift, sem rede, env, JSON |
-| `scripts/mutation_check.py` | **Falseabilidade (Popper)**: injeta mutação real e exige que o teste falhe; sobrevivente = teste viciado |
+| `scripts/mutation_check.py` | **Falseabilidade (Popper)**: injeta mutação real e exige que o teste falhe; sobrevivente = teste viciado. `--jobs N\|auto` paraleliza (cada mutante em cópia isolada) sem mudar o resultado |
+| `scripts/proof_items.py` | **Retorno item a item**: converte o log de cada suíte em itens (`PASS`/`FAIL`), confere paridade `TOTAL` declarado × observado, emite digest sha256 e **valida de volta** (`--validate`): item apagado, status inventado, payload editado ou suíte vazia = exit 3 |
+| `tests/test_proof_items.sh` | 18 cenários do retorno item a item (paridade, contiguidade de id, digest, gate contraditório, mutante vivo) |
+| `references/proof-in-cloud.md` | **Onde a prova roda**: comparação medida de Actions × Cloudflare Workers × Colab × iximiuz Labs `labctl` × Linear, veredito e o fluxo com validação item a item |
 | `scripts/test_vacuity_scan.py` | Análise estática de testes viciados (V1–V6: falha engolida, asserção impossível, suíte só-feliz) |
 | `references/root-decision.json` | **decisão A ratificada** pela usuária (2026-11-01): motor único `apatch`, kernel `stock-rom`, `custom_kernel_allowed:false`, `susfs_allowed:false`, motores proibidos e `revisit_if` |
 | `references/root-engines.json` | fatos por motor de root (mecanismo, kernel próprio, SUSFS, rollback) + `allowed` (só APatch) e `blocked_by` nos proibidos |
@@ -366,7 +369,7 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `references/kernel-pair-options.json` | pares motor × kernel de 2026 com releases, custo e veredito para o DroidSpaces (A/B/C/D) |
 | `references/hiding-stack.json` | pilha de ocultação sob a Decisão A com fonte primária por camada (APatch *Exclude modifications* → Zygisk Next v1.5.2 · `sha256:ce50b13f…` → Zygisk Assistant v2.1.4) e o que **não** é demonstrável |
 | `references/droidspaces-requirements.json` | **M05 inteiro em dados**: app v7.1.0 + sha256 do APK, instalação em F0/W1 posição 2 depois do M01, 12 `CONFIG_*` de kernel, `proc_checks`, caminhos, R03, motores (`apatch/kernelsu/sukisu`), rollback |
-| `references/mutation-catalog.json` | 129 mutantes (≥2 semânticos por arquivo, com `strength` declarada; timeout não conta como kill) |
+| `references/mutation-catalog.json` | 168 mutantes (≥2 semânticos por arquivo, com `strength` declarada; timeout não conta como kill) + `costs` (segundos medidos por mutante) que balanceiam os shards de CI |
 | `scripts/contradiction_scan.py` | Varredura de contradições (C1–C13): instrução ativa que ainda manda fazer o abandonado ou usa vocabulário ambíguo (`Gate 4`, `gate 10`, `init_boot` sem fonte) |
 | `scripts/coverage_matrix.py` | Cobertura fechada: todo script tem teste ou isenção declarada (`references/audit-exemptions.json`) |
 | `scripts/audit_loop.sh` | Harness de convergência: AG + scan + cobertura + suíte, em loop até estabilizar |

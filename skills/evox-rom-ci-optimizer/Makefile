@@ -16,6 +16,7 @@ TAG ?= v11.11-w1-clean
 SNAPSHOT_SRC ?= ./workspace/out
 
 .PHONY: help check test test-preflight test-rom test-gates test-kernel test-fragment test-continuity test-closure test-debitos test-stage test-ci scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
+JOBS ?= auto
 
 help:
 	@echo "======================================================================="
@@ -125,6 +126,8 @@ test-gates:
 	@./tests/test_coverage_matrix.sh
 	@./tests/test_audit_loop.sh
 	@./tests/test_mutation_check.sh
+	@./tests/test_proof_items.sh
+	@./tests/test_prove_workflow.sh
 	@./tests/test_vacuity_scan.sh
 	@./tests/test_kernel_build_gate.sh
 	@./tests/test_kernel_fragment.sh
@@ -133,7 +136,7 @@ test-gates:
 	@./tests/test_debt_ledger.sh
 
 mutation:
-	@python3 scripts/mutation_check.py --root ../..
+	@python3 scripts/mutation_check.py --root ../.. --jobs $(JOBS)
 
 vacuity:
 	@python3 scripts/test_vacuity_scan.py --root ../..
