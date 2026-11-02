@@ -26,7 +26,8 @@
    "requires_susfs": false,
    "kernel_level": false,
    "compliance_base": [
-    "PlayIntegrityFork"
+    "PlayIntegrityFork",
+    "TEESimulator-RS"
    ]
   },
   {
@@ -36,7 +37,8 @@
    "requires_susfs": false,
    "kernel_level": false,
    "compliance_base": [
-    "Tricky Store"
+    "keybox.xml",
+    "VBMeta Fixer"
    ]
   }
  ]

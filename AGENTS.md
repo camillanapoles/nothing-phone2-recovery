@@ -198,6 +198,8 @@ Regras práticas:
 
 - ❌ `fastboot flash` / `fastboot set_active` / escrita em partição sem 10 gates + rollback verificado.
 - ❌ `gh`, PR, push para `main`, uso de credenciais neste workspace **enquanto não houver liberação**.
+- ❌ **`gh pr merge` sem aprovação explícita da usuária.** O ciclo do agente termina em
+  `git add` + `commit` + `push` + PR aberto; o merge é decisão dela, sempre.
 - ❌ `permissive`, remoção de módulo de sistema sem snapshot, edição de `persist`.
 - ❌ Declarar `PASS` sem saída de comando. "Deve funcionar" não é evidência.
 - ❌ Instalar binário silenciosamente para "fazer o teste passar".
@@ -261,8 +263,18 @@ state/                 runtime local (quarentena, relatórios) — fora do Git
 ```bash
 bash tests/test_state_reset.sh          # 13 PASS / 0 FAIL (sem device, sem rede)
 make -C skills check-all                # validate + core + 13/8/8 PASS + eval APROVADO
+make -s stack                           # 16/16 invariantes do contrato (install-stack.json)
+make -s refactor                        # 9/9 coerências contrato × consumidores
+make -s prove                           # suíte inteira inclui stack + refactor
 scripts/state_reset.sh --json           # estado atual: clean | plan | applied
 ```
+
+> **Refatoração não se declara: se prova.** `scripts/refactor_gate.py` (alvo `make -s refactor`)
+> cobra que todo consumidor — módulos, ocultação, sessão, garantia, plano, fila e CI — fique
+> coerente com `references/install-stack.json`. Cada checagem `RC1…RC9` tem caso de quebra em
+> `tests/test_refactor_gate.sh` (16 PASS) e mutante próprio (M190–M192) em `mutation-catalog.json`:
+> se a lógica apodrecer, o mutante sobrevive e `make -s mutation` reprova. O CI `.github/workflows/proof.yml`
+> roda contrato → `make -s prove` → mutação em 8 shards → relatório único por PR.
 
 Saída esperada de um workspace saudável:
 

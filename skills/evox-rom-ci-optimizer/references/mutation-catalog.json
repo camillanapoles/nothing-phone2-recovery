@@ -1562,6 +1562,34 @@
    "strength": "semantic",
    "rationale": "registro de decisão deixa de ser conferido: o contrato e a decisão podem divergir e o gate diz OK"
   }
+,
+  {
+   "id": "M190",
+   "file": "scripts/refactor_gate.py",
+   "find": "        elif tok not in base:",
+   "replace": "        elif False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
+   "strength": "semantic",
+   "rationale": "layer de integridade sem proof_token deixa de reprovar: a atestacao some sem ninguem notar"
+  },
+  {
+   "id": "M191",
+   "file": "scripts/refactor_gate.py",
+   "find": "    if obtido != esperado:",
+   "replace": "    if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
+   "strength": "semantic",
+   "rationale": "template de sessao pode divergir do contrato e o gate continua dizendo OK"
+  },
+  {
+   "id": "M192",
+   "file": "scripts/refactor_gate.py",
+   "find": "    if \"stack_gate.py\" not in cmds:",
+   "replace": "    if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
+   "strength": "semantic",
+   "rationale": "plano de fechamento deixa de cobrar o gate do contrato"
+  }
  ],
  "retired": [
   "M104",

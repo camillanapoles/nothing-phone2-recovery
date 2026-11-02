@@ -72,6 +72,7 @@ B01 ─► E01 pin ─► E02 árvore ─► E03 build ─► E04 configs ─►
 | **E10** | `M07`/`M08` (integridade e ocultação) | — | `rollout_gate.sh status` (exit 0, sem paralelo) |
 | **E11** | `M02/M03/M04/M06/M09/M10/M11/M12A/M12B` | — | `rollout_gate.sh status` (exit 0, `M12A`≠`M12B`) |
 | **E12** | `M13/M14/M15` + provas do workspace | `M-ROLLOUT` | `make -s prove` (exit 0) |
+| **E13** | coerência contrato × consumidores (refatoração completa) | `E01` | `stack_gate.py --root .` **e** `refactor_gate.py --root .` (ambos exit 0) |
 
 ## 4. Regras de execução
 

@@ -89,6 +89,9 @@ test-stack:
 test-continuity:
 	@./tests/test_continuity_gate.sh
 
+test-refactor:
+	@./tests/test_refactor_gate.sh
+
 test-fragment:
 	@./tests/test_kernel_fragment.sh
 
@@ -136,6 +139,7 @@ test-gates:
 	@./tests/test_closure_gate.sh
 	@./tests/test_debt_ledger.sh
 	@./tests/test_stack_gate.sh
+	@./tests/test_refactor_gate.sh
 
 mutation:
 	@python3 scripts/mutation_check.py --root ../..

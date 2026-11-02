@@ -6,9 +6,7 @@
    "id": "susfs",
    "name": "SUSFS4KSU (simonpunk) compilado no kernel",
    "role": "ocultação em nível de kernel: mounts, ksu, procfs, uptime (a camada mais forte disponível)",
-   "requires": [
-    "kernelsu"
-   ],
+   "requires": [],
    "source": "https://gitlab.com/simonpunk/susfs4ksu",
    "status": "supported_by_upstream",
    "verified_on_device": false,
@@ -20,65 +18,51 @@
    "engine_only": null
   },
   {
-   "id": "apatch-native",
-   "name": "APatch — 'Exclude modifications' por app (umount de módulos)",
-   "role": "esconde os módulos montados do app alvo, sem tocar o kernel",
+   "id": "ksu-app-profile",
+   "name": "KSU-Next — 'Umount modules' por App Profile",
+   "role": "unmount cirúrgico dos módulos no namespace do app alvo (kernel, por app)",
    "requires": [],
-   "source": "https://github.com/snake-4/Zygisk-Assistant (seção 'KernelSU & APatch users': habilitar 'Umount modules/Exclude modifications' no APatch Manager)",
-   "status": "supported_by_upstream",
-   "verified_on_device": false,
    "needs": [
     "root"
    ],
-   "engine_only": "apatch"
+   "engine_only": null,
+   "source": "https://kernelsu-next.github.io/ (Superusuário → app → Umount modules)",
+   "status": "supported_by_upstream",
+   "verified_on_device": false
   },
   {
    "id": "zygisk-next",
-   "name": "Zygisk Next v1.5.2 (2026-10-15)",
-   "role": "fornece a API Zygisk que o APatch não tem embutida",
+   "name": "Zygisk Next em just_umount + linker builtin + memoria anonima",
+   "role": "injeta a API Zygisk escondendo os próprios rastros",
    "requires": [
-    "apatch-native"
+    "ksu-app-profile"
    ],
-   "artifact": {
-    "file": "Zygisk-Next-1.5.2-864-a4a72ce-release.zip",
-    "size_bytes": 6714344,
-    "sha256": "ce50b13fecb9e4456db69ef17b715f7cfbc094004dd9f30f7d6348dfab619a96",
-    "url": "https://github.com/Dr-TSNG/ZygiskNext/releases/download/v1.5.2/Zygisk-Next-1.5.2-864-a4a72ce-release.zip"
-   },
-   "source": "https://github.com/Dr-TSNG/ZygiskNext (README) + https://github.com/snake-4/Zygisk-Assistant (APatch exige ZygiskNext)",
-   "status": "supported_by_upstream",
-   "note": "README do Zygisk Next não cita APatch; quem declara o suporte a APatch é o Zygisk Assistant (camada acima). Prova no aparelho é obrigatória.",
-   "verified_on_device": false,
    "needs": [
     "root",
     "zygisk"
    ],
-   "engine_only": null
+   "engine_only": null,
+   "source": "https://github.com/Dr-TSNG/ZygiskNext (v1.3.0+: enforce-denylist just_umount, linker builtin, memory-type anonymous)",
+   "status": "supported_by_upstream",
+   "verified_on_device": false,
+   "note": "binário fechado desde ~1.0 — dívida de auditoria declarada; o estado é verificável por comando"
   },
   {
-   "id": "zygisk-assistant",
-   "name": "Zygisk Assistant v2.1.4 (2025-02-23)",
-   "role": "esconde existência de root e de Zygisk do app alvo (proc, su, mounts)",
+   "id": "nohello",
+   "name": "NoHello (whitelist) — condicional",
+   "role": "limpa rastros residuais de injeção quando a desmontagem nativa não basta",
    "requires": [
-    "zygisk-next",
-    "apatch-native"
+    "zygisk-next"
    ],
-   "artifact": {
-    "file": "Zygisk-Assistant-v2.1.4-1013f8a-release.zip",
-    "size_bytes": 392961,
-    "sha256": "",
-    "url": "https://github.com/snake-4/Zygisk-Assistant/releases/download/v2.1.4/Zygisk-Assistant-v2.1.4-1013f8a-release.zip"
-   },
-   "source": "https://github.com/snake-4/Zygisk-Assistant (README: 'KernelSU & APatch users')",
-   "status": "stale_but_supported",
-   "stale_days_since_release": 616,
-   "risk": "último release em 2025-02-23; sem digest publicado na API — hash tem de ser calculado no download e registrado antes do uso",
-   "verified_on_device": false,
    "needs": [
     "root",
     "zygisk"
    ],
-   "engine_only": null
+   "engine_only": null,
+   "source": "https://github.com/MhmRdd/NoHello",
+   "status": "conditional",
+   "verified_on_device": false,
+   "note": "entra só se a matriz de detecção falhar; nunca junto com Shamiko"
   }
  ],
  "configuration_rules": [

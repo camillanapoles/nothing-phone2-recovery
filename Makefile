@@ -50,6 +50,9 @@ fragmento:
 stack:
 	@python3 scripts/stack_gate.py --root .
 
+refactor:
+	@python3 scripts/refactor_gate.py --root .
+
 debitos:
 	@python3 skills/evox-rom-ci-optimizer/scripts/debt_ledger.py --root .
 
@@ -88,5 +91,5 @@ skills:
 
 test: test-state
 
-prove: test-state test-wrappers arch skills
+prove: test-state test-wrappers arch skills refactor
 	@echo "[workspace] tudo verde"

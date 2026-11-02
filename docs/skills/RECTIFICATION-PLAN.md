@@ -93,3 +93,34 @@ A frente de retificação está encerrada quando, ao mesmo tempo:
 5. `prove` e `mutation` seguem verdes (hoje: 752+ casos / 35 suítes e 169 mutantes).
 
 Nada disso promete `DEVICE` no aparelho: isso é `R11`, e depende de keybox não revogada.
+
+---
+
+## 5. Estado em 2026-11-02 — refatoração provada, não prometida
+
+`scripts/refactor_gate.py` transforma "refatoração completa" em **gate**: 9 checagens
+`RC1…RC9` que comparam o contrato (`references/install-stack.json`) com TODOS os consumidores.
+Sem ele, refatorar era um passo manual que ficava pela metade.
+
+| Checagem | Cobra | Situação |
+|---|---|---|
+| `RC1` | nenhum consumidor declara item vetado (Tricky Store, Zygisk Assistant, kptools) | verde |
+| `RC2` | layer de integridade tem `proof_token` **e** aparece em `compliance_base` de M07/M08 | verde |
+| `RC3` | template de `session_open.py` emite exatamente as camadas do contrato (20) | verde |
+| `RC4` | `hiding-stack.json` sem `requires` inexistente/vetado e com SUSFS declarado | verde |
+| `RC5` | `closure-plan.json` tem passo cujo gate roda `stack_gate.py` (`E13`) | verde |
+| `RC6` | a fila antiga está marcada SUPERSEDIDO (não competindo com o contrato) | verde |
+| `RC7` | `.github/workflows/proof.yml` roda `make -s prove` + mutação fatiada (`--only`) | verde |
+| `RC8` | `AGENTS.md` proíbe merge sem aprovação explícita da usuária | verde |
+| `RC9` | `debt_ledger.py` lê decisão versionada (`references/decisions.json`) | verde |
+
+**O que mudou de fato (R2–R8):** `success_guarantee.py` deixou de exigir Tricky Store e passou a
+derivar os tokens de atestação do contrato; M03 virou "NikGapps Core (5 componentes)"; M07/M08
+declaram `PlayIntegrityFork + TEESimulator-RS + keybox.xml + VBMeta Fixer`; `hiding-stack.json`
+virou topologia KSU-Next (`susfs`, `ksu-app-profile`, `zygisk-next`, `nohello`) sem
+`apatch-native`/`zygisk-assistant`; o template de sessão emite os 20 ids do contrato em vez de
+`M01…M15`; o plano ganhou `E13`; e o CI de prova existe.
+
+**Falseabilidade (o teste viável):** `tests/test_refactor_gate.sh` — 16 PASS, sendo 10 falsificações
+(uma por checagem + a variante "módulo perde o token"), mais 3 mutantes `M190–M192` que só morrem se
+esses casos continuarem reprovando. Rodar: `make -s refactor` (9/9) e `make -s mutation`.

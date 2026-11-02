@@ -70,8 +70,12 @@
    "title": "Pinar o source do kernel (commit de 40 hex)",
    "kind": "input",
    "needs": [],
-   "resolves": ["B01"],
-   "unblocks": ["E02"],
+   "resolves": [
+    "B01"
+   ],
+   "unblocks": [
+    "E02"
+   ],
    "gate": {
     "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py --root . --prebuild",
     "expect_exit": 3,
@@ -84,9 +88,15 @@
    "id": "E02",
    "title": "Materializar a árvore: fragmento do pack + patches kABI 001/002",
    "kind": "input",
-   "needs": ["E01"],
-   "resolves": ["B03"],
-   "unblocks": ["E03"],
+   "needs": [
+    "E01"
+   ],
+   "resolves": [
+    "B03"
+   ],
+   "unblocks": [
+    "E03"
+   ],
    "gate": {
     "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py --root . --prebuild --kernel-tree <árvore>",
     "expect_exit": 3,
@@ -99,9 +109,15 @@
    "id": "E03",
    "title": "Buildar no GitHub Actions (draft release com hash + attestation)",
    "kind": "build",
-   "needs": ["E02"],
-   "resolves": ["B06"],
-   "unblocks": ["E04"],
+   "needs": [
+    "E02"
+   ],
+   "resolves": [
+    "B06"
+   ],
+   "unblocks": [
+    "E04"
+   ],
    "gate": {
     "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py --root . --prebuild --kernel-tree <árvore> --build-dir <artefatos>",
     "expect_exit": 3,
@@ -114,9 +130,15 @@
    "id": "E04",
    "title": "Provar as CONFIG_* a partir do .config do build",
    "kind": "proof",
-   "needs": ["E03"],
-   "resolves": ["B05"],
-   "unblocks": ["E05"],
+   "needs": [
+    "E03"
+   ],
+   "resolves": [
+    "B05"
+   ],
+   "unblocks": [
+    "E05"
+   ],
    "gate": {
     "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py --root . --prebuild --kernel-tree <árvore> --config-json <evidência> --build-dir <artefatos>",
     "expect_exit": 0,
@@ -129,9 +151,15 @@
    "id": "E05",
    "title": "Fechar C06 e resolver o empate do pack por dado",
    "kind": "proof",
-   "needs": ["E04"],
-   "resolves": ["C06"],
-   "unblocks": ["E06"],
+   "needs": [
+    "E04"
+   ],
+   "resolves": [
+    "C06"
+   ],
+   "unblocks": [
+    "E06"
+   ],
    "gate": {
     "cmd": "make -s pack",
     "expect_exit": 0,
@@ -145,8 +173,12 @@
    "title": "Registrar a decisão da usuária (P1: Vanilla × GApps)",
    "kind": "decision",
    "needs": [],
-   "resolves": ["P1"],
-   "unblocks": ["E07"],
+   "resolves": [
+    "P1"
+   ],
+   "unblocks": [
+    "E07"
+   ],
    "gate": {
     "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --json",
     "expect_exit": 0,
@@ -159,9 +191,14 @@
    "id": "E07",
    "title": "Validar em staging/AVD: hash, attestation, boot e M01",
    "kind": "test",
-   "needs": ["E04", "E06"],
+   "needs": [
+    "E04",
+    "E06"
+   ],
    "resolves": [],
-   "unblocks": ["E08"],
+   "unblocks": [
+    "E08"
+   ],
    "gate": {
     "cmd": "bash skills/evox-rom-ci-optimizer/scripts/guard4_verify.sh --boot <stock> --backup <backup>",
     "expect_exit": 0,
@@ -174,9 +211,15 @@
    "id": "E08",
    "title": "Físico: M01 (root) com PASS registrado",
    "kind": "test",
-   "needs": ["E07"],
-   "resolves": ["M-ROLLOUT"],
-   "unblocks": ["E09"],
+   "needs": [
+    "E07"
+   ],
+   "resolves": [
+    "M-ROLLOUT"
+   ],
+   "unblocks": [
+    "E09"
+   ],
    "gate": {
     "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh record --state workspace/rollout.json --module M01 --evidence <evidência>",
     "expect_exit": 0,
@@ -189,9 +232,14 @@
    "id": "E09",
    "title": "Físico: M05 (DroidSpaces) com PASS registrado",
    "kind": "test",
-   "needs": ["E08", "E05"],
+   "needs": [
+    "E08",
+    "E05"
+   ],
    "resolves": [],
-   "unblocks": ["E10"],
+   "unblocks": [
+    "E10"
+   ],
    "gate": {
     "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py --root . --device --adb adb",
     "expect_exit": 0,
@@ -204,9 +252,13 @@
    "id": "E10",
    "title": "Módulos de integridade e ocultação (M07, M08)",
    "kind": "test",
-   "needs": ["E09"],
+   "needs": [
+    "E09"
+   ],
    "resolves": [],
-   "unblocks": ["E11"],
+   "unblocks": [
+    "E11"
+   ],
    "gate": {
     "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh status --state workspace/rollout.json --json",
     "expect_exit": 0,
@@ -219,9 +271,13 @@
    "id": "E11",
    "title": "Módulos de feature (M02, M03, M04, M06, M09, M10, M11, M12A, M12B)",
    "kind": "test",
-   "needs": ["E10"],
+   "needs": [
+    "E10"
+   ],
    "resolves": [],
-   "unblocks": ["E12"],
+   "unblocks": [
+    "E12"
+   ],
    "gate": {
     "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh status --state workspace/rollout.json --json",
     "expect_exit": 0,
@@ -234,9 +290,15 @@
    "id": "E12",
    "title": "Fechar: M13/M14/M15, provas do workspace e entrega",
    "kind": "proof",
-   "needs": ["E11"],
-   "resolves": ["M-ROLLOUT"],
-   "unblocks": [],
+   "needs": [
+    "E11"
+   ],
+   "resolves": [
+    "M-ROLLOUT"
+   ],
+   "unblocks": [
+    "E13"
+   ],
    "gate": {
     "cmd": "make -s prove",
     "expect_exit": 0,
@@ -244,6 +306,22 @@
    },
    "stop_condition": "qualquer suíte vermelha impede o merge",
    "rollback": "nada a reverter: o merge não acontece"
+  },
+  {
+   "id": "E13",
+   "title": "Coerência contrato × consumidores (refatoração completa)",
+   "kind": "proof",
+   "needs": [
+    "E01"
+   ],
+   "resolves": [],
+   "gate": {
+    "cmd": "python3 scripts/stack_gate.py --root . && python3 scripts/refactor_gate.py --root .",
+    "expect_exit": 0,
+    "criterion": "16/16 invariantes do contrato e 9/9 coerências dos consumidores"
+   },
+   "stop_condition": "se um consumidor divergir do contrato, corrigir o consumidor — nunca o contrato",
+   "rollback": "nenhum artefato gerado; reverter apenas o consumidor alterado"
   }
  ]
 }
