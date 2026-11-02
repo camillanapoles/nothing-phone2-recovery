@@ -117,7 +117,9 @@
    "docs/skills/RECTIFICATION-PLAN.md",
    "docs/skills/FALSIFIABILITY-REPORT.md",
    "docs/skills/HANDOFF-BRIEF.md",
-   "docs/skills/AUDIT-CONTRADICTIONS.md"
+   "docs/skills/AUDIT-CONTRADICTIONS.md",
+   "docs/skills/CLAIMS-AUDIT.md",
+   "docs/skills/EXECUTION-SEQUENCE.md"
   ],
   "self": "skills/evox-rom-ci-optimizer/references/artifact-paths.json"
  },
