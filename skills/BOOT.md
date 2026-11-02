@@ -60,7 +60,8 @@ Esperado: `[harness] OK (0 falhas)` · `[core] make check OK` · `13 PASS` (regr
 1. Explicar o plano em 1 tela: o que será feito, em que ordem, com quais gates.
 2. **Perguntar qual build**: Vanilla ou GAPPS — com prós/contras (tabela em
    `evox-rom-ci-optimizer/SKILL.md` §VI-A). Não escolher pela usuária.
-3. Registrar `workspace/decision.json` (versão, URL, sha256 esperado). Sem isso, parar (exit 2).
+3. Registrar em `references/decisions.json` (versionado; **nunca** no `workspace/`, que é limpo a cada
+   sessão): versão, URL, sha256 esperado. Sem isso, parar (exit 2).
 4. Fechar **L4** com `scripts/extract_rom_assets.sh --zip <zip> --expect-sha256 <hash>`:
    kernel/KMI e hashes vêm do **pacote**, não do aparelho. O device só confirma slot/fingerprint.
 

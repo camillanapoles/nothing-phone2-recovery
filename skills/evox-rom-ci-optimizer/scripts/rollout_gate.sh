@@ -3,12 +3,12 @@
 # rollout_gate.sh — canário: 1 módulo por vez, com evidência antes do próximo
 # -----------------------------------------------------------------------------
 # Uso:
-#   ./rollout_gate.sh start  --state ./workspace/rollout.json --wave W1 --module M01 \
+#   ./rollout_gate.sh start  --state "$ROLLOUT_LEDGER" --wave W1 --module M01 \
 #                            [--artifact ./out/boot_patched.img] [--sha256 <hex>]
-#   ./rollout_gate.sh record --state ./workspace/rollout.json --module M01 \
+#   ./rollout_gate.sh record --state "$ROLLOUT_LEDGER" --module M01 \
 #                            --evidence ./evidence/evidence.json [--min-uptime 10] [--fail "motivo"]
-#   ./rollout_gate.sh status --state ./workspace/rollout.json [--json]
-#   ./rollout_gate.sh reset  --state ./workspace/rollout.json --module M01
+#   ./rollout_gate.sh status --state "$ROLLOUT_LEDGER" [--json]
+#   ./rollout_gate.sh reset  --state "$ROLLOUT_LEDGER" --module M01
 #
 # Regras: nunca 2 módulos abertos; módulo só abre se o anterior PASS; onda não regride.
 # Exit: 0 = liberado/ok · 3 = bloqueado (pendência) · 2 = uso · 4 = evidência/entrada inválida
@@ -23,7 +23,10 @@ case "${1:-}" in -h|--help)
 esac
 
 CMD="${1:-}"; shift || true
-STATE="./workspace/rollout.json"; WAVE=""; MODULE=""; ARTIFACT=""; SHA=""; EVID=""
+HERE="$(cd "$(dirname "$0")" && pwd)"
+# ledger durável: versionado, fora do workspace (que é limpo a cada sessão)
+STATE="${ROLLOUT_LEDGER:-$HERE/../references/rollout-ledger.json}"
+WAVE=""; MODULE=""; ARTIFACT=""; SHA=""; EVID=""
 MIN_UP=10; FAILMSG=""; JSON=0
 while [[ $# -gt 0 ]]; do
   case "$1" in

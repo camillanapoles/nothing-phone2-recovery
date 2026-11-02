@@ -99,7 +99,7 @@ Nada disso promete `DEVICE` no aparelho: isso é `R11`, e depende de keybox não
 ## 5. Estado em 2026-11-02 — refatoração provada, não prometida
 
 `scripts/refactor_gate.py` transforma "refatoração completa" em **gate**: 9 checagens
-`RC1…RC10` que comparam o contrato (`references/install-stack.json`) com TODOS os consumidores.
+`RC1…RC11` que comparam o contrato (`references/install-stack.json`) com TODOS os consumidores.
 Sem ele, refatorar era um passo manual que ficava pela metade.
 
 | Checagem | Cobra | Situação |
@@ -134,7 +134,7 @@ O harness tinha uma fuga silenciosa: `--only` com id **inexistente** devolvia `e
 | cobertura por `M[id]` | `workspace/audit/mutation-latest.json`: `value` 1 (morto) / 0 (não executado), reescrito do zero a cada execução |
 | produto da cobertura | `product = 1` só com todos mortos; `missing` lista os ausentes |
 | relatório do CI | reprova se faltar id, sobrar id, duplicar id ou houver sobrevivente |
-| numeração | fechada (`ativo ∪ retired` = `M01..M197`, sem lacuna) — `M158` foi registrado como aposentado ao fechar a lacuna |
+| numeração | fechada (`ativo ∪ retired` = `M01..M199`, sem lacuna) — `M158` foi registrado como aposentado ao fechar a lacuna |
 | ids novos | auto-incremento: entrada sem `id` recebe o próximo livre; `--write-ids` grava; `--next-id` mostra |
 
 `RC10_mutacao_completa` (gate de refatoração) cobra que **todo script** de `scripts/` e

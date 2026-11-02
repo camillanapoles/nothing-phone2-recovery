@@ -6,7 +6,7 @@
 # injeção em /data/adb/modules + soft-reboot (stop/start) + coleta de evidência.
 #
 # Uso:
-#   ./sandbox_rollout.sh --modules ./modules --state ./workspace/rollout.json \
+#   ./sandbox_rollout.sh --modules ./modules --state references/rollout-ledger.json \
 #                        --evidence ./workspace/evidence \
 #                        [--boot-timeout 300] [--observe 60] [--min-uptime 1] [--wave W1]
 #
@@ -15,7 +15,10 @@
 # =============================================================================
 set -uo pipefail
 
-MODULES="./modules"; STATE="./workspace/rollout.json"; EVID="./workspace/evidence"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+MODULES="./modules"; EVID="./workspace/evidence"
+# ledger durável (versionado); workspace é limpo a cada sessão
+STATE="${ROLLOUT_LEDGER:-$HERE/../references/rollout-ledger.json}"
 BOOT_TIMEOUT=300; OBSERVE=60; MIN_UP=1; WAVE="W1"
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -32,7 +35,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 command -v adb >/dev/null 2>&1 || { echo "[ERRO] adb ausente — Stage B não pode rodar" >&2; exit 4; }
-HERE="$(cd "$(dirname "$0")" && pwd)"
 GATE="$HERE/rollout_gate.sh"
 mkdir -p "$EVID" "$(dirname "$STATE")"
 

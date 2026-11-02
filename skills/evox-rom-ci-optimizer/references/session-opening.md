@@ -1,12 +1,12 @@
 # Protocolo de abertura de sessão (P1–P8 ratificados em 2026-11-01)
 
 > **Nenhum download, nenhuma instalação e nenhum patch acontece antes disto.**
-> O agente executa `session_open.py`; sem `workspace/decision.json` completo, a execução para (exit 3).
+> O agente executa `session_open.py`; sem `references/decisions.json` (versionado) completo, a execução para (exit 3).
 
 ```bash
 python3 scripts/session_open.py questions            # imprime a ordem
-python3 scripts/session_open.py template --out workspace/decision.json
-python3 scripts/session_open.py check --file workspace/decision.json --json
+python3 scripts/session_open.py template   # grava references/decisions.json
+python3 scripts/session_open.py check --json
 ```
 
 ## Ordem e conteúdo de cada pergunta

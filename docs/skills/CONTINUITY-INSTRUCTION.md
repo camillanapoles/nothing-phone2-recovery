@@ -3,7 +3,7 @@
 **Branch de origem:** `arena/863582fd-nothing-phone2-recovery` · **Skill:** `evox-rom-ci-optimizer` v3.1
 **Base:** PR #7 mergeado em `cdd5885` · **Alvo:** root e kernel perfeitos para DroidSpaces, integridade,
 root oculto, performance e estabilidade no Nothing Phone (2) `pong` / SM8475 / EvolutionX 11.11 (A16).
-**Provas da base:** `make -s prove` verde · mutação **177/177 mortos por asserção** (saída do comando, não do texto) ·
+**Provas da base:** `make -s prove` verde · mutação **179/179 mortos por asserção** (saída do comando, não do texto) ·
 `audit-loop` limpo · `escopo` limpo.
 
 Este documento é a primeira leitura de qualquer sessão nova. Ele carrega **continuidade, método,

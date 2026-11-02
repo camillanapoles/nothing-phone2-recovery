@@ -44,7 +44,7 @@ Antes de qualquer tarefa (e **antes de qualquer download**), rodar:
 python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --json   # exit 3 = falta decisão
 ```
 
-`workspace/decision.json` (P1–P8) precisa estar completo: build + caminho do zip, binários
+`skills/evox-rom-ci-optimizer/references/decisions.json` (versionado; P1–P8) precisa estar completo: build + caminho do zip, binários
 autorizados item a item, kernel, módulos aprovados, canário, cache e ciência de que USB = produção.
 Detalhe do protocolo: `skills/evox-rom-ci-optimizer/references/session-opening.md`.
 
@@ -85,7 +85,8 @@ Regras de carga: ler **só** a skill que casa com a tarefa (economia de contexto
 9. **L4 vem do pacote, não do aparelho.** Kernel/KMI e hashes de `boot`/`vendor_boot`/`vbmeta`
    saem do `.zip` oficial (`extract_rom_assets.sh`). O device só confirma slot/fingerprint, read-only.
 10. **Abertura com briefing + pergunta.** Antes de baixar qualquer ROM, explicar o plano e perguntar
-   **Vanilla × GAPPS** com prós/contras; registrar `workspace/decision.json`. Sem decisão, parar.
+   **Vanilla × GAPPS** com prós/contras; registrar `references/decisions.json` (versionado).
+   Sem decisão, parar. Nunca em `workspace/`: ele é limpo a cada sessão.
 11. **Reversibilidade antes de otimização**: toda mudança declara o comando exato que desfaz.
 12. **Kernel só com tríade fechada.** `model=pong` + API 36 + KMI igual ao da ROM + mesma base
     `major.minor` + suporte declarado à build exata (`kernel_compat_check.sh` → exit 0).
@@ -263,13 +264,23 @@ state/                 runtime local (quarentena, relatórios) — fora do Git
 
 ## 10. Comandos de prova (rodar antes de dizer "pronto")
 
+> **`workspace/` é efêmero — nada durável mora lá.** A pasta é ignorada pelo Git e limpa a cada
+> sessão. O mapa `skills/evox-rom-ci-optimizer/references/artifact-paths.json` classifica **todo**
+> caminho citado sob `workspace/` no repositório em três classes:
+> `ephemeral` (relatórios de execução) · `derived` (out/, extracted/, rom_assets/, l4/, backup/,
+> staging/, kernels/ — reconstruíveis do cache) · e **nada de `durable`**.
+> Decisão (`references/decisions.json`), ledger de rollout (`references/rollout-ledger.json`) e
+> cache da ROM com os pins de sha256 (`${EVOX_CACHE:-$HOME/.cache/evox}/`) são versionados/fora do
+> repo. O gate `RC11` reprova caminho não classificado, nome durável dentro do workspace (mesmo em
+> subpasta liberada) e alvo durável ausente — com caso de quebra em `tests/test_refactor_gate.sh`.
+
 ```bash
 bash tests/test_state_reset.sh          # 13 PASS / 0 FAIL (sem device, sem rede)
 make -C skills check-all                # validate + core + 13/8/8 PASS + eval APROVADO
 make -s stack                           # 16/16 invariantes do contrato (install-stack.json)
-make -s refactor                        # 10/10 coerências contrato × consumidores
+make -s refactor                        # 11/11 coerências contrato × consumidores
 make -s prove                           # suíte inteira inclui stack + refactor
-make -s mutation                        # 177/177 mutantes mortos · cobertura COMPLETA
+make -s mutation                        # 179/179 mutantes mortos · cobertura COMPLETA
 make -s mutacao-verifica                # catálogo fechado (ids únicos, sem lacuna)
 make -s mutacao-ids                     # grava ids automáticos de mutantes novos
 make -s contagens                       # nenhum número escrito à mão: tudo derivado do catálogo
@@ -279,7 +290,7 @@ scripts/state_reset.sh --json           # estado atual: clean | plan | applied
 > **Refatoração não se declara: se prova.** `scripts/refactor_gate.py` (alvo `make -s refactor`)
 > cobra que todo consumidor — módulos, ocultação, sessão, garantia, plano, fila e CI — fique
 > coerente com `references/install-stack.json`, e que **todo script tenha mutante** (`RC10`).
-> Cada checagem `RC1…RC10` tem caso de quebra em `tests/test_refactor_gate.sh` (18 PASS).
+> Cada checagem `RC1…RC11` tem caso de quebra em `tests/test_refactor_gate.sh` (21 PASS).
 
 > **Validação não tem escape por padrão.** O escopo da mutação é o catálogo **inteiro**. Rodar
 > parte exige `--shard` (subconjunto declarado) e a cobertura do catálogo é cobrada no relatório:

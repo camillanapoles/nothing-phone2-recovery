@@ -3,7 +3,8 @@
 # (fusao do Makefile v2.0 + alvos v3.0: scan, forge, snapshot, runtime-test)
 # =============================================================================
 SHELL := /usr/bin/env bash
-ROM_PATH ?= ./workspace/base_rom/evox_11_11.zip
+EVOX_CACHE ?= $(HOME)/.cache/evox
+ROM_PATH ?= $(EVOX_CACHE)/base_rom/evox_11_11.zip
 EXTRACTED_DIR ?= ./workspace/extracted
 MODULES_DIR ?= ./modules
 KPM_DIR ?= ./kernel_patches

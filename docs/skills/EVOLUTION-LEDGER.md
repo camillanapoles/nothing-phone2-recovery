@@ -325,3 +325,21 @@ gh pr list --state all --json number,title,state,createdAt,mergedAt
 | 4 | "15 invariantes"→16, "9 checagens"→10, "(20)"→21; ampliar os regex do `CT1` para `(N)` e `N checagens` | docs + `counts_gate.py` | doc pode mentir em formato não lido (N5) |
 | 5 | carimbar `install-list.txt` como HISTÓRICO | `ci-build-full/...` | último artefato apontando fila vetada (N6) |
 | 6 | mergear **#17** / fechar **#13** | GitHub | únicos trabalhos fora da `main` |
+
+---
+
+## 9. O que já foi corrigido depois desta auditoria (e o que sobrou)
+
+| Achado | Estado em 2026-11-02 | Como foi fechado |
+|---|---|---|
+| **N2** — `template`/`auto` gravavam `workspace/decision.json` e `check` dava precedência a ele | **CORRIGIDO** | decisão foi para `references/decisions.json` (versionado); `check` lê só o registro versionado; `template` recusa sobrescrever (exit 4); +2 casos em `test_session_open.sh` |
+| Causa-raiz #2 em geral — qualquer coisa durável dentro do `workspace/` | **CORRIGIDO + travado** | `references/artifact-paths.json` classifica todo caminho do workspace (`ephemeral`/`derived`); ledger de rollout em `references/rollout-ledger.json`; zips e pins em `${EVOX_CACHE:-$HOME/.cache/evox}/`; gate **RC11** reprova nome durável no workspace (mutantes M198/M199) |
+| **N1** — `kptools` em `QUESTIONS` com `RC1` cego | aberto | recomendação 1 da §8 continua de pé |
+| **N3** — `S02`/`S03` do `R8` | aberto | recomendação 3 |
+| **N5** — `CT1` não lê prosa | aberto | recomendação 4 |
+| **N6** — `install-list.txt` congelado em 10-31 | aberto | recomendação 5 |
+| **N4** — banner SUPERSEDIDO | registrado | nasceu no #12 (`4720006`); é história, não defeito |
+
+Efeito colateral positivo: `make -s mutation` com o catálogo inteiro passou a cobrir **179/179**
+mutantes (eram 177 antes do RC11) e as coerências do `refactor_gate` são **11/11** — os números
+acima são derivados do catálogo, não escritos à mão.
