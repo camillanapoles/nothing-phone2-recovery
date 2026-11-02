@@ -84,6 +84,9 @@ google_drive/
 # Estado runtime local (quarentena de sessões, relatórios) — nunca versionado
 state/
 
+# Metadados de instalação (`pip install -e`) — nunca versionar
+*.egg-info/
+
 # Banco do audit-fsm: artefato de execução (a cobertura vive no banco, não no git)
 audit-fsm/*.db
 audit-fsm/*.db-journal

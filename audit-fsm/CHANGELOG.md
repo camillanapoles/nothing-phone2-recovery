@@ -38,6 +38,9 @@ auditável por `run_id`.
 
 ### Corrigido
 
+- `--db sqlite+aiosqlite:///novo/dir/fsm.db` morria com "unable to open database file": o diretório
+  do arquivo agora é criado antes do engine (o banco da prova é o primeiro arquivo desse caminho).
+
 - `api/db.get_engine()` era um singleton cego: trocar `AUDIT_FSM_DB_URL` em runtime (teste, `--db`,
   CLI) continuava escrevendo no banco antigo, sem erro. Agora recria o engine quando a URL muda.
 - `.gitignore` ignorava o diretório inteiro `audit-fsm/`, o que faria arquivos-fonte novos

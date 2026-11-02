@@ -209,3 +209,16 @@ def test_empty_ledger_is_not_complete(ledger):
     vazio = {"started_at": ledger["started_at"], "entries": {}}
     run = build_run(vazio, source_hash(vazio)).to_dict()
     assert run["catalog_total"] == 0 and run["product"] == 0 and run["complete"] is False
+
+
+def test_diretorio_do_banco_e_criado(tmp_path):
+    """`--db` num caminho novo não pode morrer com "unable to open database file"."""
+    from audit_fsm.api.db import _garantir_diretorio
+
+    alvo = tmp_path / "state" / "proof" / "fsm.db"
+    _garantir_diretorio(f"sqlite+aiosqlite:///{alvo}")
+    assert alvo.parent.is_dir()
+
+    # memória e URLs não-sqlite não criam nada nem explodem
+    _garantir_diretorio("sqlite+aiosqlite:///:memory:")
+    _garantir_diretorio("postgresql://x/y")

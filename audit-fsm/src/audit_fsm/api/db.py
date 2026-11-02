@@ -27,6 +27,22 @@ def get_db_url() -> str:
     return os.environ.get("AUDIT_FSM_DB_URL", _DEFAULT_URL)
 
 
+def _garantir_diretorio(url: str) -> None:
+    """Cria o diretório do arquivo SQLite antes de abrir o engine.
+
+    Sem isto, `--db sqlite+aiosqlite:///state/proof/fsm.db` num caminho novo morre com
+    "unable to open database file" — o banco da prova costuma ser o primeiro arquivo ali.
+    """
+    if not url.startswith("sqlite"):
+        return
+    caminho = url.split("///", 1)[-1].split("?", 1)[0]
+    if not caminho or caminho.startswith(":memory:"):
+        return
+    destino = os.path.dirname(os.path.abspath(caminho))
+    if destino:
+        os.makedirs(destino, exist_ok=True)
+
+
 def get_engine() -> AsyncEngine:
     """Return the lazily-created async engine, recriando se a URL mudou.
 
@@ -36,6 +52,7 @@ def get_engine() -> AsyncEngine:
     global _engine, _engine_url
     url = get_db_url()
     if _engine is None or _engine_url != url:
+        _garantir_diretorio(url)
         _engine = create_async_engine(url, echo=False)
         _engine_url = url
     return _engine
