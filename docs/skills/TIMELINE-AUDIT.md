@@ -149,8 +149,8 @@ virava "passei".
 | R2: `success_guarantee` sem Tricky Store | script | #14 | `make -s garantia` |
 | R3: M03=NikGapps Core; M07/M08 com PIFork+TEESimulator-RS+keybox+VBMeta | `module-requirements.json` | #14 | `RC2` |
 | R4: `hiding-stack.json` → `susfs`/`ksu-app-profile`/`zygisk-next`/`nohello` | JSON | #14 | `RC4` |
-| R5: template de sessão derivado do contrato (sem `kptools`) | `session_open.py` | #14 | `RC3` |
-| R6: fila antiga com banner **SUPERSEDIDO** | `APPROVED-INSTALL-SEQUENCE.md` | #14 | `RC6` |
+| R5: template de sessão derivado do contrato | `session_open.py` | #14 | `RC3` (⚠ `kptools` segue em `QUESTIONS` — ver `EVOLUTION-LEDGER.md` §5/N1) |
+| R6: fila antiga com banner **SUPERSEDIDO** | `APPROVED-INSTALL-SEQUENCE.md` | **#12** (`4720006`) | `RC6` |
 | R7: passo `E13` no plano (roda `stack_gate` + `refactor_gate`) | `closure-plan.json` | #14 | `RC5` |
 | Regra "merge só com aprovação explícita" | `AGENTS.md:201` | #14 | `RC8` |
 | Material do kernel pinado (fragmento, patches kABI, SHA256SUMS) | `kernel/`, `release/` | #10 | `make -s kernel` |
