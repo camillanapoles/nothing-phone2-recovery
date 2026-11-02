@@ -1,0 +1,7 @@
+const scan = await runs.run("gitnexus_explore", { label: "Mapear grafo de conhecimento", agent: "gentle-ai-explore", task: "Explorar estrutura com GitNexus para mapear o grafo de conhecimento atual. Identificar clusters principais, hot spots, e verificar se há gaps na indexação. Focus: entender a topologia do projeto, hotsots de código, e dependências principais." });
+
+const review = await runs.run("governance_review", { label: "Review de governança", agent: "reviewer", task: "Fazer review de governança: analisar AGENTS.md, agente.md, docs/skills/, audit-fsm/src para verificar consistência com contratos. Identificar docs antigas (docs/, docs/skills/), disjunções entre instruções, e verificar se as regras R06-R22 do contrato estão implementadas." });
+
+const verify = await runs.run("build_diagnose", { label: "Diagnóstico de build", agent: "gentle-ai-verify", task: "Diagnóstico de linter/ruff/shellcheck e verificação de build. Verificar se há erros de build, cobertura parcial, ou regras quebradas. Usar o Makefile para rodar os checks: make -s prove, shellcheck nos scripts modificados, verificar se há artefatos obsoletos ou docs legadas." });
+
+return [scan, review, verify].map(r => ({ label: r.label, output: r.output }));

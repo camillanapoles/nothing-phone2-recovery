@@ -23,8 +23,15 @@ session-log.md
 
 # Audit & analysis scratch
 audit-20260925/
-audit-fsm/
 graphify-out/
+# audit-fsm/ is PRODUCTION CODE — only exclude runtime artifacts
+audit-fsm/*.db
+audit-fsm/*.db-journal
+audit-fsm/*.db-wal
+audit-fsm/.pytest_cache/
+audit-fsm/__pycache__/
+audit-fsm/src/**/__pycache__/
+
 logs/
 
 # Untrusted downloads & extracted archives (not source)
@@ -95,3 +102,5 @@ workspace/evox.env.tmp
 # ---- Artefatos de auditoria gerados (não versionar) ----
 work/
 workspace/
+.atl/
+.atl/
