@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "langfuse": {
+      "url": "https://cloud.langfuse.com/api/public/mcp",
+      "headers": {
+        "Authorization": "Basic cGstbGYtZjhhNTI0ZjMtMTRmNC00ZTc5LThjZGEtMDVlMTk0NTg2Yjc5OnNrLWxmLTJiYjc3Njc2LTFlMmEtNGY2My1hMWNjLThiN2MxY2M4MzkwNQ=="
+      }
+    }
+  }
+}

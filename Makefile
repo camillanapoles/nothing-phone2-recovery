@@ -21,7 +21,7 @@ help:
 	@echo "make debitos       -> débitos derivados dos gates + o passo que fecha cada um (0 fechado / 3 aberto / 1 inconsistente)"
 	@echo "make closure       -> o plano de fechamento é executável? (DAG, gates, comandos, staging antes do físico)"
 	@echo "make fragmento     -> o fragmento do pack bate com o contrato do DroidSpaces?"
-	@echo "make stack         -> combo + sequência: 15 invariantes, pin estrangeiro e PASS de cada passo"
+	@echo "make stack         -> combo + sequência: 16 invariantes, pin estrangeiro e PASS de cada passo"
 	@echo "make garantia     -> garantia prévia: 5 requisitos, com prova ou PENDENTE (exit 3)"
 	@echo "make escopo       -> o que é deste workspace × legado que manda NÃO usar""
 	@echo "make prove        -> tudo: test-state + wrappers + arch + skills"

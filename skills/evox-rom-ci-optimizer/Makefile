@@ -32,7 +32,7 @@ help:
 	@echo " make test-continuity -> instrução de continuidade íntegra (cláusulas Q01-Q20)"
 	@echo " make test-closure -> plano de fechamento executável (K01-K16, 25 casos)"
 	@echo " make test-debitos -> ledger de débitos derivado dos gates (29 casos)"
-	@echo " make test-stack   -> contrato do combo e da sequência: 15 invariantes (27 casos)"
+	@echo " make test-stack   -> contrato do combo e da sequência: 16 invariantes (27 casos)"
 	@echo " make test-stage   -> logica dos estagios A/B e bundle (54 casos, stubs, sem device)"
 	@echo " make scan         -> [M15/T3] scanner estatico dos 15 modulos (v3)"
 	@echo " make audit        -> matriz de conflitos -> $(OUT_DIR)/conflict_matrix_report.md"

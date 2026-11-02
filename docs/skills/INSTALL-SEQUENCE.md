@@ -2,7 +2,7 @@
 
 > **Fonte única:** `skills/evox-rom-ci-optimizer/references/install-stack.json`.
 > Este documento é a leitura humana do mesmo contrato; quem cobra é `make stack`
-> (`scripts/stack_gate.py`), que confere 15 invariantes e amarra os pins estrangeiros ao
+> (`scripts/stack_gate.py`), que confere **16 invariantes** e amarra os pins estrangeiros ao
 > `kernel-build-plan.json`, ao `rom-artifacts.json` e ao contrato do DroidSpaces.
 > Se este texto divergir do JSON, **o JSON vence** e o gate reprova a divergência de pin.
 >

@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0.0",
   "generated_for": "nothing-phone2-recovery",
-  "source": "Google Drive / SKILLS (instalação local; GitHub não utilizado)",
+  "source": "Google Drive / SKILLS (instala\u00e7\u00e3o local; GitHub n\u00e3o utilizado)",
   "updated": "2026-11-01",
   "contract": {
     "source_of_truth": "SKILL.md",
     "delegation_rule": "passar o caminho absoluto do SKILL.md ao subagente; nunca um resumo gerado",
-    "promotion_rule": "skill só entra aqui após `make validate` + `make test` verdes"
+    "promotion_rule": "skill s\u00f3 entra aqui ap\u00f3s `make validate` + `make test` verdes"
   },
   "skills": [
     {
@@ -24,7 +24,7 @@
         "otimizar/validar ROM Evolution X 11.11 antes do flash",
         "extrair payload.bin / criar imagem base no GitHub",
         "injetar root/kernel (APatch+KPM, KernelSU, Magisk)",
-        "auditar conflitos entre módulos e prever bootloop",
+        "auditar conflitos entre m\u00f3dulos e prever bootloop",
         "snapshot por camada / release artifact pre-USB"
       ],
       "capabilities": [
@@ -60,10 +60,10 @@
         "A16-INQUISITOR"
       ],
       "triggers": [
-        "diagnóstico pós-flash, bootloop, crash de zygote/system_server",
+        "diagn\u00f3stico p\u00f3s-flash, bootloop, crash de zygote/system_server",
         "KMI GKI 2.0, patch de kernel, troca de engine de root",
-        "retenção de root em OTA A/B",
-        "auditoria de módulos APatch/KernelSU/Magisk"
+        "reten\u00e7\u00e3o de root em OTA A/B",
+        "auditoria de m\u00f3dulos APatch/KernelSU/Magisk"
       ],
       "capabilities": [
         "doctrine-only"
@@ -87,7 +87,7 @@
       "triggers": [
         "orquestrar 2+ skills / agentes",
         "arbitrar conflito de escrita entre agentes",
-        "decomposição 5W1H e gates binários pré-entrega",
+        "decomposi\u00e7\u00e3o 5W1H e gates bin\u00e1rios pr\u00e9-entrega",
         "auditoria de qualidade e handoff"
       ],
       "capabilities": [
@@ -161,7 +161,7 @@
         "criar uma skill nova",
         "atualizar/incrementar skill existente",
         "gap analysis de cobertura de skills",
-        "empacotamento e validação em 12 testes da skill gerada"
+        "empacotamento e valida\u00e7\u00e3o em 12 testes da skill gerada"
       ],
       "capabilities": [
         "references",
@@ -177,7 +177,7 @@
         "sci-scientific-mindset"
       ],
       "status": "active",
-      "note": "resolve a lacuna L1: era citada pela governança e agora existe de fato"
+      "note": "resolve a lacuna L1: era citada pela governan\u00e7a e agora existe de fato"
     },
     {
       "name": "cogni-synapse",
@@ -189,8 +189,8 @@
       ],
       "triggers": [
         "resposta executiva ultra-condensada (BLUF)",
-        "escolher vetor semiótico (texto/DAG Mermaid/HTML/matriz CSV)",
-        "relatório para tomador de decisão com baixa disponibilidade"
+        "escolher vetor semi\u00f3tico (texto/DAG Mermaid/HTML/matriz CSV)",
+        "relat\u00f3rio para tomador de decis\u00e3o com baixa disponibilidade"
       ],
       "capabilities": [
         "doctrine-only",
@@ -205,7 +205,7 @@
         "agent-governance-orchestrator"
       ],
       "status": "active",
-      "note": "camada de saída: define como entregar o resultado, não o que executar"
+      "note": "camada de sa\u00edda: define como entregar o resultado, n\u00e3o o que executar"
     },
     {
       "name": "sci-scientific-mindset",
@@ -216,10 +216,10 @@
         "SCIENTIFIC-MINDSET"
       ],
       "triggers": [
-        "debate epistemológico / desafio de consenso",
-        "análise contrafactual (What-If)",
-        "advogado do diabo / deliberação multiperspectiva",
-        "matriz de decisão epistêmica"
+        "debate epistemol\u00f3gico / desafio de consenso",
+        "an\u00e1lise contrafactual (What-If)",
+        "advogado do diabo / delibera\u00e7\u00e3o multiperspectiva",
+        "matriz de decis\u00e3o epist\u00eamica"
       ],
       "capabilities": [
         "doctrine-only",
@@ -231,23 +231,56 @@
         "agent-governance-orchestrator"
       ],
       "status": "active",
-      "note": "camada epistêmica: cada gate precisa ser falseável, não apenas declarado"
+      "note": "camada epist\u00eamica: cada gate precisa ser false\u00e1vel, n\u00e3o apenas declarado"
+    },
+    {
+      "name": "codegraphcontext",
+      "version": "1.0.0",
+      "path": "codegraphcontext/SKILL.md",
+      "tier": "core",
+      "owner_agents": [
+        "CODEGRAPH-ANALYST",
+        "CODEGRAPH-QUERY"
+      ],
+      "triggers": [
+        "analisar impacto de mudan\u00e7as no c\u00f3digo",
+        "mapear grafo de conhecimento",
+        "buscar s\u00edmbolos por padr\u00e3o",
+        "tracar chamadas e depend\u00eancias",
+        "verificar gaps de indexa\u00e7\u00e3o"
+      ],
+      "capabilities": [
+        "scripts",
+        "cli-tools",
+        "mcp-integration"
+      ],
+      "depends_on": [],
+      "composes_with": [
+        "gitnexus-cli",
+        "gitnexus-exploring"
+      ],
+      "status": "active",
+      "note": "instalada via pi install, registrada ap\u00f3s valida\u00e7\u00e3o"
     }
   ],
   "excluded": [
     {
       "name": "apex-talent-broker",
-      "reason": "fora do domínio do projeto (arbitragem de oportunidades); removida por decisão da usuária em 2026-11-01"
+      "reason": "fora do dom\u00ednio do projeto (arbitragem de oportunidades); removida por decis\u00e3o da usu\u00e1ria em 2026-11-01"
     },
     {
       "name": "evox-pong-ci-architect",
-      "reason": "absorvida por evox-rom-ci-optimizer/references/pong-hardware-matrix.md (fonte única de verdade)"
+      "reason": "absorvida por evox-rom-ci-optimizer/references/pong-hardware-matrix.md (fonte \u00fanica de verdade)"
     }
   ],
   "deduplicated": [
     {
       "name": "github",
-      "reason": "reupload idêntico em 2026-11-01T17:12 (sha256 do zip 32a4cd01…); a versão instalada foi mantida"
+      "reason": "reupload id\u00eantico em 2026-11-01T17:12 (sha256 do zip 32a4cd01\u2026); a vers\u00e3o instalada foi mantida"
+    },
+    {
+      "name": "codegraphcontext",
+      "reason": "instalada via pi install em 2026-11-02, falta registro no registry.json"
     }
   ]
 }
