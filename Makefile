@@ -122,5 +122,6 @@ fsm-ledger:
 fsm-test:
 	@bash audit-fsm/tests/test_proof_layer.sh
 
-prove: test-state test-wrappers arch skills refactor contagens
+prove: test-state test-wrappers arch skills refactor contagens mutacao-verifica
+	@# mutacao-verifica: ~1 s, determinístico. Pega mutante órfão (find que sumiu depois de uma\n	@# refatoração) antes de qualquer execução de mutação de 15 min — foi assim que o CI reprovou.\n	@:
 	@echo "[workspace] tudo verde"

@@ -98,6 +98,29 @@ def verify_catalog(cat: dict) -> list[str]:
     return probs
 
 
+def padroes_orfaos(cat: dict, root: str) -> list[str]:
+    """`find` de cada mutante tem de existir EXATAMENTE UMA VEZ no código atual.
+
+    Sem esta checagem, refatorar o código (renomear variável, mudar indentação) deixa o mutante
+    órfão: ele não acha o trecho, vira `invalid` e a "prova" passa a não provar nada — o defeito
+    só aparece 15 minutos depois, no fim de uma execução completa (foi assim que o CI reprovou
+    o realinhamento do CT3). Custa ~1 s e é determinístico: não roda teste, lê o arquivo.
+    """
+    probs = []
+    for m in cat["mutants"]:
+        rel = m.get("file") or ""
+        caminho = os.path.join(root, rel)
+        if not os.path.isfile(caminho):
+            probs.append(f"{m['id']}: arquivo ausente ({rel})")
+            continue
+        with open(caminho, encoding="utf-8") as fh:
+            src = fh.read()
+        n = src.count(m.get("find") or "")
+        if n != 1:
+            probs.append(f"{m['id']}: find aparece {n}x em {rel} (precisa 1x)")
+    return probs
+
+
 def _expand(tokens: list[str]) -> list[str]:
     """Aceita M186, M186-M192, intervalos com espaços e listas separadas por vírgula."""
     out = []
@@ -228,7 +251,7 @@ def main(argv: list[str]) -> int:
         print("[catalog] ids atribuídos automaticamente: " + ", ".join(auto), file=sys.stderr)
 
     if "--verify" in argv:
-        probs = verify_catalog(cat)
+        probs = verify_catalog(cat) + padroes_orfaos(cat, root)
         nums = catalog_numbers(cat)
         prox = "M" + str((max(nums) if nums else 0) + 1).zfill(2)
         if probs:

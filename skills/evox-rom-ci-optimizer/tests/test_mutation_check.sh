@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# mutation_check.py — harness de falseabilidade: reprova vício, escopo fechado e cobertura (19 casos)
+# mutation_check.py — harness de falseabilidade: vício, escopo fechado, cobertura e padrão órfão
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; M="$HERE/../scripts/mutation_check.py"; ROOT="$(cd "$HERE/../../.." && pwd)"
 P=0; F=0
@@ -117,6 +117,27 @@ ck "auto-id é determinístico (2 execuções, mesmo id)" "M03" \
   "$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["mutants"][1]["id"])' "$T/w/skills/evox-rom-ci-optimizer/references/mutation-catalog.json")" "M03"
 ck "catálogo com lacuna reprova no --verify" "exit" \
   "$(python3 -c 'import json,sys;p=sys.argv[1];d=json.load(open(p));d["mutants"][1]["id"]="M09";json.dump(d,open(p,"w"),indent=1)' "$T/w/skills/evox-rom-ci-optimizer/references/mutation-catalog.json"; python3 "$M" --root "$T/w" --verify >/dev/null 2>&1; echo $?)" "1"
+
+# ---- mutante órfão: refatorar o código não pode transformar a prova em nada ---------------
+# O caso real: o CT3 foi reescrito, o `find` do M206 deixou de existir (virou `invalid`) e a
+# "prova" só reprovou no fim de uma execução completa. `--verify` tem de pegar isso em 1 s.
+O="$T/o"; mkdir -p "$O/skills/evox-rom-ci-optimizer/references" "$O/skills/evox-rom-ci-optimizer/scripts"
+cat > "$O/skills/evox-rom-ci-optimizer/scripts/alvo.sh" <<'S'
+#!/usr/bin/env bash
+echo um
+S
+cat > "$O/skills/evox-rom-ci-optimizer/references/mutation-catalog.json" <<'J'
+{"schema":"evox-mutation-catalog/1","mutants":[
+ {"id":"M01","file":"skills/evox-rom-ci-optimizer/scripts/alvo.sh",
+  "find":"echo um","replace":"echo dois","test":"skills/evox-rom-ci-optimizer/tests/test_alvo.sh",
+  "rationale":"a saída é o contrato"}]}
+J
+ck "--verify aceita find que existe uma vez" "exit" \
+  "$(python3 "$M" --root "$O" --verify >/dev/null 2>&1; echo $?)" "0"
+ck "--verify reprova find que sumiu do código (órfão)" "exit" \
+  "$(python3 -c 'import json,sys;p=sys.argv[1];d=json.load(open(p));d["mutants"][0]["find"]="echo tres";json.dump(d,open(p,"w"),indent=1)' "$O/skills/evox-rom-ci-optimizer/references/mutation-catalog.json"; python3 "$M" --root "$O" --verify >/dev/null 2>&1; echo $?)" "1"
+ck "--verify reprova find ambíguo (aparece 2x)" "exit" \
+  "$(printf '#!/usr/bin/env bash\necho um\necho um\n' > "$O/skills/evox-rom-ci-optimizer/scripts/alvo.sh"; python3 -c 'import json,sys;p=sys.argv[1];d=json.load(open(p));d["mutants"][0]["find"]="echo um";json.dump(d,open(p,"w"),indent=1)' "$O/skills/evox-rom-ci-optimizer/references/mutation-catalog.json"; python3 "$M" --root "$O" --verify >/dev/null 2>&1; echo $?)" "1"
 
 echo "-----------------------------------------------------------------------"
 echo "TOTAL: $P PASS / $F FAIL"; [ "$F" -eq 0 ] || exit 1

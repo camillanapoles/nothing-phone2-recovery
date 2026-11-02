@@ -1715,10 +1715,20 @@
   {
    "id": "M206",
    "file": "scripts/counts_gate.py",
-   "find": "            if escrito != esperado:\n                probs.append(f\"{rel}:{linha_n} par de {nome}:",
-   "replace": "            if False:\n                probs.append(f\"{rel}:{linha_n} par de {nome}:",
+   "find": "        if escrito != esperado:\n            probs.append(\n",
+   "replace": "        if False:\n            probs.append(\n",
    "test": "tests/test_counts_gate.sh",
    "rationale": "CT3 aceitaria qualquer par N/N numa linha de mutação — a forma que escapava do CT1 voltaria a passar",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M207",
+   "file": "skills/evox-rom-ci-optimizer/scripts/mutation_check.py",
+   "find": "        if n != 1:\n            probs.append(f\"{m['id']}: find aparece {n}x em {rel} (precisa 1x)\")",
+   "replace": "        if False:\n            probs.append(f\"{m['id']}: find aparece {n}x em {rel} (precisa 1x)\")",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_mutation_check.sh",
+   "rationale": "o --verify aceitaria mutante órfão: refatorar o código deixaria o `find` sem alvo e a 'prova' sem provar nada",
    "note": null,
    "strength": "semantic"
   }

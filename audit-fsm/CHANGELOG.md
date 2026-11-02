@@ -17,6 +17,28 @@ Também no merge: o banco da prova **não** pode morar em `workspace/` — o #18
 sem violar a política de artefatos.
 
 
+### Integração com main (PR #19) — mutante órfão e relatório datado
+
+O #19 entrou em main depois do #18 e trouxe `CLAIMS-AUDIT.md` e `EXECUTION-SEQUENCE.md`, dois
+**relatórios datados** com números medidos em `7df226e` (179/179, até M199, refactor 10/10).
+O gate reprovou — corretamente — e nada foi reescrito: quem tem data ganha o marcador
+`contagens: histórico` (o mecanismo que o próprio repo define), no arquivo para o relatório
+inteiro e na linha para a premissa do plano, que segue vivo.
+
+O CT3 foi corrigido na mesma auditoria: antes ele aplicava a **primeira** família que casasse na
+linha, então numa linha "mutação 179/179 · refactor 11/11" o `11/11` era cobrado contra mutação.
+Agora a associação é por **proximidade** (janela de 60 caracteres) e `refactor` entrou no gatilho
+da família de refatoração — cada par é julgado contra a sua.
+
+A reescrita do CT3 revelou a falha mais séria desta integração: o `find` do `M206` apontava para
+uma indentação que a reescrita removeu. O mutante passou a `invalid` — e um mutante inválido
+**prova o contrário do que se espera**: ele não acha o trecho e o teste nunca é exercitado. Na
+árvore local isso passou; no CI, o shard 1 reprovou. Correções:
+`mutation_check.py --verify` agora checa que o `find` de **cada** mutante existe **exatamente uma
+vez** no código (`padroes_orfaos`), e `make -s prove` roda `mutacao-verifica` — ~1 s contra os
+~15 min da execução completa, então refatoração que deixa mutante órfão reprova na hora e não no
+fim. Três casos novos no harness e `M207` cobrindo a própria checagem.
+
 ### Adicionado — S9, ledger de prova durável
 
 A cobertura de mutação deixa de ser um JSON da máquina que rodou e passa a ser **tabela do FSM**,

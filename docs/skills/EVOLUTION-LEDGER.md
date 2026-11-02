@@ -67,7 +67,8 @@ está **anterior**. É exatamente a confusão que a usuária pediu para evitar.
 | #15 | 11-02 16:21 → 16:45 | 2 | escopo fechado (`--only` inválido = exit 4), ledger por `M[id]`, **RC10**, auto-id, M193–M195 |
 | #16 | 11-02 16:59 → 17:23 | 1 | **`counts_gate.py`** (`make -s contagens`), M196–M197, CI com `shards` como input |
 | #17 | 11-02 18:25 → **aberto** | — | ledger de prova durável no FSM (`proof_run`/`proof_item`, `run_id`) — **não mesclado** |
-| #18 | 11-02 19:23 → **aberto** | 1 | esta auditoria (timeline) |
+| #18 | 11-02 19:23 → 20:05 | 1 | esta auditoria (timeline) — **mesclado em `7df226e`** |
+| #19 | 11-02 20:1x → 20:35 | 0 | `CLAIMS-AUDIT.md` + `EXECUTION-SEQUENCE.md` (relatórios datados) — **mesclado em `6481ff3`** |
 
 *(#1–#6 são de 2026-10-30, correções de CI/docs por Copilot — não tocam a arquitetura.)*
 
