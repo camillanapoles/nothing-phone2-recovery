@@ -13,6 +13,22 @@ que a sustenta e classifica. Vocabulário usado:
 | **SUPERADO** | era verdade quando foi dito e foi corrigido depois |
 | **OBSOLETO** | deixou de importar porque a decisão foi tomada |
 
+### Placar (derivado, não estimado)
+
+Regra: uma linha por afirmação com id `A#`/`B#`/`C#`/`D#`; a contagem abaixo é gerada do próprio
+documento, não escrita à mão.
+
+| status | quantas |
+|---|---|
+| CONFIRMADO (3 delas com ressalva: "não durável", "recorrente", "e pior hoje") | 40 |
+| PARCIAL | 6 |
+| REFUTADO | 1 |
+| SUPERADO | 1 |
+| OBSOLETO | 2 |
+| PENDENTE | 1 |
+| **total de afirmações** | **51** |
+
+
 Referências de contexto: **121 commits**, **18 PRs** (`gh pr list --state all`), `main` = `7df226e`.
 
 ---
