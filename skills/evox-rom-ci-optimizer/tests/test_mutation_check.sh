@@ -64,6 +64,8 @@ ck "rodar 1 de N sem --shard é INCOMPLETO (exit 3)" "exit" \
   "$(python3 "$M" --root "$ROOT" --only M02 >/dev/null 2>&1; echo $?)" "3"
 ck "id inexistente no catálogo reprova (exit 4)" "exit" \
   "$(python3 "$M" --root "$ROOT" --only M9999 >/dev/null 2>&1; echo $?)" "4"
+ck "id inválido MISTURADO com válido reprova (não é ignorado em silêncio)" "exit" \
+  "$(python3 "$M" --root "$ROOT" --only M01,M9999 >/dev/null 2>&1; echo $?)" "4"
 ck "seleção vazia reprova (exit 4)" "exit" \
   "$(python3 "$M" --root "$ROOT" --only "" >/dev/null 2>&1; echo $?)" "4"
 ck "id aposentado não é prova de nada (exit 4)" "exit" \
