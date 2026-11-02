@@ -30,6 +30,8 @@ SCRIPTS=(
   "$SK/scripts/contradiction_scan.py"
   "$SK/scripts/kernel_build_gate.py"
   "$SK/scripts/continuity_gate.py"
+  "$SK/scripts/closure_gate.py"
+  "$SK/scripts/debt_ledger.py"
   "$SK/assets/00_slot_router.sh"
   "$SK/assets/watchdog_anti_bootloop_service.sh"
   "$ROOT/scripts/audit-flashable-zip.sh"

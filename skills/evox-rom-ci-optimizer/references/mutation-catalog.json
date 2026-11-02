@@ -1390,6 +1390,96 @@
    "test": "skills/evox-rom-ci-optimizer/tests/test_continuity_gate.sh",
    "strength": "semantic",
    "rationale": "Q00: instrução de 3 linhas não é instrução de continuidade"
+  },
+  {
+   "id": "M171",
+   "file": "skills/evox-rom-ci-optimizer/scripts/closure_gate.py",
+   "find": "    volta = ciclo(passos)",
+   "replace": "    volta = []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_closure_gate.sh",
+   "strength": "semantic",
+   "rationale": "K07: plano com ciclo não é executável — a ordem deixaria de ser dependência"
+  },
+  {
+   "id": "M172",
+   "file": "skills/evox-rom-ci-optimizer/scripts/closure_gate.py",
+   "find": "    sem_staging = [p[\"id\"] for p in fisicos if not (ancestrais(p[\"id\"]) & staging)]",
+   "replace": "    sem_staging = []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_closure_gate.sh",
+   "strength": "semantic",
+   "rationale": "K14: físico sem staging com backup verificado é brick garantido"
+  },
+  {
+   "id": "M173",
+   "file": "skills/evox-rom-ci-optimizer/scripts/closure_gate.py",
+   "find": "    nao_previstos = sorted(r for r in reais if r.startswith((\"B\", \"C\")) and r not in dids)",
+   "replace": "    nao_previstos = []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_closure_gate.sh",
+   "strength": "semantic",
+   "rationale": "K11: débito que os gates reportam e o plano ignora nunca será fechado"
+  },
+  {
+   "id": "M174",
+   "file": "skills/evox-rom-ci-optimizer/scripts/closure_gate.py",
+   "find": "    faltas = []\n    for p in passos:\n        faltas += comandos_existem(root, (p.get(\"gate\") or {}).get(\"cmd\", \"\"))",
+   "replace": "    faltas = []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_closure_gate.sh",
+   "strength": "semantic",
+   "rationale": "K13: comando de gate que não existe transforma o passo em promessa"
+  },
+  {
+   "id": "M175",
+   "file": "skills/evox-rom-ci-optimizer/scripts/closure_gate.py",
+   "find": "    futuro = [(p[\"id\"], n) for p in passos for n in (p.get(\"needs\") or [])",
+   "replace": "    futuro = [(p[\"id\"], n) for p in [] for n in (p.get(\"needs\") or [])",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_closure_gate.sh",
+   "strength": "semantic",
+   "rationale": "K08: passo que depende do futuro não pode ser executado na ordem escrita"
+  },
+  {
+   "id": "M176",
+   "file": "skills/evox-rom-ci-optimizer/scripts/debt_ledger.py",
+   "find": "        estado = abertos.get(did, {}).get(\"estado\", \"fechado\")",
+   "replace": "        estado = \"fechado\"",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_debt_ledger.sh",
+   "strength": "semantic",
+   "rationale": "ledger: débito aberto reportado como fechado é a forma mais fácil de mentir"
+  },
+  {
+   "id": "M177",
+   "file": "skills/evox-rom-ci-optimizer/scripts/debt_ledger.py",
+   "find": "    problemas += [f\"débito derivado sem declaração no plano: {i}\"\n                  for i in sorted(abertos) if i not in declarados]",
+   "replace": "    problemas += []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_debt_ledger.sh",
+   "strength": "semantic",
+   "rationale": "ledger: débito derivado sem passo no plano precisa virar inconsistência (exit 1)"
+  },
+  {
+   "id": "M178",
+   "file": "skills/evox-rom-ci-optimizer/scripts/debt_ledger.py",
+   "find": "        fecha = [s for s in passos if did in (s.get(\"resolves\") or [])]",
+   "replace": "        fecha = []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_debt_ledger.sh",
+   "strength": "semantic",
+   "rationale": "ledger: débito sem passo de fechamento não pode sair como fechado"
+  },
+  {
+   "id": "M179",
+   "file": "skills/evox-rom-ci-optimizer/scripts/debt_ledger.py",
+   "find": "        if c.get(\"state\") != \"ok\" and cid.startswith(\"B\"):",
+   "replace": "        if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_debt_ledger.sh",
+   "strength": "semantic",
+   "rationale": "ledger: pendência do pré-build tem de virar débito, senão o B01/B03/B05/B06 desaparecem"
+  },
+  {
+   "id": "M180",
+   "file": "skills/evox-rom-ci-optimizer/scripts/debt_ledger.py",
+   "find": "    if rc != 0:\n        falta = (dec.get(\"pending\") or dec.get(\"missing\") or dec.get(\"gaps\")",
+   "replace": "    if False:\n        falta = (dec.get(\"pending\") or dec.get(\"missing\") or dec.get(\"gaps\")",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_debt_ledger.sh",
+   "strength": "semantic",
+   "rationale": "ledger: decisão da usuária ausente é débito de produto, não detalhe"
   }
  ],
  "retired": [

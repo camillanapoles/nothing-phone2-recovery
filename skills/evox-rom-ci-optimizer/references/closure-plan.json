@@ -1,0 +1,249 @@
+{
+ "schema": "evox-closure-plan/1",
+ "note": "Execução incremental do que falta. Nenhum passo nomeia motor ou kernel por preferência: cada passo fecha um DÉBITO derivado dos gates (kernel_build_gate --prebuild, root_pair_solver, continuity_gate) ou registra uma decisão da usuária. `needs` é dependência real (insumo ou prova), não ordem de gosto. `gate` é a validação assertiva: comando + exit esperado + critério observável.",
+ "rules": {
+  "node_opens_when": "todos os `needs` estão fechados (exit do gate esperado)",
+  "close_criterion": "o gate do passo sai com `expect_exit` E o débito some do `make -s debitos`",
+  "stop_condition": "qualquer saída diferente do esperado interrompe a cadeia; não se avança por otimismo",
+  "never": [
+   "pular passo por conveniência",
+   "abrir dois módulos de teste ao mesmo tempo",
+   "flash sem guard4_verify",
+   "declarar débito fechado sem o gate mostrar fechado"
+  ]
+ },
+ "debts": [
+  {
+   "id": "P1",
+   "kind": "decision",
+   "origem": "decisão de variante da ROM (Vanilla × GApps) não registrada",
+   "impacto": "bloqueia download e flash de ROM; sem ela M03/M07 não têm base",
+   "needs_user": true,
+   "question": "Vanilla (2,36 GB, sem recovery.img) ou GApps (3,4 GB, recovery.img com erro)?"
+  },
+  {
+   "id": "B01",
+   "kind": "input",
+   "origem": "kernel_build_gate --prebuild: source.pin fora do padrão de 40 hex",
+   "impacto": "build não reprodutível; sem pin não há NFR-01",
+   "needs_user": false
+  },
+  {
+   "id": "B03",
+   "kind": "input",
+   "origem": "kernel_build_gate --prebuild: árvore do kernel não materializada",
+   "impacto": "não há como conferir fragmento do pack (B03) nem patches kABI (B04)",
+   "needs_user": false
+  },
+  {
+   "id": "B05",
+   "kind": "proof",
+   "origem": "kernel_build_gate --prebuild: sem --config-json, nenhuma CONFIG_* provada",
+   "impacto": "mantém C06 pendente, trava M05",
+   "needs_user": false
+  },
+  {
+   "id": "B06",
+   "kind": "proof",
+   "origem": "kernel_build_gate --prebuild: sem --build-dir, artefatos não existem",
+   "impacto": "sem boot.img/Image/kernel-config.json não há o que validar nem instalar",
+   "needs_user": false
+  },
+  {
+   "id": "C06",
+   "kind": "condition",
+   "origem": "root_pair_solver: nenhum par tem as 12 CONFIG_* provadas",
+   "impacto": "3 pares empatados, M05 sem PASS, pack em FALTA_PROVA",
+   "needs_user": false
+  },
+  {
+   "id": "M-ROLLOUT",
+   "kind": "proof",
+   "origem": "nenhum módulo M01–M15 tem PASS registrado com evidência",
+   "impacto": "nada foi validado no staging nem no físico",
+   "needs_user": false
+  }
+ ],
+ "steps": [
+  {
+   "id": "E01",
+   "title": "Pinar o source do kernel (commit de 40 hex)",
+   "kind": "input",
+   "needs": [],
+   "resolves": ["B01"],
+   "unblocks": ["E02"],
+   "gate": {
+    "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py --root . --prebuild",
+    "expect_exit": 3,
+    "criterion": "B01_fonte_pinada sai OK (o exit do gate segue 3 enquanto houver outra pendência, e isso é esperado)"
+   },
+   "stop_condition": "se o commit não for ancestral do branch declarado, o pin é falso: voltar e escolher de novo",
+   "rollback": "reverter `source.pin` para o valor anterior; nenhum artefato foi gerado"
+  },
+  {
+   "id": "E02",
+   "title": "Materializar a árvore: fragmento do pack + patches kABI 001/002",
+   "kind": "input",
+   "needs": ["E01"],
+   "resolves": ["B03"],
+   "unblocks": ["E03"],
+   "gate": {
+    "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py --root . --prebuild --kernel-tree <árvore>",
+    "expect_exit": 3,
+    "criterion": "B03_arvore_do_kernel e B04_patches_no_source saem OK"
+   },
+   "stop_condition": "patch que não aplica limpo é FALHA (nunca --force/fuzz); parar e revisar o patch set",
+   "rollback": "descartar a árvore temporária; o source pinado continua válido"
+  },
+  {
+   "id": "E03",
+   "title": "Buildar no GitHub Actions (draft release com hash + attestation)",
+   "kind": "build",
+   "needs": ["E02"],
+   "resolves": ["B06"],
+   "unblocks": ["E04"],
+   "gate": {
+    "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py --root . --prebuild --kernel-tree <árvore> --build-dir <artefatos>",
+    "expect_exit": 3,
+    "criterion": "B06_artefatos_gerados sai OK com os 7 artefatos do plano presentes"
+   },
+   "stop_condition": "job vermelho, timeout > 90 min ou artefato sem sha256/proveniência: build não vale",
+   "rollback": "apagar o draft release; nenhum device tocado"
+  },
+  {
+   "id": "E04",
+   "title": "Provar as CONFIG_* a partir do .config do build",
+   "kind": "proof",
+   "needs": ["E03"],
+   "resolves": ["B05"],
+   "unblocks": ["E05"],
+   "gate": {
+    "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py --root . --prebuild --kernel-tree <árvore> --config-json <evidência> --build-dir <artefatos>",
+    "expect_exit": 0,
+    "criterion": "todos os itens do pré-build OK (B01–B07), exit 0"
+   },
+   "stop_condition": "CONFIG_* ausente ou `=n` no .config é PENDENTE, não sucesso: ajustar o fragmento e rebuildar",
+   "rollback": "descartar a evidência; o build anterior continua sendo o último artefato válido"
+  },
+  {
+   "id": "E05",
+   "title": "Fechar C06 e resolver o empate do pack por dado",
+   "kind": "proof",
+   "needs": ["E04"],
+   "resolves": ["C06"],
+   "unblocks": ["E06"],
+   "gate": {
+    "cmd": "make -s pack",
+    "expect_exit": 0,
+    "criterion": "veredito PAR_GARANTIDO (ou IMPOSSIVEL declarado) e nenhum par com C06 faltando"
+   },
+   "stop_condition": "se o empate persistir, alguma config não foi registrada no candidato: voltar ao dado, não ao código",
+   "rollback": "nenhum: o pack volta ao estado anterior recalculado"
+  },
+  {
+   "id": "E06",
+   "title": "Registrar a decisão da usuária (P1: Vanilla × GApps)",
+   "kind": "decision",
+   "needs": [],
+   "resolves": ["P1"],
+   "unblocks": ["E07"],
+   "gate": {
+    "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --json",
+    "expect_exit": 0,
+    "criterion": "decisão completa com build.flavor_source == \"user\""
+   },
+   "stop_condition": "sem resposta da usuária o passo não abre — o agente apresenta os dados pinados e para",
+   "rollback": "a decisão registrada pode ser refeita antes de qualquer download"
+  },
+  {
+   "id": "E07",
+   "title": "Validar em staging/AVD: hash, attestation, boot e M01",
+   "kind": "test",
+   "needs": ["E04", "E06"],
+   "resolves": [],
+   "unblocks": ["E08"],
+   "gate": {
+    "cmd": "bash skills/evox-rom-ci-optimizer/scripts/guard4_verify.sh --boot <stock> --backup <backup>",
+    "expect_exit": 0,
+    "criterion": "backup byte-idêntico + boot sem panic + `su -c 'id -u'` = 0 no staging"
+   },
+   "stop_condition": "panic, bootloop ou hash divergente: parar antes do físico",
+   "rollback": "restaurar o boot.img stock do backup verificado"
+  },
+  {
+   "id": "E08",
+   "title": "Físico: M01 (root) com PASS registrado",
+   "kind": "test",
+   "needs": ["E07"],
+   "resolves": ["M-ROLLOUT"],
+   "unblocks": ["E09"],
+   "gate": {
+    "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh record --state workspace/rollout.json --module M01 --evidence <evidência>",
+    "expect_exit": 0,
+    "criterion": "M01 PASS no ledger canário, com evidência e uptime mínimo"
+   },
+   "stop_condition": "Manager recusa o kernel: voltar ao estático (E04) e não seguir para M05",
+   "rollback": "restaurar backup verificado e registrar FAIL com motivo"
+  },
+  {
+   "id": "E09",
+   "title": "Físico: M05 (DroidSpaces) com PASS registrado",
+   "kind": "test",
+   "needs": ["E08", "E05"],
+   "resolves": [],
+   "unblocks": ["E10"],
+   "gate": {
+    "cmd": "python3 skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py --root . --device --adb adb",
+    "expect_exit": 0,
+    "criterion": "Check Requirements 100% + container com PID/IPC/UTS/NET/USER + shm/mq"
+   },
+   "stop_condition": "qualquer requisito faltando é C06/C07 mal provado: parar e reabrir E04",
+   "rollback": "restaurar backup verificado; M05 fica FAIL com o requisito nomeado"
+  },
+  {
+   "id": "E10",
+   "title": "Módulos de integridade e ocultação (M07, M08)",
+   "kind": "test",
+   "needs": ["E09"],
+   "resolves": [],
+   "unblocks": ["E11"],
+   "gate": {
+    "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh status --state workspace/rollout.json --json",
+    "expect_exit": 0,
+    "criterion": "M01/M05/M07/M08 com PASS e sem módulo aberto em paralelo"
+   },
+   "stop_condition": "detecção de root pelo app alvo: parar e revisar a camada de ocultação",
+   "rollback": "restaurar backup; desabilitar módulo de ocultação"
+  },
+  {
+   "id": "E11",
+   "title": "Módulos de feature (M02, M03, M04, M06, M09, M10, M11, M12A, M12B)",
+   "kind": "test",
+   "needs": ["E10"],
+   "resolves": [],
+   "unblocks": ["E12"],
+   "gate": {
+    "cmd": "bash skills/evox-rom-ci-optimizer/scripts/rollout_gate.sh status --state workspace/rollout.json --json",
+    "expect_exit": 0,
+    "criterion": "cada módulo com PASS próprio (M12A e M12B separados) e nenhum PASS herdado"
+   },
+   "stop_condition": "regressão em qualquer módulo interrompe a cadeia no módulo, não no lote",
+   "rollback": "restaurar backup verificado e registrar FAIL com motivo"
+  },
+  {
+   "id": "E12",
+   "title": "Fechar: M13/M14/M15, provas do workspace e entrega",
+   "kind": "proof",
+   "needs": ["E11"],
+   "resolves": ["M-ROLLOUT"],
+   "unblocks": [],
+   "gate": {
+    "cmd": "make -s prove",
+    "expect_exit": 0,
+    "criterion": "prove + mutation + audit-loop verdes e M15 (Release Artifact) validado antes de qualquer USB"
+   },
+   "stop_condition": "qualquer suíte vermelha impede o merge",
+   "rollback": "nada a reverter: o merge não acontece"
+  }
+ ]
+}
