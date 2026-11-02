@@ -52,7 +52,7 @@ jobs:
       - name: Camada de prova verde na base (sem mutação, antes de qualquer "morto")
         # Sem isto, um mutante poderia "morrer" só porque pytest/sqlalchemy não existem.
         run: |
-          pip install -q "sqlalchemy[asyncio]" aiosqlite click pytest pytest-asyncio
+          pip install -q -e "./audit-fsm[dev]"  # dependências vêm do pyproject (fonte única)
           make -s fsm-test
 
       - name: Escopo, plano e continuidade
@@ -126,7 +126,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Dependências do FSM (sem elas, "MORTO" seria mentira)
-        run: pip install -q "sqlalchemy[asyncio]" aiosqlite click pytest pytest-asyncio
+        run: pip install -q -e "./audit-fsm[dev]"  # dependências vêm do pyproject (fonte única)
 
       - name: Rodar o slot (id pedido fora do catálogo reprova aqui)
         run: |
@@ -280,10 +280,10 @@ jobs:
           sys.exit(0 if ok else 1)
           PY
 
-      - name: Dependências do FSM (só o necessário para o ledger)
+      - name: Dependências do FSM (do pyproject — fonte única)
         # always(): cobertura INCOMPLETA também tem de ser registrada (é a que mais importa)
         if: always()
-        run: pip install -q "sqlalchemy[asyncio]" aiosqlite click
+        run: pip install -q -e "./audit-fsm[dev]"  # dependências vêm do pyproject (fonte única)
 
       - name: Ledger no FSM (inicial → shards → final → auditoria)
         id: fsm
