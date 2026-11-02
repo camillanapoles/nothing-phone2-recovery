@@ -1636,6 +1636,24 @@
   },
   {
    "id": "M198",
+   "file": "scripts/refactor_gate.py",
+   "find": "                if any(t in seg for t in vetados):",
+   "replace": "                if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
+   "strength": "semantic",
+   "rationale": "decisao/ledger/pin podem voltar para o workspace (limpo a cada sessao) e o gate diz OK"
+  },
+  {
+   "id": "M199",
+   "file": "scripts/refactor_gate.py",
+   "find": "                if not any(alvo == x or alvo.startswith(x + \"/\") for x in permitidos):",
+   "replace": "                if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
+   "strength": "semantic",
+   "rationale": "caminho novo do workspace entra sem classificacao no artifact-paths.json"
+  },
+  {
+   "id": "M200",
    "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
    "find": "    if status == ProofStatus.KILLED.value or status == ProofStatus.KILLED.name:\n        return 1",
    "replace": "    if True:\n        return 1",
@@ -1645,7 +1663,7 @@
    "strength": "semantic"
   },
   {
-   "id": "M199",
+   "id": "M201",
    "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
    "find": "    achados: list[str] = []",
    "replace": "    achados: list[str] = []\n    return achados",
@@ -1655,7 +1673,7 @@
    "strength": "semantic"
   },
   {
-   "id": "M200",
+   "id": "M202",
    "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
    "find": "    product = 1 if total and killed == total else 0",
    "replace": "    product = 1 if killed else 0",
@@ -1665,7 +1683,7 @@
    "strength": "semantic"
   },
   {
-   "id": "M201",
+   "id": "M203",
    "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
    "find": "    return str(uuid.uuid5(PROOF_NAMESPACE, f\"{source_hash}:{target}\"))",
    "replace": "    return str(uuid.uuid4())",
@@ -1675,7 +1693,7 @@
    "strength": "semantic"
   },
   {
-   "id": "M202",
+   "id": "M204",
    "file": "audit-fsm/src/audit_fsm/cli/__init__.py",
    "find": "    sys.exit(0 if rec[\"complete\"] else 3)",
    "replace": "    sys.exit(0)",
@@ -1685,7 +1703,7 @@
    "strength": "semantic"
   },
   {
-   "id": "M203",
+   "id": "M205",
    "file": "audit-fsm/src/audit_fsm/cli/__init__.py",
    "find": "        if existente is None:\n            raise click.ClickException(f\"run não encontrada: {run_id} (rode proof-start)\")",
    "replace": "        if False:\n            raise click.ClickException(f\"run não encontrada: {run_id} (rode proof-start)\")",

@@ -17,9 +17,9 @@ para cada módulo, na ordem da onda:
 aprovada, e recusa dois módulos abertos ao mesmo tempo.
 
 ```bash
-./scripts/rollout_gate.sh start  --state ./workspace/rollout.json --wave W1 --module M01 --artifact ./out/boot_patched.img
-./scripts/rollout_gate.sh record --state ./workspace/rollout.json --module M01 --evidence ./evidence/evidence.json
-./scripts/rollout_gate.sh status --state ./workspace/rollout.json --json
+./scripts/rollout_gate.sh start  --state ./skills/evox-rom-ci-optimizer/references/rollout-ledger.json --wave W1 --module M01 --artifact ./out/boot_patched.img
+./scripts/rollout_gate.sh record --state ./skills/evox-rom-ci-optimizer/references/rollout-ledger.json --module M01 --evidence ./evidence/evidence.json
+./scripts/rollout_gate.sh status --state ./skills/evox-rom-ci-optimizer/references/rollout-ledger.json --json
 # exit 0 = liberado · 3 = bloqueado (pendência/anterior sem PASS) · 2 = uso · 4 = evidência inválida
 ```
 
@@ -91,6 +91,23 @@ não é reexecutado do zero.
 
 `verify` recomputa o hash de toda entrada não-externa e falha se algo divergir — cache corrompido
 não pode virar "verde" por decurso de prazo.
+
+## 3-bis. Onde cada arquivo vive (e o que o `workspace/` NÃO pode guardar)
+
+`workspace/` é ignorado pelo Git **e limpo a cada sessão**. Tudo o que precisa sobreviver tem
+endereço próprio, declarado em `references/artifact-paths.json` (fonte única, cobrada pelo gate
+`RC11` do `refactor_gate.py`):
+
+| classe | onde | exemplos | se sumir |
+|---|---|---|---|
+| **durável versionado** | `references/` (Git) | `decisions.json`, `rollout-ledger.json`, `install-stack.json` | não some: está no commit |
+| **cache persistente** | `${EVOX_CACHE:-$HOME/.cache/evox}/` | zips (2,4 GB), `rom-artifacts.lock.json`, `evox.env` (pins sha256) | só em reset da máquina; o fetch refaz o pin |
+| **derivado** | `workspace/` | `out/`, `extracted/`, `rom_assets/`, `l4/`, `backup/`, `staging/`, `kernels/` | recalculado do cache |
+| **efêmero** | `workspace/` | `audit/*.json`, `evidence/`, `conflict_report.json` | por definição; o veredito vai para o ledger |
+
+Regra: **nome durável dentro do `workspace/` é falha de gate** — inclusive em subpasta liberada
+(um ledger gravado dentro de `workspace/audit/` reprova, apesar de `audit/` ser liberado). Cada caminho novo sob `workspace/` precisa ser
+classificado no manifesto, senão `RC11` reprova.
 
 ## 4. Ligação com as outras travas
 

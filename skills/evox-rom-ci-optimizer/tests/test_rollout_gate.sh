@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Rollout canário — 1 módulo por vez, evidência antes do próximo (11 casos)
+# Rollout canário — 1 módulo por vez, evidência antes do próximo (14 casos)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; S="$HERE/../scripts/rollout_gate.sh"
 P=0; F=0
@@ -41,5 +41,9 @@ ck "artefato inexistente é recusado" "exit" "$(run "$S" start --state "$T/s3.js
 ck "sha256 divergente é recusado" "exit" "$(run "$S" start --state "$T/s4.json" --wave W1 --module M09 --artifact "$T/m01.img" --sha256 "$(printf '0%.0s' {1..64})")" "4"
 ck "status --json é parseável" "passed" \
   "$("$S" status --state "$S1" --json | python3 -c 'import json,sys;print(",".join(json.load(sys.stdin)["passed"]))')" "M01"
+# default independe do cwd e lê o ledger VERSIONADO (workspace é limpo a cada sessão)
+ck "default do ledger é versionado e independe do cwd" "0 []" \
+  "$( cd "$T" && "$S" status --json >/dev/null 2>&1; echo "$? $("$S" status --json 2>/dev/null \
+      | python3 -c 'import json,sys;print(json.load(sys.stdin)["passed"])')" )" "0 []"
 echo "-----------------------------------------------------------------------"
 echo "TOTAL: $P PASS / $F FAIL"; [ "$F" -eq 0 ] || exit 1

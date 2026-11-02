@@ -40,10 +40,10 @@
 
 ```bash
 # 1) você responde P1–P3 editando (ou ditando) o decision.json
-python3 skills/evox-rom-ci-optimizer/scripts/session_open.py auto --out workspace/decision.json
+python3 skills/evox-rom-ci-optimizer/scripts/session_open.py auto   # grava em references/decisions.json (versionado)
 # 2) preencha build.flavor, build.zip_path, build.zip_sha256
 # 3) confirme
-python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --file workspace/decision.json
+python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check
 # exit 0 → execução liberada (P1–P3 resolvidos); exit 3 → ainda falta algo
 ```
 

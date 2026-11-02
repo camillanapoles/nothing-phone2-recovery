@@ -56,7 +56,7 @@ hex-64; o hash pinado é o contrato.
 
 ## 3. P3 — autorização (decidido: **Sim**)
 
-P3 foi respondida "Sim": a autorização item a item está registrada em `workspace/decision.json`
+P3 foi respondida "Sim": a autorização item a item está registrada em `references/decisions.json` (versionado)
 (`installs[].authorized`, `modules[].approved`, `canary/usb/cache approved`). O agente **não**
 pergunta de novo; ele **verifica** com `session_open.py check` antes de agir.
 

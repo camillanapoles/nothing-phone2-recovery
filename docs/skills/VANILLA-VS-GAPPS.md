@@ -74,13 +74,13 @@ define o pin; qualquer divergência depois é **drift** (exit 4), nunca substitu
 ```bash
 # 1) baixa/confere as duas (idempotente, retomável, atômico)
 skills/evox-rom-ci-optimizer/scripts/rom_artifact_fetch.sh --variant both \
-  --dest "$PWD/workspace/artifacts" \
-  --lock "$PWD/workspace/artifacts/rom-artifacts.lock.json" \
-  --env-out "$PWD/workspace/evox.env"
+  --dest "${EVOX_CACHE:-$HOME/.cache/evox}/artifacts" \
+  --lock "${EVOX_CACHE:-$HOME/.cache/evox}/artifacts/rom-artifacts.lock.json" \
+  --env-out "${EVOX_CACHE:-$HOME/.cache/evox}/evox.env"
 
-# 2) depois de decidir, fixe a variante no env e no decision.json
-source workspace/evox.env          # exporta EVOX_ZIP, EVOX_SHA256_*, EVOX_VARIANT
-python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --file workspace/decision.json
+# 2) depois de decidir, fixe a variante no env e na decisão VERSIONADA
+source "${EVOX_CACHE:-$HOME/.cache/evox}/evox.env"   # EVOX_ZIP, EVOX_SHA256_*, EVOX_VARIANT
+python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check   # lê references/decisions.json
 ```
 
 **O que o env fixa (caminhos absolutos, para não errar de alvo):**
@@ -92,9 +92,10 @@ python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --file worksp
 `source_url` e `pinned_at` de cada variante. Rodar de novo **não** troca o arquivo; se o CDN
 mudar o conteúdo, o script para em exit 4 e guarda o suspeito como `.zip.mismatch` para perícia.
 
-**Sobrevive a:** reinício de sessão, novo worktree, reexecução do workflow — o lock e os arquivos
-ficam em `workspace/artifacts/` (ignorado pelo Git, mas persistente no seu disco).
-**Só se perde em:** reset completo do ambiente (recriação do workspace/máquina) — aí o primeiro
+**Onde ficam:** `${EVOX_CACHE:-$HOME/.cache/evox}/` — **fora do `workspace/`**, que é limpo a cada
+sessão. Os zips (~2,4 GB), o lock e o `evox.env` (pins de sha256) sobrevivem a reinício de sessão,
+novo worktree e reexecução do workflow.
+**Só se perde em:** reset completo do ambiente (recriação da máquina/container) — aí o primeiro
 fetch refaz o pin; o `sha256` esperado pode ser conferido contra o que você já tinha.
 
 ## 7. O que preciso de você (2 linhas)

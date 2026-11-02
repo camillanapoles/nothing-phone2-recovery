@@ -1,0 +1,5 @@
+{
+ "schema": "evox-rollout/1",
+ "modules": [],
+ "note": "Ledger de rollout VERSIONADO. Antes vivia dentro de `workspace/` (ignorado e limpo a cada sessão): o PASS de um módulo desaparecia e o gate recomeçava do zero. Um registro por módulo: wave, module, artifact, sha256, state (passed/failed/open), evidence."
+}

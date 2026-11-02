@@ -82,7 +82,7 @@ def derivar(root: str) -> tuple[dict[str, dict], list[str]]:
                          "evidencia": f"pendente: {falta if isinstance(falta, str) else ', '.join(map(str, falta))}"}
 
     # 5. rollout: existe algum módulo com PASS?
-    rollout = os.path.join(root, "workspace/rollout.json")
+    rollout = os.path.join(root, "skills/evox-rom-ci-optimizer/references/rollout-ledger.json")
     passou = []
     if os.path.exists(rollout):
         try:
@@ -90,7 +90,7 @@ def derivar(root: str) -> tuple[dict[str, dict], list[str]]:
             passou = [m for m, v in (d.get("modules") or {}).items()
                       if str((v or {}).get("state", "")).upper() == "PASS"]
         except Exception:
-            problemas.append("workspace/rollout.json ilegível")
+            problemas.append("skills/evox-rom-ci-optimizer/references/rollout-ledger.json ilegível")
     if not passou:
         debitos["M-ROLLOUT"] = {"estado": "aberto", "origem": "ledger canário de rollout",
                                 "evidencia": "nenhum módulo M01–M15 com PASS"}

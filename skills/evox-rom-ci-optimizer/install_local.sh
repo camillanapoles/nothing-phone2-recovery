@@ -80,7 +80,7 @@ echo "[OK] CLI instalada em: $BIN_DIR/evox-ci"
 # 3. Se solicitado, inicializar workspace de staging para GitHub Actions
 if [[ -n "$WORKSPACE_DIR" ]]; then
   echo "[INFO] Inicializando Workspace GitHub Actions em: $WORKSPACE_DIR"
-  mkdir -p "$WORKSPACE_DIR"/{.github/workflows,modules,kernel_patches,tweaks,scripts,references,assets,workspace/base_rom,workspace/extracted,workspace/out}
+  mkdir -p "$WORKSPACE_DIR"/{.github/workflows,modules,kernel_patches,tweaks,scripts,references,assets,workspace/extracted,workspace/out}
   cp -f "$SKILL_ROOT/references/evox-ci-validator.yml" "$WORKSPACE_DIR/.github/workflows/evox-11-11-prevalidate.yml"
   cp -f "$SKILL_ROOT/references/android16-evox-safelist.json" "$WORKSPACE_DIR/references/"
   cp -f "$SKILL_ROOT/scripts/"*.sh "$WORKSPACE_DIR/scripts/"
@@ -92,6 +92,7 @@ if [[ -n "$WORKSPACE_DIR" ]]; then
     git -C "$WORKSPACE_DIR" init -b main >/dev/null 2>&1 || git -C "$WORKSPACE_DIR" init >/dev/null 2>&1
   fi
   echo "[OK] Workspace pronto em: $WORKSPACE_DIR"
+  echo "[INFO] zips + pins ficam em \${EVOX_CACHE:-\$HOME/.cache/evox}/ (fora do workspace, que é efêmero)"
 fi
 
 echo "======================================================================="

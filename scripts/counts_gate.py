@@ -121,6 +121,37 @@ PADROES = [
 ]
 
 
+# ── Famílias: quando a LINHA fala de X, todo par N/N dela tem de ser o X derivado ──
+#
+# Motivo (achado na auditoria do merge): os padrões acima exigem o número COLADO na palavra
+# ("177/177 mortos"). Uma célula de tabela ("| Mutações mortas | 177/177 |") ou uma frase
+# ("cobriu 179/179") passava verde com o catálogo já em outro tamanho. Aqui a palavra-chave
+# vale para a linha inteira, então a forma não escapa.
+FAMILIAS = [
+    ("mutação", re.compile(r"(?i)mu[dt]a[çc]|mutantes?\b|mortos?\b"),
+     lambda t: f"{t['mutantes']}/{t['mutantes']}"),
+    ("refatoração", re.compile(r"(?i)coer[êe]ncias?\b|make -s refactor"),
+     lambda t: f"{t['coer']}/{t['coer']}"),
+    ("contrato", re.compile(r"(?i)invariantes?\b"), lambda t: f"{t['invariantes']}/{t['invariantes']}"),
+]
+PAR_NA_LINHA = re.compile(r"(?<![\d/])(\d{1,4})\s*/\s*(\d{1,4})(?![\d/])")
+
+
+def confere_familia(rel: str, linha_n: int, linha: str, t: dict) -> list[str]:
+    """Par N/N numa linha que fala de mutação/refatoração/contrato tem de ser o N derivado."""
+    probs = []
+    for nome, gatilho, esperado_de in FAMILIAS:
+        if not gatilho.search(linha):
+            continue
+        esperado = esperado_de(t)
+        for m in PAR_NA_LINHA.finditer(linha):
+            escrito = f"{m.group(1)}/{m.group(2)}"
+            if escrito != esperado:
+                probs.append(f"{rel}:{linha_n} par de {nome}: escrito {escrito!r}, "
+                             f"derivado {esperado!r} (linha {linha.strip()[:70]!r})")
+    return probs
+
+
 def arquivos(root: str) -> list[str]:
     out = []
     for rel in RAIZ_MD:
@@ -169,10 +200,25 @@ def confere_escopo_do_ci(root: str) -> list[str]:
     return probs
 
 
+def confere_familias(root: str, t: dict) -> list[str]:
+    """CT3: aplica as famílias linha a linha (mesmas isenções do CT1)."""
+    probs = []
+    for rel in arquivos(root):
+        txt = ler(root, rel)
+        if not txt or MARCA_HISTORICO in txt[:400]:
+            continue
+        for linha_n, linha in enumerate(txt.splitlines(), 1):
+            if MARCA_HISTORICO in linha:
+                continue
+            probs += confere_familia(rel, linha_n, linha, t)
+    return probs
+
+
 CHECKS = [
     ("CT1_numeros_derivados", lambda root, t: [p for a in arquivos(root)
                                                for p in confere_arquivo(root, a, t)]),
     ("CT2_ci_sem_lista_de_ids", lambda root, t: confere_escopo_do_ci(root)),
+    ("CT3_par_na_linha_da_familia", lambda root, t: confere_familias(root, t)),
 ]
 
 

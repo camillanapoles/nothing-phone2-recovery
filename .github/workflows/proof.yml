@@ -43,7 +43,7 @@ jobs:
           python-version: "3.11"
       - name: Gate do contrato (install-stack × consumidores)
         run: make -s stack
-      - name: Coerência da refatoração (10/10)
+      - name: Coerência da refatoração (contrato × consumidores)
         run: make -s refactor
       - name: Catálogo de mutação fechado (ids únicos, sem lacuna)
         run: make -s mutacao-verifica

@@ -22,6 +22,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from fnmatch import fnmatch
 
 SK = "skills/evox-rom-ci-optimizer"
 STACK = f"{SK}/references/install-stack.json"
@@ -230,6 +231,59 @@ def rc10_mutacao_completa(root, stack, ctx):
     return p
 
 
+def rc11_nada_duravel_no_workspace(root, stack, ctx):
+    """`workspace/` é limpo a cada sessão: só entra ali o que é efêmero ou derivado.
+
+    Fonte: `references/artifact-paths.json`. Reprova (a) caminho do workspace não classificado,
+    (b) caminho com nome durável (decisão/ledger/pin/cache) dentro do workspace e
+    (c) alvo durável declarado que não existe.
+    """
+    rel = f"{SK}/references/artifact-paths.json"
+    try:
+        mapa = json.load(open(os.path.join(root, rel), encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return [f"{rel}: ausente ou inválido ({exc})"]
+    p = []
+    permitidos = [k.rstrip("/") for k in (mapa.get("work_paths") or {})]
+    vetados = [t.lower() for t in (mapa.get("forbidden_in_work") or [])]
+    scan = mapa.get("scan") or {}
+    self_rel = scan.get("self") or rel
+    arquivos: list[str] = []
+    for chave in ("code", "data", "live_docs"):
+        for padrao in scan.get(chave) or []:
+            for f in sorted(glob.glob(os.path.join(root, padrao), recursive=True)):
+                if os.path.isfile(f):
+                    arquivos.append(os.path.relpath(f, root))
+    historicos = [os.path.relpath(f, root) for padrao in (scan.get("historical") or [])
+                  for f in glob.glob(os.path.join(root, padrao), recursive=True)]
+    for a in arquivos:
+        if a == self_rel or any(fnmatch(a, h) for h in historicos):
+            continue
+        txt = ler(root, a)
+        if "workspace/" not in txt:
+            continue
+        for linha_n, linha in enumerate(txt.splitlines(), 1):
+            for m in re.finditer(r"workspace/[A-Za-z0-9_./\-]+", linha):
+                alvo = m.group(0)
+                seg = alvo.rstrip(".").split("/")[-1].lower()
+                if any(t in seg for t in vetados):
+                    p.append(f"{a}:{linha_n} {alvo!r} é durável — mora fora do workspace "
+                             f"(ver {rel} › durable)")
+                    continue
+                if not any(alvo == x or alvo.startswith(x + "/") for x in permitidos):
+                    p.append(f"{a}:{linha_n} {alvo!r} não está classificado em {rel} › work_paths")
+    for nome, alvo in (mapa.get("durable") or {}).items():
+        if "$" in str(alvo):
+            continue
+        if not os.path.exists(os.path.join(root, alvo)):
+            p.append(f"durável {nome!r} ausente: {alvo}")
+    for chave in (mapa.get("work_paths") or {}):
+        seg = chave.split("/")[-1].lower()
+        if any(t in seg for t in vetados):
+            p.append(f"{rel}: work_paths classifica {chave!r} como workspace, mas o nome é durável")
+    return p
+
+
 CHECKS = [
     ("RC1_vetados_em_consumidores", g1_vetados_em_consumidores),
     ("RC2_integridade_provada", g2_integridade_provada),
@@ -241,6 +295,7 @@ CHECKS = [
     ("RC8_merge_com_aprovacao", g8_merge_com_aprovacao),
     ("RC9_ledger_duravel", g9_ledger_duravel),
     ("RC10_mutacao_completa", rc10_mutacao_completa),
+    ("RC11_nada_duravel_no_workspace", rc11_nada_duravel_no_workspace),
 ]
 
 

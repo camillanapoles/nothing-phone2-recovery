@@ -86,6 +86,22 @@ printf '\n| mutação | 169/169 mortos por asserção | `make -s mutation` |\n' 
 python3 "$K" --root "$B" >/dev/null 2>&1; rc_b=$?
 ck "169/169 escrito à mão reprova" "exit" "$rc_b" "1"
 
+# 2b. par N/N em célula de tabela (a forma que escapava do padrão "colado na palavra")
+C2="$T/tabela"; copiar "$C2"
+printf '\n| Mutações mortas por asserção | 1/1 | `make -s mutation` |\n' >> "$C2/AGENTS.md"
+out2="$(python3 "$K" --root "$C2" 2>&1)"; rc2=$?
+ck "par N/N em tabela com número velho reprova" "exit" "$rc2" "1"
+case "$out2" in
+  *"FALHA CT3_par_na_linha_da_familia"*) ok "reprova pela família certa (CT3)" "CT3" ;;
+  *) bad "reprova pela família certa (CT3)" "$(printf '%s' "$out2" | tail -1 | cut -c1-60)" ;;
+esac
+
+# 2c. o mesmo par, com o valor derivado, passa (não é "sempre falha")
+C3="$T/tabela-ok"; copiar "$C3"
+printf '\n| Mutações mortas por asserção | %s/%s | `make -s mutation` |\n' "$BASE" "$BASE" >> "$C3/AGENTS.md"
+python3 "$K" --root "$C3" >/dev/null 2>&1; rc3=$?
+ck "tabela com o par derivado passa" "exit" "$rc3" "0"
+
 # ---------------------------------------------------------------- 3. CI sem lista de ids
 C="$T/ci"; copiar "$C"
 printf '        run: python3 x.py --only "M01,M02,M03"\n' >> "$C/.github/workflows/proof.yml"

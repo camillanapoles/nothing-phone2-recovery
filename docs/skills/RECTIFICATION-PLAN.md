@@ -99,7 +99,7 @@ Nada disso promete `DEVICE` no aparelho: isso é `R11`, e depende de keybox não
 ## 5. Estado em 2026-11-02 — refatoração provada, não prometida
 
 `scripts/refactor_gate.py` transforma "refatoração completa" em **gate**: 9 checagens
-`RC1…RC10` que comparam o contrato (`references/install-stack.json`) com TODOS os consumidores.
+`RC1…RC11` que comparam o contrato (`references/install-stack.json`) com TODOS os consumidores.
 Sem ele, refatorar era um passo manual que ficava pela metade.
 
 | Checagem | Cobra | Situação |
@@ -209,4 +209,4 @@ não aceita. Importação é em lote (`upsert_many`): uma transação por execu�
 
 **Falseabilidade (o teste viável):** `tests/test_refactor_gate.sh` — 16 PASS, sendo 10 falsificações
 (uma por checagem + a variante "módulo perde o token"), mais 6 mutantes (`M190`–`M195`) que só morrem se
-esses casos continuarem reprovando. Rodar: `make -s refactor` (10/10) e `make -s mutation`.
+esses casos continuarem reprovando. Rodar: `make -s refactor` (todas as coerências) e `make -s mutation`.

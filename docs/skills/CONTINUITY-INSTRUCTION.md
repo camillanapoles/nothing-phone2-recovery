@@ -51,7 +51,7 @@ Consequências que **nunca** podem ser violadas num refactor:
 | Prova | Número | Comando |
 |---|---|---|
 | Suítes | saída de `make -s prove` | `make -s prove` |
-| Mutações mortas por asserção | 177/177 | `make -s mutation` |
+| Mutações mortas por asserção | todas — qualquer sobrevivente reprova | `make -s mutation` |
 | Condições do pack com contra-exemplo | 10/10 | `make -s pack-selftest` |
 | Plano do kernel | 20/20 (`P01`–`P20`) | `make -s kernel` |
 | Pré-build do kernel | 22/26 (4 PEND nomeados) | `make -s kernel` |
