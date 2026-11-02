@@ -140,6 +140,7 @@ test-gates:
 	@./tests/test_debt_ledger.sh
 	@./tests/test_stack_gate.sh
 	@./tests/test_refactor_gate.sh
+	@../../tests/test_counts_gate.sh
 
 mutation:
 	@python3 scripts/mutation_check.py --root ../..

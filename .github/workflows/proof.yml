@@ -3,7 +3,7 @@ name: Proof
 # Prova sem escape: contrato primeiro (falha em segundos), suíte inteira depois, mutação em
 # fatias e um relatório que REPROVA se algum M[id] do catálogo não tiver sido executado.
 # Por padrão valida TUDO (todos os mutantes). granularity=item roda um job por mutante
-# (175 jobs ≈ 55 runner-min); o padrão (shard) faz o mesmo em ~12 runner-min.
+# (1 job por mutante ≈ 55 runner-min); o padrão (fatia) faz o mesmo em ~12 runner-min.
 on:
   pull_request:
   push:
@@ -11,10 +11,14 @@ on:
   workflow_dispatch:
     inputs:
       granularity:
-        description: "shard = 8 jobs (~12 runner-min) · item = 1 job por M[id] (~55 runner-min)"
+        description: "shard = fatias (~12 runner-min) · item = 1 job por M[id] (~55 runner-min)"
         type: choice
         options: [shard, item]
         default: shard
+      shards:
+        description: "número de fatias no modo shard (não é limite de cobertura: o total vem do catálogo)"
+        type: string
+        default: "8"
 
 permissions:
   contents: read
@@ -43,6 +47,8 @@ jobs:
         run: make -s refactor
       - name: Catálogo de mutação fechado (ids únicos, sem lacuna)
         run: make -s mutacao-verifica
+      - name: Nenhum número escrito à mão (175→176 não pode passar despercebido)
+        run: make -s contagens
       - name: Escopo, plano e continuidade
         run: |
           make -s escopo
@@ -75,7 +81,7 @@ jobs:
       - id: split
         name: Fatiar o catálogo (nenhum id pode ficar de fora)
         env:
-          SHARDS: "8"
+          SHARDS: ${{ github.event.inputs.shards || '8' }}
           GRANULARITY: ${{ github.event.inputs.granularity || 'shard' }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
@@ -89,7 +95,7 @@ jobs:
           if os.environ.get("GRANULARITY") == "item":
               slots = [{"slot": i, "label": i, "ids": i} for i in ids]
           else:
-              n = int(os.environ.get("SHARDS", "8"))
+              n = max(1, min(int(os.environ.get("SHARDS", "8")), len(ids)))
               fatias = [f for f in (ids[i::n] for i in range(n)) if f]
               slots = [{"slot": f"s{k}", "label": f"shard {k}", "ids": ",".join(f)}
                        for k, f in enumerate(fatias)]

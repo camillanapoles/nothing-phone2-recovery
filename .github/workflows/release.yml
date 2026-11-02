@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write  # needed to create GitHub Release
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build-release:
     name: Build wheel + GitHub Release

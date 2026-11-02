@@ -1,5 +1,7 @@
 # Relatório de falseabilidade — os testes conseguem reprovar?
 
+<!-- contagens: histórico --> números deste relatório são o retrato de 2026-10-31; o valor vivo sai de `make -s contagens`.
+
 **Data:** 2026-11-01 · **Pergunta:** existe mascaramento de resultado, isto é, teste que passa
 mesmo quando a lógica de negócio some? **Método:** mutação (Red de verdade) + análise estática de vício.
 

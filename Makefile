@@ -53,6 +53,9 @@ stack:
 refactor:
 	@python3 scripts/refactor_gate.py --root .
 
+contagens:
+	@python3 scripts/counts_gate.py --root .
+
 debitos:
 	@python3 skills/evox-rom-ci-optimizer/scripts/debt_ledger.py --root .
 
@@ -97,5 +100,5 @@ skills:
 
 test: test-state
 
-prove: test-state test-wrappers arch skills refactor
+prove: test-state test-wrappers arch skills refactor contagens
 	@echo "[workspace] tudo verde"

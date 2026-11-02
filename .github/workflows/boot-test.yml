@@ -36,6 +36,13 @@ env:
   WORK_DIR: ci/build
   ARTIFACT_DIR: ci/deploy
 
+permissions:
+  contents: read
+
+concurrency:
+  group: boot-test-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   # PHASE 1: BUILD — Extract boot image, validate checksums, prepare modules

@@ -170,7 +170,7 @@ o probe retorna `NO_DEVICE`/`BOOTLOADER` → recuperação manual por botão fí
 ```bash
 make -s arch                                  # AG1–AG21
 skills/evox-rom-ci-optimizer/scripts/audit_loop.sh   # AG + scan + cobertura + vacuidade + suítes
-make -s mutation                              # falseabilidade: 139 mutantes, 0 sobreviventes
+make -s mutation                              # falseabilidade: catálogo inteiro, 0 sobreviventes
 make -s prove                                 # estado + guard + 15 suítes + eval
 python3 skills/evox-rom-ci-optimizer/scripts/architecture_guard.py --self-test
 python3 skills/evox-rom-ci-optimizer/scripts/session_open.py check --file workspace/decision.json --json
