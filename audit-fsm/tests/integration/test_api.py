@@ -21,6 +21,20 @@ from audit_fsm.api.db import dispose_engine, init_db
 from audit_fsm.domain.models import Run, RunStatus
 
 
+def _declared_kinds() -> list[str]:
+    """Todos os `_kind_` declarados em `audit_fsm.domain.models` (fonte única)."""
+    import inspect
+
+    from audit_fsm.domain import models as models_module
+    from audit_fsm.domain.metaclass import ValidatedModelBase
+
+    return sorted(
+        obj._kind_
+        for _, obj in inspect.getmembers(models_module, inspect.isclass)
+        if issubclass(obj, ValidatedModelBase) and obj is not ValidatedModelBase
+    )
+
+
 @pytest.fixture(autouse=True)
 async def _db_setup(tmp_path):
     """Use a temp SQLite DB per test session."""
@@ -112,7 +126,8 @@ async def test_kinds(client: AsyncClient):
     kinds = r.json()["registered_kinds"]
     # Remove any internal test artifacts like "_good_zh" before assertion
     filtered_kinds = [k for k in kinds if not k.startswith("_")]
-    assert sorted(filtered_kinds) == ["objective", "probe", "risk", "run", "transition"]
+    # Lista DERIVADA dos modelos (sem literal): criar um kind novo já o inclui aqui.
+    assert sorted(filtered_kinds) == _declared_kinds()
 
 
 # ── Run CRUD ────────────────────────────────────────────────────────────

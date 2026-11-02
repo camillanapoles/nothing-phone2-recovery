@@ -11,6 +11,8 @@ Models:
   Transition  — an FSM transition (from_state, to_state, guard_passed)
   Objective   — an audit objective (state, description, status, hash)
   Risk        — a risk verdict (verdict, reasoning, hash)
+  ProofRun    — uma execução de prova (mutação), com o veredito declarado
+  ProofItem   — uma linha de cobertura por item provado (1 = feito, 0 = não feito)
 
 Persistence: SQLAlchemy Core tables (domain/tables.py) map the validated
 domain fields to columns. The DomainFactory creates validated objects; a
@@ -32,7 +34,14 @@ from .metaclass import (
     validate_nonempty,
     validate_optional_str,
 )
-from .validators import validate_serial, validate_timestamp, validate_uuid
+from .validators import (
+    validate_item_id,
+    validate_nonneg_int,
+    validate_serial,
+    validate_timestamp,
+    validate_uuid,
+    validate_zero_or_one,
+)
 
 # ── Status enums ────────────────────────────────────────────────────────
 
@@ -56,11 +65,30 @@ class ObjectiveStatus(str, enum.Enum):
     BLOCKED = "blocked"
 
 
+class ProofStatus(str, enum.Enum):
+    """Estado de um item de prova (mutação)."""
+
+    KILLED = "killed"
+    SURVIVED = "survived"
+    INVALID = "invalid"
+    TIMEOUT = "timeout"
+    NOT_RUN = "not_run"
+
+
+class ProofRunStatus(str, enum.Enum):
+    """Estado agregado de uma execução de prova."""
+
+    COMPLETE = "complete"
+    INCOMPLETE = "incomplete"
+
+
 # ── Reusable validator factories ────────────────────────────────────────
 
 _validate_run_status = validate_enum_factory(RunStatus)
 _validate_objective_status = validate_enum_factory(ObjectiveStatus)
 _validate_fsm_state = validate_enum_factory(FSMState)
+_validate_proof_status = validate_enum_factory(ProofStatus)
+_validate_proof_run_status = validate_enum_factory(ProofRunStatus)
 
 
 # ── Domain models ───────────────────────────────────────────────────────
@@ -132,5 +160,49 @@ class Risk(ValidatedModelBase):
         FieldSpec("run_id", validate_uuid, SourcePolicy.ARG),
         FieldSpec("verdict", validate_nonempty, SourcePolicy.ARG),
         FieldSpec("reasoning", validate_nonempty, SourcePolicy.ARG),
+        FieldSpec("evidence_hash", validate_nonempty, SourcePolicy.ARG),
+    ]
+
+
+class ProofRun(ValidatedModelBase):
+    """Uma execução de prova (S9) — o veredito fica no banco, não na máquina de quem rodou.
+
+    `source_hash` é o sha256 do ledger de origem: reimportar o mesmo ledger é idempotente,
+    e um ledger editado à mão muda o hash (a prova deixa de bater com a origem).
+    """
+
+    _kind_ = "proof_run"
+    _fields_ = [  # noqa: RUF012
+        FieldSpec("id", validate_uuid, SourcePolicy.ARG),
+        FieldSpec("target", validate_nonempty, SourcePolicy.ARG),
+        FieldSpec("started_at", validate_timestamp, SourcePolicy.ARG),
+        FieldSpec("finished_at", validate_optional_str, SourcePolicy.ARG, required=False),
+        FieldSpec("status", _validate_proof_run_status, SourcePolicy.ARG),
+        FieldSpec("catalog_total", validate_nonneg_int, SourcePolicy.ARG),
+        FieldSpec("killed", validate_nonneg_int, SourcePolicy.ARG),
+        FieldSpec("product", validate_zero_or_one, SourcePolicy.ARG),
+        FieldSpec("complete", validate_bool, SourcePolicy.ARG),
+        FieldSpec("source_hash", validate_nonempty, SourcePolicy.ARG),
+    ]
+
+
+class ProofItem(ValidatedModelBase):
+    """Cobertura de UM item (M[id]) em uma execução de prova (S9).
+
+    `value` é 1 quando o item foi provado (mutante morto por asserção) e 0 quando não foi
+    executado ou sobreviveu — o produto dos valores responde "rodou tudo?" sem hardcode.
+    """
+
+    _kind_ = "proof_item"
+    _fields_ = [  # noqa: RUF012
+        FieldSpec("id", validate_uuid, SourcePolicy.ARG),
+        FieldSpec("run_id", validate_uuid, SourcePolicy.ARG),
+        FieldSpec("item_id", validate_item_id, SourcePolicy.ARG),
+        FieldSpec("proof_kind", validate_nonempty, SourcePolicy.ARG),
+        FieldSpec("status", _validate_proof_status, SourcePolicy.ARG),
+        FieldSpec("value", validate_zero_or_one, SourcePolicy.ARG),
+        FieldSpec("file", validate_optional_str, SourcePolicy.ARG, required=False),
+        FieldSpec("test", validate_optional_str, SourcePolicy.ARG, required=False),
+        FieldSpec("seconds", validate_nonneg_int, SourcePolicy.ARG),
         FieldSpec("evidence_hash", validate_nonempty, SourcePolicy.ARG),
     ]

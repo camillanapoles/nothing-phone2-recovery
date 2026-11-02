@@ -95,6 +95,51 @@ async def update_by_id(kind: str, obj_id: str, **kwargs: Any) -> dict[str, Any] 
     return updated
 
 
+async def upsert_one(kind: str, obj: Any) -> dict[str, Any]:
+    """Insert-or-update por id (idempotente): reimportar a mesma origem não duplica linha.
+
+    Como todo o resto do repositório, o valor gravado já passou pelo DomainFactory — o
+    upsert não é um atalho de validação, é só a escolha entre INSERT e UPDATE.
+    """
+    table = await _table_for(kind)
+    engine = get_engine()
+    data = obj.to_dict()
+    async with engine.connect() as conn:  # type: ignore[union-attr]
+        result = await conn.execute(select(table.c.id).where(table.c.id == data["id"]))
+        existe = result.first() is not None
+    async with engine.begin() as conn:  # type: ignore[union-attr]
+        if existe:
+            await conn.execute(update(table).where(table.c.id == data["id"]).values(**data))
+        else:
+            await conn.execute(insert(table).values(**data))
+    return data
+
+
+async def upsert_many(kind: str, objs: list[Any]) -> int:
+    """Insert-or-update em LOTE, numa transação só (importar 1 item por conexão era lento).
+
+    Um SELECT para saber o que já existe + um executemany de INSERT + updates pontuais.
+    Continua sem atalho de validação: os objetos chegam prontos do DomainFactory.
+    """
+    if not objs:
+        return 0
+    table = await _table_for(kind)
+    dados = [o.to_dict() for o in objs]
+    engine = get_engine()
+    async with engine.begin() as conn:  # type: ignore[union-attr]
+        ids = [d["id"] for d in dados]
+        existentes = set(
+            (await conn.execute(select(table.c.id).where(table.c.id.in_(ids)))).scalars()
+        )
+        novos = [d for d in dados if d["id"] not in existentes]
+        if novos:
+            await conn.execute(insert(table), novos)
+        for d in dados:
+            if d["id"] in existentes:
+                await conn.execute(update(table).where(table.c.id == d["id"]).values(**d))
+    return len(dados)
+
+
 async def delete_by_id(kind: str, obj_id: str) -> bool:
     """Delete a row by primary key. Returns True if a row was deleted."""
     table = await _table_for(kind)

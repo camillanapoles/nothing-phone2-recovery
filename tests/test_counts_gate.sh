@@ -42,6 +42,11 @@ BASE="$(python3 -c 'import json,sys;print(len(json.load(open(sys.argv[1]))["muta
 NOVO=$((BASE+1))
 A="$T/cresce"
 copiar "$A"
+# O repo real NÃO tem contagem escrita à mão (é o que o gate exige). Para provar que o gate
+# detecta drift, o fixture ESCREVE uma contagem com o valor atual — e depois faz o catálogo crescer.
+printf '\nmutação: %s/%s mortos por asserção\n' "$BASE" "$BASE" >> "$A/AGENTS.md"
+python3 "$K" --root "$A" >/dev/null 2>&1; rc_antes=$?
+ck "texto com $BASE (valor atual) ainda passa" "exit" "$rc_antes" "0"
 python3 - "$A" <<'PYCRESCE'
 import json, sys
 p = sys.argv[1] + "/skills/evox-rom-ci-optimizer/references/mutation-catalog.json"

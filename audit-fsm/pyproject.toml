@@ -1,6 +1,6 @@
 [project]
 name = "audit-fsm"
-version = "0.1.0"
+version = "0.2.0"
 description = "Safety-first FSM recovery audit for Nothing Phone 2 — objective-oriented storage, FastAPI CRUD, Pydantic AI V2 deterministic agents"
 readme = "README.md"
 requires-python = ">=3.11"

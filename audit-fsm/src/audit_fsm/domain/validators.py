@@ -63,3 +63,27 @@ def validate_nonneg_int(value: Any) -> int:
     if v < 0:
         raise ValidationError("nonneg_int", value, "must be >= 0")
     return v
+
+
+# ── Item de prova (M###, R##, ...) ──────────────────────────────────────
+
+_ITEM_RE = re.compile(r"^[A-Z]{1,4}\d{1,6}$")
+
+
+def validate_item_id(value: Any) -> str:
+    """Validate an item id used by the proof ledgers (prefix + digits, e.g. M193)."""
+    v = validate_nonempty(value)
+    if not _ITEM_RE.match(v):
+        raise ValidationError("item_id", value, "must be prefix+digits (e.g. M193)")
+    return v
+
+
+# ── 0/1 (feito / não feito) ─────────────────────────────────────────────
+
+
+def validate_zero_or_one(value: Any) -> int:
+    """Validate the coverage value: 1 = feito/provado, 0 = não feito."""
+    v = validate_int(value)
+    if v not in (0, 1):
+        raise ValidationError("zero_or_one", value, "must be 0 or 1")
+    return v

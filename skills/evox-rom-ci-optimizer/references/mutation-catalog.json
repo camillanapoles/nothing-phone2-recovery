@@ -1633,6 +1633,66 @@
    "strength": "semantic",
    "rationale": "workflow poderia carregar lista de ids na mão e o escopo do CI não seria cobrado",
    "id": "M197"
+  },
+  {
+   "id": "M198",
+   "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
+   "find": "    if status == ProofStatus.KILLED.value or status == ProofStatus.KILLED.name:\n        return 1",
+   "replace": "    if True:\n        return 1",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "qualquer status viraria 'provado': cobertura sem mutante morto viraria 100%",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M199",
+   "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
+   "find": "    achados: list[str] = []",
+   "replace": "    achados: list[str] = []\n    return achados",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "auditoria silenciosa: run adulterada passaria como coerente",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M200",
+   "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
+   "find": "    product = 1 if total and killed == total else 0",
+   "replace": "    product = 1 if killed else 0",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "produto viraria 'matou algum' em vez de 'matou todos' — cobertura parcial passaria",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M201",
+   "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
+   "find": "    return str(uuid.uuid5(PROOF_NAMESPACE, f\"{source_hash}:{target}\"))",
+   "replace": "    return str(uuid.uuid4())",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "id aleatório: reimportar duplicaria a execução e a auditoria por run_id quebraria",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M202",
+   "file": "audit-fsm/src/audit_fsm/cli/__init__.py",
+   "find": "    sys.exit(0 if rec[\"complete\"] else 3)",
+   "replace": "    sys.exit(0)",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "cobertura incompleta sairia 0 — a 'fuga de validação por padrão' que o ledger existe para impedir",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M203",
+   "file": "audit-fsm/src/audit_fsm/cli/__init__.py",
+   "find": "        if existente is None:\n            raise click.ClickException(f\"run não encontrada: {run_id} (rode proof-start)\")",
+   "replace": "        if False:\n            raise click.ClickException(f\"run não encontrada: {run_id} (rode proof-start)\")",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "importar num run_id inexistente viraria item órfão em silêncio",
+   "note": null,
+   "strength": "semantic"
   }
  ],
  "retired": [

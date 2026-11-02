@@ -23,7 +23,6 @@ session-log.md
 
 # Audit & analysis scratch
 audit-20260925/
-audit-fsm/
 graphify-out/
 logs/
 
@@ -84,6 +83,11 @@ google_drive/
 
 # Estado runtime local (quarentena de sessões, relatórios) — nunca versionado
 state/
+
+# Banco do audit-fsm: artefato de execução (a cobertura vive no banco, não no git)
+audit-fsm/*.db
+audit-fsm/*.db-journal
+audit-fsm/*.db-wal
 
 # ROM artifacts & env gerado (determinístico, grande, local)
 workspace/artifacts/

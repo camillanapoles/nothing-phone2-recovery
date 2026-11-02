@@ -79,6 +79,42 @@ risks = Table(
     Column("evidence_hash", String(64), nullable=False),
 )
 
+# ── Prova (evidence ledger) — cobertura sobrevive à máquina (S9) ────────
+#
+# `proof_runs`  — uma execução de prova (mutação hoje, outra amanhã) e o veredito declarado
+# `proof_items` — uma linha por item provado (M[id]), com valor 1 (feito) / 0 (não feito)
+# O `run_id` de `proof_items` aponta para `proof_runs.id`, reusando o helper list_by_run.
+
+proof_runs = Table(
+    "proof_runs",
+    metadata,
+    Column("id", String(36), primary_key=True),
+    Column("target", String(32), nullable=False),
+    Column("started_at", String(32), nullable=False),  # ISO 8601
+    Column("finished_at", String(32), nullable=True),
+    Column("status", String(16), nullable=False),
+    Column("catalog_total", Integer, nullable=False),
+    Column("killed", Integer, nullable=False),
+    Column("product", Integer, nullable=False),
+    Column("complete", Boolean, nullable=False),
+    Column("source_hash", String(64), nullable=False),
+)
+
+proof_items = Table(
+    "proof_items",
+    metadata,
+    Column("id", String(36), primary_key=True),
+    Column("run_id", String(36), nullable=False, index=True),
+    Column("item_id", String(16), nullable=False, index=True),
+    Column("proof_kind", String(32), nullable=False),
+    Column("status", String(16), nullable=False),
+    Column("value", Integer, nullable=False),
+    Column("file", Text, nullable=True),
+    Column("test", Text, nullable=True),
+    Column("seconds", Integer, nullable=False),
+    Column("evidence_hash", String(64), nullable=False),
+)
+
 # ── Table registry (for repository layer) ───────────────────────────────
 
 TABLE_REGISTRY = {
@@ -87,4 +123,6 @@ TABLE_REGISTRY = {
     "transition": transitions,
     "objective": objectives,
     "risk": risks,
+    "proof_run": proof_runs,
+    "proof_item": proof_items,
 }
