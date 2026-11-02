@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """success_guarantee.py — "garantia prévia de sucesso" como máquina, não como promessa.
 
-Avalia as cinco solicitações da usuária sob a Decisão A e devolve, uma a uma:
+Avalia as cinco solicitações da usuária contra o PAR (motor × kernel) e devolve, uma a uma:
 
-  R1 motor único            APatch, exclusivo, ratificado
-  R2 root oculto            pilha de ocultação (APatch + Zygisk Next + Zygisk Assistant)
+  R1 par único do pack      existe exatamente 1 par que fecha as 10 condições (root_pair_solver.py)
+  R2 root oculto            camada de ocultação utilizável pelo par + medição por app
   R3 integridade/fingerprint Tricky Store + PIFork sem spoofers concorrentes
   R4 zero conflito          varredura estática dos módulos reais
-  R5 DroidSpaces oficial    instalação conforme doc do app + kernel com as CONFIG_*
+  R5 DroidSpaces oficial    instalação conforme doc do app + kernel com as CONFIG_* e os patches
 
-Estados: PROVADO · FALTA_PROVA · IMPOSSIVEL (a Decisão A impede e não há prova que resolva).
+Estados: PROVADO · FALTA_PROVA · IMPOSSIVEL (nenhum par consegue, nem com prova nova).
 
 Sem `--evidence`, NADA é declarado provado: o veredito é PENDENTE (exit 3).
 Com `--evidence`, cada requisito só vira PROVADO se a evidência cobrir o que ele exige.
@@ -21,11 +21,35 @@ Exit: 0 GARANTIA_CONFIRMADA · 3 PENDENTE · 1 IMPOSSÍVEL SOB A DECISÃO A · 2
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import sys
 
 SK = "skills/evox-rom-ci-optimizer"
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def load_pack(root: str):
+    """Roda o solver do pack (mesmas 10 condições do gate). Ausente/quebrado → (None, None)."""
+    try:
+        spec = importlib.util.spec_from_file_location(
+            "root_pair_solver", os.path.join(HERE, "root_pair_solver.py"))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        data = mod.load_all(root)
+        if mod.validate(data):
+            return None, None
+        return mod, mod.solve(data)
+    except Exception:
+        return None, None
+
+
+def c06_states(pack) -> set:
+    if not pack:
+        return set()
+    return {c["state"] for p in pack.get("pairs") or []
+            for c in p["conditions"] if c["id"] == "C06"}
 DECISION = f"{SK}/references/root-decision.json"
 ENGINES = f"{SK}/references/root-engines.json"
 HIDING = f"{SK}/references/hiding-stack.json"
@@ -89,6 +113,8 @@ def main(argv: list[str]) -> int:
             print(f"[ERRO] evidência inválida: {exc}", file=sys.stderr)
             return 4
 
+    _, pack = load_pack(root)
+
     dev = ev.get("device") or {}
     conf = ev.get("conflicts") or {}
     ker = ev.get("kernel") or {}
@@ -99,33 +125,50 @@ def main(argv: list[str]) -> int:
         reqs.append({"id": rid, "requirement": name, "state": state,
                      "detail": detail, "to_prove": need})
 
-    # R1 — motor único
-    allow = [e["id"] for e in eng.get("engines") or [] if e.get("allowed")]
-    if dec.get("ratified") is True and allow == [dec.get("engine")] and dec.get("engine"):
-        add("R1", "motor único ratificado", "PROVADO",
-            f"decisão {dec.get('decision')} ratificada; único motor permitido={allow[0]}")
+    # R1 — par único que fecha as 10 condições (nenhum motor preferido no código)
+    if pack is None:
+        add("R1", "par único do pack", "FALTA_PROVA",
+            "solver do pack indisponível/inválido (pack-conditions.json, catálogos)",
+            "root_pair_solver.py --root . → 0 (PAR_GARANTIDO)")
+    elif pack.get("verdict") == "PAR_GARANTIDO":
+        sel = pack["selected"][0]
+        add("R1", "par único do pack", "PROVADO",
+            f"1 par fecha as 10 condições: {sel['engine']} × {sel['kernel']}")
+    elif pack.get("verdict") == "AMBIGUO":
+        add("R1", "par único do pack", "FALTA_PROVA",
+            f"{len(pack.get('selected') or [])} pares fecham as 10 condições — single_method exige 1",
+            "registrar critério de desempate no pack-objective.json (ou reduzir o catálogo)")
+    elif pack.get("verdict") == "IMPOSSIVEL":
+        add("R1", "par único do pack", "IMPOSSIVEL",
+            "nenhum par do catálogo consegue fechar as 10 condições",
+            "mudar o dado (motor/kernel/evidência) — não o texto da decisão")
     else:
-        add("R1", "motor único ratificado", "FALTA_PROVA",
-            f"motores permitidos={allow} decisão={dec.get('engine')}",
-            "root_engine_gate.py --engine apatch → exit 0")
+        best = pack.get("best")
+        who = f"{best['engine']} × {best['kernel']}" if best else "empate sem escolha"
+        falta = ",".join(best["failed"]) if best else "ver pack"
+        add("R1", "par único do pack", "FALTA_PROVA",
+            f"nenhum par fecha as 10 ainda; melhor={who}; aberto={falta}",
+            "root_pair_solver.py --root . (detalha por condição) e fechar o que falta")
 
-    # R2 — root oculto
+    # R2 — root oculto (a camada vem da capacidade do par, não de lista fixa)
     layers = {l["id"]: l for l in hid.get("layers") or []}
-    need_layers = hid.get("required_layers") or ["susfs", "zygisk-next"]
-    missing = [x for x in need_layers if x not in layers]
-    if missing:
-        add("R2", "root oculto para apps alvo", "FALTA_PROVA", f"camadas ausentes: {missing}",
+    if not layers:
+        add("R2", "root oculto para apps alvo", "FALTA_PROVA", "nenhuma camada declarada",
             "declarar a pilha em hiding-stack.json")
     elif dev.get("hide_verified") is True and (dev.get("hide_tested_apps") or []):
         add("R2", "root oculto para apps alvo", "PROVADO",
             f"testado em {len(dev.get('hide_tested_apps'))} app(s): {', '.join(dev['hide_tested_apps'])}")
     else:
-        stale = [x for x in need_layers if layers[x].get("status") == "stale_but_supported"]
-        note = f"camada(s) antiga(s): {stale}" if stale else "pilha apoiada em fonte primária"
+        c08 = None
+        for pair in (pack or {}).get("pairs") or []:
+            c = next((c for c in pair["conditions"] if c["id"] == "C08"), None)
+            if c and c["state"] == "ok":
+                c08 = c
+                break
+        camadas = c08["detail"] if c08 else "nenhum par entrega camada de ocultação"
         add("R2", "root oculto para apps alvo", "FALTA_PROVA",
-            f"pilha definida ({', '.join(need_layers)}); {note}; nada medido no aparelho",
-            "APatch 'Exclude modifications' + Zygisk Next + Zygisk Assistant; medir com "
-            "success_guarantee.py --evidence depois do teste por app")
+            f"{camadas}; nada medido no aparelho",
+            "medir por app (device.hide_verified + hide_tested_apps) na camada que o par entrega")
 
     # R3 — integridade/fingerprint
     m07 = next((m for m in mods if m["id"] == "M07"), {})
@@ -171,10 +214,10 @@ def main(argv: list[str]) -> int:
             f"ordem declarada: after={after}", "corrigir droidspaces-requirements.json")
     elif cfgs and lacking:
         hard = [c for c in lacking if c in ((iso.get("required_configs") or []) + abi_trio)]
-        if hard and dec.get("kernel_source") == "stock-rom":
+        if hard and c06_states(pack) == {"impossivel"}:
             add("R5", "DroidSpaces conforme doc oficial", "IMPOSSIVEL",
-                f"kernel stock sem {hard} e decisão {dec.get('decision')} não permite kernel compilado",
-                "só resolve com nova decisão sua (revisar custom_kernel_allowed) — não com código")
+                f"nenhum kernel do catálogo consegue {hard} (C06 impossível em todos os pares)",
+                "mudar o dado: kernel candidato com as CONFIG_* (não o texto da decisão)")
         else:
             add("R5", "DroidSpaces conforme doc oficial", "FALTA_PROVA",
                 f"kernel do build ainda sem {lacking}",
@@ -189,14 +232,19 @@ def main(argv: list[str]) -> int:
 
     states = {r["state"] for r in reqs}
     if "IMPOSSIVEL" in states:
-        verdict, code = "IMPOSSIVEL_SOB_DECISAO_A", 1
+        verdict, code = "IMPOSSIVEL_SEM_PAR", 1
     elif states == {"PROVADO"}:
         verdict, code = "GARANTIA_CONFIRMADA", 0
     else:
         verdict, code = "GARANTIA_PENDENTE", 3
 
-    payload = {"schema": "evox-guarantee/1", "decision": dec.get("decision"),
-               "engine": dec.get("engine"), "verdict": verdict,
+    best = (pack or {}).get("best") or {}
+    payload = {"schema": "evox-guarantee/2",
+               "pack_verdict": (pack or {}).get("verdict"),
+               "selected": (pack or {}).get("selected"),
+               "best": ({"engine": best.get("engine"), "kernel": best.get("kernel"),
+                         "failed": best.get("failed")} if best else None),
+               "verdict": verdict,
                "proved": sum(r["state"] == "PROVADO" for r in reqs),
                "pending": sum(r["state"] == "FALTA_PROVA" for r in reqs),
                "impossible": sum(r["state"] == "IMPOSSIVEL" for r in reqs),
@@ -204,7 +252,8 @@ def main(argv: list[str]) -> int:
     if as_json:
         print(json.dumps(payload, indent=2, ensure_ascii=False))
     else:
-        print(f"[garantia] decisão {payload['decision']} · motor {payload['engine']} → {verdict}")
+        who = (f"{best['engine']} × {best['kernel']}" if best else "sem par fechado")
+        print(f"[garantia] pack {payload['pack_verdict']} · par {who} → {verdict}")
         for r in reqs:
             print(f"  {r['state']:12} {r['id']} {r['requirement']}: {r['detail']}")
             if r["to_prove"]:

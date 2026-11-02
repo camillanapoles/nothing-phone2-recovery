@@ -81,12 +81,14 @@ test-guarantee:
 
 test-droidspaces:
 	@./tests/test_root_decision.sh
+	@./tests/test_root_pair_solver.sh
 	@./tests/test_droidspaces_preflight.sh
 
 test-gates:
 	@./tests/test_success_guarantee.sh
 	@./tests/test_legacy_scope.sh
 	@./tests/test_root_decision.sh
+	@./tests/test_root_pair_solver.sh
 	@./tests/test_droidspaces_preflight.sh
 	@./tests/test_kernel_compat_check.sh
 	@./tests/test_rollout_gate.sh

@@ -107,14 +107,20 @@ Regras de carga: ler **só** a skill que casa com a tarefa (economia de contexto
     confirmar em `payload.bin`; ver `docs/skills/AUDIT-CONTRADICTIONS.md`). `guard4_verify.sh` exige
     par de rollback byte-idêntico para **cada** partição de boot que o pacote tiver. O roteador só é
     instalado depois do primeiro boot com root.
-21. **Um único motor de root — KernelSU-Next no kernel compilado (Decisão C).** A usuária autorizou
-    trocar o par ao obter aquele que garante todos os recursos; a Decisão A (APatch + kernel stock)
-    foi **superseded** em 2026-11-01 porque o kernel stock não tem `SYSVIPC`/`POSIX_MQUEUE`/`IPC_NS`
-    e o DroidSpaces (M05) fica impossível. Agora: **KernelSU-Next v3.4.2** + kernel pong compilado
-    por nós com **KSU + SUSFS + patches oficiais do DroidSpaces**. APatch, Magisk, SukiSU e binário
-    de kernel de terceiro estão **proibidos** — `root_engine_gate.py` devolve `INCOMPATÍVEL` (1).
-    Metodologia de kernel é a mesma para todo módulo kernel-level: `kernel_compat_check.sh` sobre a
-    evidência do **kernel compilado** (`kernel_evidence: built_kernel`). Teste: `tests/test_root_decision.sh`.
+21. **O par root × kernel é CONSEQUÊNCIA de condição, não preferência.** Não existe motor
+    "certo", kernel "certo" nem lista de proibidos escrita à mão: `references/pack-objective.json`
+    diz o que se quer (todas as condições verdadeiras, um único par e, se houver dois, o pack é
+    **AMBÍGUO**) e `references/pack-conditions.json` lista as **10 condições** — C01 root real ·
+    C02 kernel serve o motor · C03 build/modelo/API · C04 manutenção (não-EOL) · C05 DroidSpaces
+    aceita o motor · C06 CONFIG_* provadas · C07 patches de kABI · C08 camada de ocultação
+    utilizável · C09 capacidades dos módulos · C10 rollback + OTA. O solver
+    `scripts/root_pair_solver.py` enumera **todos** os pares (motor × kernel) dos catálogos e devolve
+    `PAR_GARANTIDO` (0), `FALTA_PROVA` (3) ou `IMPOSSIVEL` (1) — sempre com a condição que falhou.
+    `references/root-decision.json` é **arquivo gerado** (`--write-decision`); editá-lo à mão quebra
+    `--check-decision`. Metodologia de kernel é a mesma para todo módulo: `kernel_compat_check.sh`
+    sobre a evidência do kernel do par (`kernel_evidence`). Prova de falseabilidade: cada condição
+    tem um contra-exemplo declarado (`breaker`) e `make pack-selftest` reprova condição decorativa.
+    Testes: `tests/test_root_pair_solver.sh` e `tests/test_root_decision.sh`.
 22. **Uma fonte de verdade.** Código divergiu da instrução → corrige o código.
 
 Sempre que uma regra R01–R09 for tocada, o teste é `skills/evox-rom-ci-optimizer/tests/test_scanner_rules.sh`

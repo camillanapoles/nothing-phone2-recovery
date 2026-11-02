@@ -1,6 +1,6 @@
 {
  "schema": "evox-mutation-catalog/1",
- "note": "Cada mutante troca uma decisão real do código. Se a suíte passa mesmo assim, o teste é falseável-mascarado (survivor) e o harness reprova.",
+ "note": "Cada mutante troca uma decisão real do código. Se a suíte passa mesmo assim, o teste é falseável-mascarado (survivor) e o harness reprova. | Aposentados (M104–M134 parcial): apontavam para a lógica de 'decisão ratificada' (decisao_motor/decisao_kernel/motor_unico), removida quando a escolha do par passou a ser derivada pelo solver. Os equivalentes semânticos são M135–M159.",
  "mutants": [
   {
    "id": "M01",
@@ -969,33 +969,6 @@
    "rationale": "incompatibilidade declarada não pode virar 'pendente'"
   },
   {
-   "id": "M104",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "        if cand.get(\"status\") == \"rejected_eol\":",
-   "replace": "        if False:",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
-   "strength": "semantic",
-   "rationale": "kernel EOL tem de ser recusado, não esperado"
-  },
-  {
-   "id": "M105",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "        if need and engine[\"id\"] not in need and not m.get(\"is_root_engine\"):",
-   "replace": "        if False:",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
-   "strength": "semantic",
-   "rationale": "módulo com motor obrigatório precisa casar com a escolha"
-  },
-  {
-   "id": "M106",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "            elif cand is None or not cand.get(\"kernel_supports_susfs\") or cand.get(\"status\") != \"certified\":",
-   "replace": "            elif False:",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
-   "strength": "semantic",
-   "rationale": "SUSFS exige motor e kernel que realmente suportem"
-  },
-  {
    "id": "M107",
    "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
    "find": "    add(\"apk_sha256\", bool(HEX64.fullmatch(str(apk.get(\"sha256\", \"\")))), \"hash de 64 hex\")",
@@ -1059,78 +1032,6 @@
    "rationale": "versao do M05 no contrato de modulos tem de casar com o app"
   },
   {
-   "id": "M114",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "            if supported and engine[\"id\"] not in supported:",
-   "replace": "            if False:",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
-   "strength": "semantic",
-   "rationale": "motor fora da lista suportada pelo DroidSpaces nao pode ser liberado"
-  },
-  {
-   "id": "M115",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "                if missing:",
-   "replace": "                if False:",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
-   "strength": "semantic",
-   "rationale": "evidencia de kernel sem CONFIG_* obrigatoria tem de deixar PENDENTE"
-  },
-  {
-   "id": "M116",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "    if engine[\"id\"] != chosen:",
-   "replace": "    if False:",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_decision.sh",
-   "strength": "semantic",
-   "rationale": "motor fora da decisao ratificada nao pode ser liberado"
-  },
-  {
-   "id": "M117",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "    if allowed != [chosen]:",
-   "replace": "    if False:",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_decision.sh",
-   "strength": "semantic",
-   "rationale": "isonomia: dois motores permitidos tem de quebrar o gate"
-  },
-  {
-   "id": "M118",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "        if origin == \"stock-rom\":",
-   "replace": "        if True:",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_decision.sh",
-   "strength": "semantic",
-   "rationale": "kernel de terceiro nao pode passar como se fosse o da ROM"
-  },
-  {
-   "id": "M119",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "    if dec.get(\"ratified\") is not True:",
-   "replace": "    if False:",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
-   "strength": "contract",
-   "rationale": "decisao sem ratificacao nao pode executar"
-  },
-  {
-   "id": "M120",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "            add(\"decisao_susfs\", \"incompativel\",",
-   "replace": "            add(\"decisao_susfs\", \"ok\",",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_decision.sh",
-   "strength": "semantic",
-   "rationale": "SUSFS proibido tem de reprovar, nao virar 'ok' com o mesmo detalhe"
-  },
-  {
-   "id": "M121",
-   "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
-   "find": "        add(\"motor_ratificado\", engine == dec.get(\"engine\") and dec.get(\"ratified\") is True,",
-   "replace": "        add(\"motor_ratificado\", True,",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
-   "strength": "semantic",
-   "rationale": "M05 tem de exigir o motor ratificado, nao qualquer motor suportado"
-  },
-  {
    "id": "M122",
    "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
    "find": "        all(c in cfgs for c in (\"CONFIG_USER_NS\", \"CONFIG_PID_NS\"))",
@@ -1138,33 +1039,6 @@
    "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
    "strength": "semantic",
    "rationale": "isolamento exige USER_NS e PID_NS no kernel do pacote"
-  },
-  {
-   "id": "M123",
-   "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
-   "find": "        and ker.get(\"custom_kernel_allowed\") == dec0.get(\"custom_kernel_allowed\"),",
-   "replace": "        and True,",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
-   "strength": "semantic",
-   "rationale": "M05 nao pode aceitar kernel compilado sob a Decisao A"
-  },
-  {
-   "id": "M124",
-   "file": "skills/evox-rom-ci-optimizer/scripts/success_guarantee.py",
-   "find": "    if dec.get(\"ratified\") is True and allow == [dec.get(\"engine\")] and dec.get(\"engine\"):",
-   "replace": "    if allow == [dec.get(\"engine\")] and dec.get(\"engine\"):",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_success_guarantee.sh",
-   "strength": "semantic",
-   "rationale": "R1 so e provado se a decisao estiver ratificada e houver um unico motor permitido"
-  },
-  {
-   "id": "M125",
-   "file": "skills/evox-rom-ci-optimizer/scripts/success_guarantee.py",
-   "find": "    need_layers = hid.get(\"required_layers\") or [\"susfs\", \"zygisk-next\"]",
-   "replace": "    need_layers = []",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_success_guarantee.sh",
-   "strength": "semantic",
-   "rationale": "faltar USER_NS/PID_NS no kernel stock sob a Decisao A e IMPOSSIVEL, nao pendente"
   },
   {
    "id": "M126",
@@ -1203,49 +1077,241 @@
    "rationale": "sem o trio SYSVIPC/MQ/IPC_NS a conclusao tem de ser IMPOSSIVEL sob a Decisao A"
   },
   {
-   "id": "M130",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "            allowed = dec.get(\"kernel_source\") == \"custom-build\" and dec.get(\"custom_kernel_allowed\") is True",
-   "replace": "            allowed = True",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_decision.sh",
+   "id": "M135",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if not conds:\n        problems.append(",
+   "replace": "    if False:\n        problems.append(",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
    "strength": "semantic",
-   "rationale": "build próprio só passa se a decisão manda custom-build; aceitar sempre quebra o guarda da Decisão C"
+   "rationale": "conjunto de condições vazio tem de ser recusado; aceitar é vacuidade"
   },
   {
-   "id": "M131",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "            ok_stock = dec.get(\"kernel_source\") == \"stock-rom\"",
-   "replace": "            ok_stock = True",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_root_decision.sh",
+   "id": "M136",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    elif len(conds) < minimum:",
+   "replace": "    elif False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
    "strength": "semantic",
-   "rationale": "sob a Decisão C o kernel stock tem de ser recusado, não aceito"
+   "rationale": "conjunto ralo (3 de 10 condições) também é vacuidade"
   },
   {
-   "id": "M132",
-   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
-   "find": "        elif dec.get(\"third_party_kernel_allowed\") is True:",
-   "replace": "        elif True:",
+   "id": "M137",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "        if not (c.get(\"breaker\") or {}):",
+   "replace": "        if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
+   "strength": "semantic",
+   "rationale": "condição sem contra-exemplo é decoração e tem de ser recusada"
+  },
+  {
+   "id": "M138",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    verdict = \"PAR_GARANTIDO\" if worst == RANK[OK] else (\"IMPOSSIVEL\" if worst == RANK[IMPOSSIVEL] else \"FALTA_PROVA\")",
+   "replace": "    verdict = \"PAR_GARANTIDO\"",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
+   "strength": "semantic",
+   "rationale": "par com condição falsa não pode ser dado como garantido"
+  },
+  {
+   "id": "M139",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "        if len(guaranteed) > 1 and (data[\"objective\"].get(\"single_method\") is True):",
+   "replace": "        if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
+   "strength": "semantic",
+   "rationale": "dois pares garantidos é ambiguidade e tem de ser nomeada, não escolhida"
+  },
+  {
+   "id": "M140",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    missing = [x for x in required if x not in provided]",
+   "replace": "    missing = []",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
+   "strength": "semantic",
+   "rationale": "C06 sem CONFIG_* provadas tem de falhar; aceitar sempre anula a prova"
+  },
+  {
+   "id": "M141",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if c.get(\"origin\") == \"stock-rom\" and stock_verdict == \"impossible\" and (set(missing) & abi):",
+   "replace": "    if False:",
    "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
    "strength": "semantic",
-   "rationale": "binário de terceiro continua proibido; aceitar por padrão anula a proibição"
+   "rationale": "kernel stock sem o trio de ABI é impossível, não 'pendente'"
   },
   {
-   "id": "M133",
+   "id": "M142",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if stale > limit:",
+   "replace": "    if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+   "strength": "semantic",
+   "rationale": "kernel parado além do limite tem de reprovar em C04"
+  },
+  {
+   "id": "M143",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if e[\"id\"] in supports:",
+   "replace": "    if True:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+   "strength": "semantic",
+   "rationale": "C02 tem de checar se o kernel embute o motor, não presumir"
+  },
+  {
+   "id": "M144",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if rom[\"build\"] in builds and c.get(\"model\") == rom.get(\"device\") and c.get(\"android_api\") == rom.get(\"android_api\"):",
+   "replace": "    if True:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+   "strength": "semantic",
+   "rationale": "C03 é a trava de build/modelo/API; aceitar qualquer kernel quebra a regra do projeto"
+  },
+  {
+   "id": "M145",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if not missing:\n        return True, OK, f\"patches de kABI presentes",
+   "replace": "    if True:\n        return True, OK, f\"patches de kABI presentes",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+   "strength": "semantic",
+   "rationale": "sem os patches de kABI o trio de ABI dá bootloop: C07 não pode passar de graça"
+  },
+  {
+   "id": "M146",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if len(usable) >= need_n:",
+   "replace": "    if True:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_success_guarantee.sh",
+   "strength": "semantic",
+   "rationale": "C08 tem de contar camada utilizável; sem camada o pack é impossível"
+  },
+  {
+   "id": "M147",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if broken:\n        return False, IMPOSSIVEL, f\"módulos sem capacidade",
+   "replace": "    if False:\n        return False, IMPOSSIVEL, f\"módulos sem capacidade",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
+   "strength": "semantic",
+   "rationale": "C09 protege os módulos: capacidade faltando tem de reprovar"
+  },
+  {
+   "id": "M148",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if miss:\n        return False, PROVA, f\"sem {miss}\"",
+   "replace": "    if False:\n        return False, PROVA, f\"sem {miss}\"",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
+   "strength": "semantic",
+   "rationale": "C10 sem rollback/OTA declarado tem de falhar"
+  },
+  {
+   "id": "M149",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    engines = sorted(data[\"engines\"][\"engines\"], key=lambda e: e[\"id\"])",
+   "replace": "    engines = list(data[\"engines\"][\"engines\"])",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
+   "strength": "semantic",
+   "rationale": "sem ordenação por id a saída deixa de ser determinística"
+  },
+  {
+   "id": "M150",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if on_disk.get(\"generated\") is not True:",
+   "replace": "    if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
+   "strength": "semantic",
+   "rationale": "decisão escrita à mão (sem marca de gerada) tem de ser recusada"
+  },
+  {
+   "id": "M151",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if disk_pairs != now_pairs:",
+   "replace": "    if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
+   "strength": "semantic",
+   "rationale": "decisão com pares divergentes do solver não pode passar"
+  },
+  {
+   "id": "M152",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "        if hit[\"failed\"] == [cond[\"id\"]]:",
+   "replace": "        if True:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
+   "strength": "semantic",
+   "rationale": "o selftest só vale se a queda for EXATAMENTE pela condição quebrada"
+  },
+  {
+   "id": "M153",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_pair_solver.py",
+   "find": "    if not res[\"selected\"]:\n        print(f\"[selftest] dataset {root} não tem par garantido",
+   "replace": "    if False:\n        print(f\"[selftest] dataset {root} não tem par garantido",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_pair_solver.sh",
+   "strength": "semantic",
+   "rationale": "selftest sem par garantido não pode fingir sucesso"
+  },
+  {
+   "id": "M154",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+   "find": "    if not engine_id:",
+   "replace": "    if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+   "strength": "semantic",
+   "rationale": "o gate não escolhe motor por conta própria: sem --engine é uso inválido"
+  },
+  {
+   "id": "M155",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+   "find": "    if ev_path:",
+   "replace": "    if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+   "strength": "semantic",
+   "rationale": "evidência de kernel é o que fecha C06; ignorá-la trava o par para sempre"
+  },
+  {
+   "id": "M156",
+   "file": "skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py",
+   "find": "STATE_TO_VERDICT = {\"ok\": \"ok\", \"falta_prova\": \"pendente\", \"impossivel\": \"incompativel\"}",
+   "replace": "STATE_TO_VERDICT = {\"ok\": \"ok\", \"falta_prova\": \"ok\", \"impossivel\": \"incompativel\"}",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_root_engine_gate.sh",
+   "strength": "semantic",
+   "rationale": "falta de prova não pode virar 'compatível'"
+  },
+  {
+   "id": "M157",
+   "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
+   "find": "        add(\"motor_fecha_o_pack\", bool(clean),",
+   "replace": "        add(\"motor_fecha_o_pack\", True,",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
+   "strength": "semantic",
+   "rationale": "o M05 só entra se C05/C06/C07 fecharem em algum par"
+  },
+  {
+   "id": "M159",
    "file": "skills/evox-rom-ci-optimizer/scripts/success_guarantee.py",
-   "find": "        if hard and dec.get(\"kernel_source\") == \"stock-rom\":",
+   "find": "        if hard and c06_states(pack) == {\"impossivel\"}:",
    "replace": "        if False:",
    "test": "skills/evox-rom-ci-optimizer/tests/test_success_guarantee.sh",
    "strength": "semantic",
-   "rationale": "kernel stock com kernel próprio proibido tem de dar IMPOSSIVEL; esconder isso torna o veredito FALTA_PROVA mentiroso"
-  },
-  {
-   "id": "M134",
-   "file": "skills/evox-rom-ci-optimizer/scripts/droidspaces_preflight.py",
-   "find": "        (ker.get(\"source\") == dec0.get(\"kernel_source\"))",
-   "replace": "        True",
-   "test": "skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh",
-   "strength": "semantic",
-   "rationale": "o contrato do M05 tem de casar com a decisão vigente; ignorar a comparação aceita kernel stock sob C"
+   "rationale": "se nenhum kernel do catálogo consegue o trio, R5 é impossível e não pendente"
   }
+ ],
+ "retired": [
+  "M104",
+  "M105",
+  "M106",
+  "M114",
+  "M115",
+  "M116",
+  "M117",
+  "M118",
+  "M119",
+  "M120",
+  "M121",
+  "M123",
+  "M124",
+  "M125",
+  "M130",
+  "M131",
+  "M132",
+  "M133",
+  "M134"
  ]
 }

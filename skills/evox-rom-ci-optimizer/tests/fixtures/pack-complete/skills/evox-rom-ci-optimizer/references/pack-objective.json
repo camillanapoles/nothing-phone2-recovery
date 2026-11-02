@@ -1,0 +1,20 @@
+{
+ "schema": "evox-pack-objective/1",
+ "ratified": true,
+ "decided_by": "user",
+ "decided_at": "2026-11-01",
+ "statement": "O pack (root + kernel + features) só vale quando TODAS as condições forem verdadeiras por evidência; a escolha do par root × kernel é CONSEQUÊNCIA disso, não uma preferência fixada.",
+ "goal": "all_conditions_true",
+ "single_method": true,
+ "rules": [
+  "nenhum motor e nenhum kernel é nomeado aqui: se o dado mudar, o par selecionado muda sozinho",
+  "proibição só existe como consequência de condição falsa, nunca como lista escrita à mão",
+  "empate não é resolvido por opinião: o solver exige um único par e recusa o pack se houver mais de um",
+  "toda condição precisa ser quebrável por um contra-exemplo declarado (senão é decoração e o selftest falha)"
+ ],
+ "params": {
+  "min_conditions": 10,
+  "max_stale_days": 365,
+  "min_hiding_layers": 1
+ }
+}

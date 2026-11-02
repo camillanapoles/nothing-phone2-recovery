@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# droidspaces_preflight.py — M05 só entra com contrato completo e requisitos provados (33 casos)
+# droidspaces_preflight.py — M05 só entra com contrato completo e requisitos provados (34 casos)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; D="$HERE/../scripts/droidspaces_preflight.py"; ROOT="$(cd "$HERE/../../.." && pwd)"
 P=0; F=0
@@ -12,13 +12,15 @@ rc=$(python3 "$D" --help >/dev/null 2>&1; echo $?); ck "--help sai 0" "exit" "$r
 rc=$(python3 "$D" >/dev/null 2>&1; echo $?); ck "sem modo pede uso" "exit" "$rc" "2"
 
 # ---------------- contrato estático (repo real) -------------------------------
-rc=$(run --static); ck "contrato do M05 está completo" "exit" "$rc" "0"
+rc=$(run --static); ck "contrato completo, mas o pack ainda não fecha C06" "exit" "$rc" "3"
 verdict=$(python3 "$D" --root "$ROOT" --static --json | python3 -c 'import json,sys;print(json.load(sys.stdin)["verdict"])')
-ck "veredito é PRONTO" "PRONTO" "$verdict" "PRONTO"
+ck "veredito é PENDENTE (falta prova, não contrato)" "PENDENTE" "$verdict" "PENDENTE"
+so=$(python3 "$D" --root "$ROOT" --static --json | python3 -c 'import json,sys;d=json.load(sys.stdin);print(",".join(sorted({c["check"] for c in d["checks"] if not c["ok"]})))')
+ck "só o check do pack falha" "motor_fecha_o_pack" "$so" "motor_fecha_o_pack"
 rc=$(run --static --engine magisk); ck "motor não suportado (magisk) reprova" "exit" "$rc" "3"
-rc=$(run --static --engine apatch); ck "motor fora da decisão C reprova" "exit" "$rc" "3"
-why=$(python3 "$D" --root "$ROOT" --static --engine apatch --json | python3 -c 'import json,sys;print("sim" if any("motor_ratificado" in r for r in json.load(sys.stdin)["reasons"]) else "nao")')
-ck "motivo cita a decisão ratificada" "sim" "$why" "sim"
+rc=$(run --static --engine apatch); ck "motor aceito pelo contrato não é reprovado por nome" "exit" "$rc" "3"
+why=$(python3 "$D" --root "$ROOT" --static --engine apatch --json | python3 -c 'import json,sys;print("sim" if any("motor_fecha_o_pack" in r for r in json.load(sys.stdin)["reasons"]) else "nao")')
+ck "motivo cita o pack (não uma decisão fixa)" "sim" "$why" "sim"
 
 # ---------------- fixtures: o preflight sabe reprovar -------------------------
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
@@ -40,18 +42,23 @@ json.dump(d, open(p, "w"))
 PY
 }
 restore(){ cp "$ROOT/skills/evox-rom-ci-optimizer/references/droidspaces-requirements.json" "$R/"; }
+falhas(){ python3 "$D" --root "$T" --static --json 2>/dev/null | python3 -c 'import json,sys;d=json.load(sys.stdin);print(",".join(sorted(c["check"] for c in d["checks"] if not c["ok"])))'; }
+tem(){ case ",$1," in *",$2,"*) echo sim;; *) echo nao;; esac; }
 
 fixture "app.apk.sha256" '"curto"'
 rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
-ck "fixture: sha256 inválido reprova" "exit" "$rc" "3"; restore
+ck "fixture: sha256 inválido reprova" "exit" "$rc" "3"
+ck "fixture: sha256 inválido reprova (check nomeado)" "sim" "$(tem "$(falhas)" "apk_sha256")" "sim"; restore
 
 fixture "install.after" '[]'
 rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
-ck "fixture: instalar sem M01 reprova" "exit" "$rc" "3"; restore
+ck "fixture: instalar sem M01 reprova" "exit" "$rc" "3"
+ck "fixture: instalar sem M01 reprova (check nomeado)" "sim" "$(tem "$(falhas)" "ordem_depois_de_M01")" "sim"; restore
 
 fixture "constraints.mount_hide_global" 'true'
 rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
-ck "fixture: mount-hide global reprova (R03)" "exit" "$rc" "3"; restore
+ck "fixture: mount-hide global reprova (R03)" "exit" "$rc" "3"
+ck "fixture: mount-hide global reprova (R03) (check nomeado)" "sim" "$(tem "$(falhas)" "r03_mount_hide_desligado")" "sim"; restore
 
 fixture "kernel.configs_required" '["CONFIG_SYSVIPC"]'
 rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
@@ -59,11 +66,24 @@ ck "fixture: menos de 8 configs reprova" "exit" "$rc" "3"; restore
 
 fixture "kernel.configs_required" '["CONFIG_SYSVIPC","CONFIG_POSIX_MQUEUE","CONFIG_NAMESPACES","CONFIG_UTS_NS","CONFIG_IPC_NS","CONFIG_PID_NS","CONFIG_NET_NS","CONFIG_CGROUPS","CONFIG_CGROUP_PIDS","CONFIG_CGROUP_FREEZER","CONFIG_SECCOMP"]'
 rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
-ck "fixture: sem CONFIG_USER_NS reprova isolamento" "exit" "$rc" "3"; restore
+ck "fixture: sem CONFIG_USER_NS reprova isolamento" "exit" "$rc" "3"
+ck "fixture: o check de isolamento é o que cai" "sim" "$(tem "$(falhas)" "isolation_userns_pidns")" "sim"; restore
 
 fixture "runtime.namespaces" '["pid","net","uts","ipc","cgroup","mnt"]'
 rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
-ck "fixture: sem namespace user reprova isolamento" "exit" "$rc" "3"; restore
+ck "fixture: sem namespace user reprova isolamento" "exit" "$rc" "3"
+ck "fixture: sem namespace user reprova isolamento (check nomeado)" "sim" "$(tem "$(falhas)" "isolation_userns_pidns")" "sim"; restore
+
+python3 - "$R/module-requirements.json" <<'PY'
+import json, sys
+p = sys.argv[1]; d = json.load(open(p))
+m = next(m for m in d["modules"] if m["id"] == "M05"); m.setdefault("app", {})["version"] = "v0.0.1"
+json.dump(d, open(p, "w"))
+PY
+rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)
+ck "fixture: versão do módulo divergente reprova" "exit" "$rc" "3"
+ck "fixture: o check de versão é o que cai" "sim" "$(tem "$(falhas)" "m05_versao_igual_ao_contrato")" "sim"
+cp "$ROOT/skills/evox-rom-ci-optimizer/references/module-requirements.json" "$R/"
 
 fixture "kernel.source" '"stock-rom"'
 rc=$(python3 "$D" --root "$T" --static >/dev/null 2>&1; echo $?)

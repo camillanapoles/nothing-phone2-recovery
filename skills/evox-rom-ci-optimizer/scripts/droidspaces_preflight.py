@@ -12,7 +12,7 @@ Três modos, todos verificáveis sem device físico:
                   também os diretórios do módulo (pós-instalação).
 
 Uso:
-  droidspaces_preflight.py --static [--engine apatch] [--json]
+  droidspaces_preflight.py --static [--engine <id>] [--json]
   droidspaces_preflight.py --kernel-evidence kernel.json [--json]
   droidspaces_preflight.py --device --adb adb [--expect-installed] [--json]
 
@@ -20,6 +20,7 @@ Exit: 0 pronto · 3 pendente/reprovado · 2 uso · 4 JSON/arg inválido
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import re
@@ -94,13 +95,13 @@ def check_static(root: str, engine: str) -> list[dict]:
     ker = d.get("kernel") or {}
     cfgs = ker.get("configs_required") or []
     run = d.get("runtime") or {}
-    dec_p0 = os.path.join(root, DECISION)
-    dec0 = load(dec_p0) if os.path.exists(dec_p0) else {}
+    # o contrato do M05 tem de casar com o que o pack exige: kernel próprio com os patches
+    pats = (ker.get("patches_required") or [])
     add("kernel_do_pacote_ou_build",
-        (ker.get("source") == dec0.get("kernel_source"))
-        and ker.get("custom_kernel_allowed") == dec0.get("custom_kernel_allowed"),
+        ker.get("source") == "custom-build" and ker.get("custom_kernel_allowed") is True
+        and len(pats) >= 2,
         f"contrato={ker.get('source')}/{ker.get('custom_kernel_allowed')} "
-        f"decisão={dec0.get('kernel_source')}/{dec0.get('custom_kernel_allowed')}")
+        f"patches={len(pats)} (o par precisa de kernel com patches de kABI)")
 
     iso = d.get("isolation") or {}
     iso_cfg = iso.get("required_configs") or []
@@ -125,16 +126,36 @@ def check_static(root: str, engine: str) -> list[dict]:
     add("r03_mount_hide_desligado", cons.get("mount_hide_global") is False,
         f"mount_hide_global={cons.get('mount_hide_global')}")
     add("selinux_enforcing", cons.get("selinux") == "Enforcing", f"selinux={cons.get('selinux')}")
-    add("motor_suportado", engine in (cons.get("supported_engines") or []),
-        f"engine={engine} suportados={cons.get('supported_engines')}")
-    dec_p = os.path.join(root, DECISION)
-    if not os.path.exists(dec_p):
-        add("motor_ratificado", False, "root-decision.json ausente — decisão do motor desconhecida")
+    supported = cons.get("supported_engines") or []
+    if engine:
+        add("motor_suportado", engine in supported,
+            f"engine={engine} suportados={supported}")
     else:
-        dec = load(dec_p)
-        add("motor_ratificado", engine == dec.get("engine") and dec.get("ratified") is True,
-            f"decisão {dec.get('decision')} ratificada em {dec.get('decided_at')} fixa "
-            f"{dec.get('engine')}; usado={engine}")
+        add("motor_suportado", bool(supported),
+            f"sem --engine: o contrato aceita {supported} (nenhum motor é imposto pelo código)")
+    # motor não é "ratificado" por texto: é o motor de algum par que fecha C05/C06/C07 do pack
+    pack = None
+    try:
+        spec = importlib.util.spec_from_file_location(
+            "root_pair_solver", os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                             "root_pair_solver.py"))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        data = mod.load_all(root)
+        pack = mod.solve(data) if not mod.validate(data) else None
+    except Exception:
+        pack = None
+    if pack is None:
+        add("motor_fecha_o_pack", False, "solver do pack indisponível — sem como provar o motor")
+    else:
+        mine = [p for p in pack["pairs"] if (not engine or p["engine"] == engine)]
+        clean = [p for p in mine if all(c["state"] == "ok" for c in p["conditions"]
+                                        if c["id"] in ("C05", "C06", "C07"))]
+        best = sorted(mine, key=lambda p: len(p["failed"]))[:1]
+        add("motor_fecha_o_pack", bool(clean),
+            f"pares avaliados: {len(mine)} · C05/C06/C07 fecham em {len(clean)}"
+            + (f" · melhor={best[0]['engine']}×{best[0]['kernel']} aberto={best[0]['failed']}"
+               if best and not clean else ""))
 
     m05 = next((m for m in mods if m.get("id") == "M05"), None)
     add("m05_no_contrato_de_modulos", m05 is not None, "M05 presente em module-requirements.json")
@@ -242,8 +263,11 @@ def main(argv: list[str]) -> int:
     if "--engine" in argv:
         engine = argv[argv.index("--engine") + 1]
     else:
+        # nenhum motor é default: usa o do par indicado pelo solver, se houver um único
         dec_pref = os.path.join(root, DECISION)
-        engine = (load(dec_pref).get("engine") if os.path.exists(dec_pref) else "apatch")
+        dec = load(dec_pref) if os.path.exists(dec_pref) else {}
+        best = dec.get("best") or {}
+        engine = best.get("engine") or ((dec.get("selected") or [{}])[0].get("engine")) or ""
 
     if "--static" in argv:
         checks, label = check_static(root, engine), "static"

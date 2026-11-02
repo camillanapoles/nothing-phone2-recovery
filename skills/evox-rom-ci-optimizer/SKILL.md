@@ -263,7 +263,8 @@ Nenhum deles é opcional; cada um tem script e teste próprios.
 | Gate | Pergunta que responde | Script | Exit |
 |---|---|---|---|
 | **G-kernel** | este kernel serve para ESTA build no `pong`? | `kernel_compat_check.sh --rom-assets … --candidate …` | 0 compatível · 3 incompatível |
-| **G-motor** | motor de root × kernel × módulos fecham juntos? | `root_engine_gate.py --engine … [--candidate …] [--kernel-evidence …] [--show-policy]` | 0 compatível · 3 pendente · 1 incompatível |
+| **G-pack** | qual par (motor × kernel) faz as 10 condições serem verdadeiras? | `root_pair_solver.py --root . [--json] [--selftest] [--write-decision]` | 0 par garantido · 3 falta prova · 1 impossível/ambíguo |
+| **G-motor** | o par escolhido fecha as 10 condições? | `root_engine_gate.py --engine … [--candidate …] [--kernel-evidence …] [--show-policy]` | 0 compatível · 3 pendente · 1 incompatível |
 | **G-escopo** | o que está valendo é deste workspace, ou é legado que manda o contrário? | `legacy_scope.py --root .` | 0 escopo limpo · 3 legado ativo |
 | **G-garantia** | os 5 requisitos do sucesso têm prova registrada? | `success_guarantee.py --root . [--evidence ev.json]` | 0 garantido · 3 pendente · 1 impossível sob a decisão |
 | **G-m05** | o DroidSpaces entra na hora e no kernel que o app manda? | `droidspaces_preflight.py --static\|--kernel-evidence F\|--device --adb adb` | 0 pronto · 3 pendente |
@@ -379,17 +380,19 @@ F4) está justificado em [`references/module-rollout-order.md`](references/modul
 | `scripts/ci_workflow_lint.py` | Lint das travas de custo/segurança do workflow (11 regras) |
 | `tests/test_session_open.sh` | 18 cenários: decisão incompleta trava, completa libera; P1 exige `flavor_source=user` e `auto` nunca herda variante |
 | `tests/test_sandbox_rollout.sh` | 12 cenários com stub de `adb` (boot, crash, ordem, ledger) |
-| `tests/test_root_decision.sh` | 38 cenários: decisão A ratificada vira trava — motor único, kernel só da ROM, SUSFS fora, isonomia de metodologia de kernel, casos isolados por trava |
-| `tests/test_root_engine_gate.sh` | 31 cenários: motor × kernel × módulos (inclui EOL recusado, módulo que exige outro motor e Magisk recusado pelo DroidSpaces) |
+| `tests/test_root_pair_solver.sh` | 42 cenários: as 10 condições são avaliadas por dado, saída determinística (byte a byte e com chaves trocadas), zero literal de motor/kernel no código, vacuidade recusada, condição decorativa pega pelo selftest, AMBÍGUO quando dois pares fecham, decisão derivada não pode ser editada à mão |
+| `tests/test_root_decision.sh` | 33 cenários: contrato do pack (objetivo, 10 condições falseáveis, catálogos sem lista de proibidos, decisão gerada e conferida) |
+| `tests/test_root_engine_gate.sh` | 22 cenários: o gate é uma leitura do solver — C01..C10 por par, evidência de kernel injetada, sem motor default |
 | `tests/test_droidspaces_preflight.sh` | 26 cenários: contrato completo, fixtures que reprovam (sha inválido, sem M01, mount-hide global, placeholder, versão divergente), evidência de kernel e device via stub de `adb` |
 | `tests/test_stage_logic.sh` | 54 cenários **semânticos** dos estágios A/B e do bundle, com fixtures e stubs (nenhum insumo ausente vira sucesso) |
 | `tests/test_ci_workflow_lint.sh` | 12 cenários: cada trava removida é detectada |
 | `references/rollout-and-cache.md` | **Gates 3–5**: rollout canário (1 módulo por vez), ondas, cache versionado por SHA-256, política de tamanho |
 | `scripts/extract_rom_assets.sh` | Fecha a L4 pelo `.zip` oficial (kernel/KMI + hashes), sem depender do aparelho |
 | `scripts/kernel_compat_check.sh` | Gate 1 executável: `COMPATIBLE`/`INCOMPATIBLE` com motivos |
-| `scripts/root_engine_gate.py` | Gate do motor: decisão ratificada (`decisao_motor`/`decisao_kernel`/`decisao_susfs`/`motor_unico`) × kernel candidato × requisitos dos 15 módulos + ordem/configs do M05 |
+| `scripts/root_pair_solver.py` | **Solver do pack**: enumera todos os pares (motor × kernel), avalia as 10 condições (`pack-conditions.json`) e devolve PAR_GARANTIDO/FALTA_PROVA/IMPOSSIVEL/AMBIGUO — determinístico, sem nome de motor no código, com `--selftest` de falseabilidade |
+| `scripts/root_engine_gate.py` | Gate do motor: leitura do solver para um par — mostra C01..C10 com o motivo de cada falha e injeta evidência de kernel (`--kernel-evidence`) |
 | `scripts/legacy_scope.py` | Guarda de escopo: legado marcado ou ausente, canônico presente, conflito declarado ainda escrito |
-| `scripts/success_guarantee.py` | **Garantia prévia**: 5 requisitos (motor único, ocultação, integridade, zero conflito, DroidSpaces oficial) com estado PROVADO/FALTA_PROVA/IMPOSSÍVEL e o comando que fecha cada lacuna |
+| `scripts/success_guarantee.py` | **Garantia prévia**: 5 requisitos (par único do pack, ocultação, integridade, zero conflito, DroidSpaces oficial) com estado PROVADO/FALTA_PROVA/IMPOSSÍVEL e o comando que fecha cada lacuna |
 | `scripts/droidspaces_preflight.py` | Gate do M05: contrato estático, evidência de kernel (`--kernel-evidence`) e checagem no device (`--device --adb`, com `--expect-installed`) |
 | `scripts/rollout_gate.sh` | Ledger canário: recusa 2 módulos abertos e módulo seguinte sem PASS |
 | `scripts/cache_manager.sh` | Cache versionado das fases verdes (inline ≤25 MB, externo acima) |

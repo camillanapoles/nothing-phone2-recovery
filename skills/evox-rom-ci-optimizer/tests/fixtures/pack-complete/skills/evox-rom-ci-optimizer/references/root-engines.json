@@ -1,0 +1,29 @@
+{
+ "schema": "evox-root-engines/1",
+ "note": "fixture: motor fictício 'engine-x' — existe para provar que nenhum nome de motor é hardcoded",
+ "engines": [
+  {
+   "id": "engine-x",
+   "name": "Motor fictício X",
+   "mechanism": "kernel-space (fixture)",
+   "root_level": "kernel-space",
+   "requires_custom_kernel": true,
+   "supports_susfs": true,
+   "supports_zygisk": true,
+   "capabilities": [
+    "root",
+    "zygisk",
+    "susfs"
+   ],
+   "status": "fixture",
+   "artifact": {
+    "version": "v0.0.1",
+    "released_at": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "rollback": "boot_stock_rollback.img (fixture)",
+   "ota_plan": "rebuild do kernel + refazer M01 (fixture)",
+   "source": "fixture://engine-x"
+  }
+ ]
+}

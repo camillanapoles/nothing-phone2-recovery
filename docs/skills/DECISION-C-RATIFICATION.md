@@ -1,7 +1,16 @@
 # Decisão C — root + kernel amarrados ao sucesso de todas as features
 
-**Data:** 2026-11-01 · **Quem decidiu:** a usuária · **Estado:** ratificada, par **PENDENTE** até o
-build ser certificado · **Fonte canônica:** `skills/evox-rom-ci-optimizer/references/root-decision.json`
+**Data:** 2026-11-01 · **Quem decidiu:** a usuária · **Estado:** ratificada; o **par** agora é
+derivado (não mais escrito) · **Fonte canônica:** `references/pack-objective.json` +
+`references/pack-conditions.json` + `scripts/root_pair_solver.py`;
+`references/root-decision.json` passou a ser **arquivo gerado**.
+
+> **Atualização da mesma data (segunda rodada):** a usuária pediu que o pack inteiro fosse validado de
+> forma **determinística**, sem método root/kernel hardcoded e sem lista de proibidos — "o que existe é
+> a condição encontrada do par que torna verdadeiras as 10 condições". Isso virou código:
+> `root_pair_solver.py` enumera todos os pares e avalia C01…C10. Ver `docs/skills/PACK-DETERMINISM.md`.
+> Consequência prática: **nenhum motor é "o escolhido" por decreto** — hoje três motores empatam em
+> C06 (configs provadas) e o solver nomeia o empate em vez de escolher.
 
 ## 1. O que você pediu (literal)
 
@@ -15,9 +24,9 @@ vêm depois de "funciona". Foi isso que autorizou trocar APatch pelo par da Deci
 
 ## 2. O que mudou (A → C)
 
-| Item | Decisão A (revogada) | Decisão C (vigente) |
+| Item | Decisão A (revogada) | Estado derivado hoje |
 |---|---|---|
-| Motor | APatch | **KernelSU-Next v3.4.2** (release 2026-10-13) |
+| Motor | APatch | **derivado do pack** — 3 pares empatados (apatch/kernelsu/sukisu) até C06 fechar |
 | Kernel | stock da ROM | **compilado por nós**: fonte do device + KSU + SUSFS + patches DroidSpaces |
 | Kernel de terceiro | proibido | **continua proibido** (`third_party_kernel_allowed: false`) |
 | SUSFS | proibido | **permitido e primário** na ocultação |
@@ -57,22 +66,29 @@ Cadeia de prova (nesta ordem, nada pula etapa):
   (APatch + kernel próprio sem SUSFS) e depois **A2** (sem M05) — a decisão diz isso explicitamente.
 - **Backup:** `boot.img` stock byte-idêntico + `.sha256` **antes** de qualquer flash (P0.3).
 
-## 6. Estado do gate hoje
+## 6. Estado do pack hoje
 
 ```
-$ python3 skills/evox-rom-ci-optimizer/scripts/root_engine_gate.py \
-    --engine kernelsu --candidate custom-build-pong-ksu-susfs-droidspaces
-decisao_ratificada .... ok
-decisao_motor ......... ok
-motor_unico ........... ok
-decisao_kernel ........ ok
-m05_motor ............. ok
-m05_ordem ............. ok
-kernel_certificado .... PENDENTE   ← falta o build + sha256
-r03_mount_hide ........ CONDICAO   ← mount-hide global tem de ficar off
-m05_kernel_configs .... CONDICAO   ← as 12 CONFIG_* provadas na evidência
-→ PENDENTE (exit 3)
+$ make pack
+[pack] FALTA_PROVA · 16 pares (4 motores × 4 kernels) · garantidos=0 pendentes=6
+  PEND apatch   × custom-build-pong-ksu-susfs-droidspaces   falta: C06
+  PEND kernelsu × custom-build-pong-ksu-susfs-droidspaces   falta: C06
+  PEND sukisu   × custom-build-pong-ksu-susfs-droidspaces   falta: C06
+  PEND apatch   × np2-kernel-lineageos-v3.0.5               falta: C03,C06,C07
+  NAO  kernelsu × stock-evolutionx                          falta: C02,C06,C07
+  NAO  magisk   × (qualquer)                                falta: C05
+  NAO  (qualquer) × meteoric-v6-pong                        falta: C03,C04,...
+[pack] EMPATE determinístico em 3 pares com as mesmas pendências ['C06']
 ```
 
-Isso é o comportamento correto: **"garantido" não é declarado sem prova**. O gate não afrouxa; ele
-só passou a reconhecer o caminho que você autorizou.
+Uma única condição separa o pack de `PAR_GARANTIDO`: **C06 — as 13 `CONFIG_*` provadas** (evidência,
+não intenção). O gate por par mostra o mesmo, condição por condição:
+
+```
+$ root_engine_gate.py --engine kernelsu --candidate custom-build-pong-ksu-susfs-droidspaces
+[gate] → PENDENTE (9/10 condições)
+  PEND C06 ... ainda não prova 13/13: [CONFIG_* ...]
+```
+
+Isso é o comportamento correto: **"garantido" não é declarado sem prova**, e nenhum motor é
+favorecido por estar escrito no código.

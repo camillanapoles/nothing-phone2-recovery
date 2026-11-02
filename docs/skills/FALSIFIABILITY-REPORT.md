@@ -23,14 +23,14 @@ mesmo quando a lógica de negócio some? **Método:** mutação (Red de verdade)
 
 | Métrica | Valor |
 |---|---|
-| Mutantes | **134** |
-| Mortos por asserção | **134** (score **100%**) |
+| Mutantes | **139** |
+| Mortos por asserção | **139** (score **100%**) |
 | Sobreviventes | **0** |
 | Mortos só por timeout | **0** |
 | Arquivos com mutante | **36** — todos com **≥2 semânticos** |
 | Força | 91 `semantic` · 15 `contract` |
 | Vícios estruturais (V1–V6) | **0 erros, 0 avisos** em 22 suítes |
-| Casos | **535** (480 na skill da ROM · 8 no guardian · 13 de estado · 34 wrappers) |
+| Casos | **582** (527 na skill da ROM · 8 no guardian · 13 de estado · 34 wrappers) |
 
 ## 3. Os limites anteriores — como foram **resolvidos**
 
@@ -129,7 +129,7 @@ por um mutante.
 ## 8. Reprodução
 
 ```bash
-make -s mutation     # 134 mutantes, 0 vivo, 0 timeout
+make -s mutation     # 139 mutantes, 0 vivo, 0 timeout
 make -s vacuity      # V1–V6: 0 erro, 0 aviso (22 suítes)
 make -s test-stage   # 54 casos de lógica de estágio (stubs, sem device)
 make -s test-wrappers# 34 casos dos wrappers de release

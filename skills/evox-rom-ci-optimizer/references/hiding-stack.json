@@ -1,88 +1,103 @@
 {
-  "schema": "evox-hiding-stack/1",
-  "purpose": "Como esconder root sob a Decisão C (KernelSU-Next + kernel próprio com SUSFS) — com fonte primária por camada; o caminho APatch/Zygisk Assistant fica como legado da decisão A.",
-  "engine": "kernelsu",
-  "layers": [
-    {
-      "id": "susfs",
-      "name": "SUSFS4KSU (simonpunk) compilado no kernel",
-      "role": "ocultação em nível de kernel: mounts, ksu, procfs, uptime (a camada mais forte disponível)",
-      "requires": [
-        "kernelsu"
-      ],
-      "source": "https://gitlab.com/simonpunk/susfs4ksu",
-      "status": "supported_by_upstream",
-      "verified_on_device": false,
-      "note": "entra no build do kernel; se colidir com os patches kABI do DroidSpaces, é desligado na mesma build (fallback declarado na decisão)"
-    },
-    {
-      "id": "apatch-native",
-      "name": "APatch — 'Exclude modifications' por app (umount de módulos)",
-      "role": "esconde os módulos montados do app alvo, sem tocar o kernel",
-      "requires": [],
-      "source": "https://github.com/snake-4/Zygisk-Assistant (seção 'KernelSU & APatch users': habilitar 'Umount modules/Exclude modifications' no APatch Manager)",
-      "status": "supported_by_upstream",
-      "verified_on_device": false
-    },
-    {
-      "id": "zygisk-next",
-      "name": "Zygisk Next v1.5.2 (2026-10-15)",
-      "role": "fornece a API Zygisk que o APatch não tem embutida",
-      "requires": [
-        "apatch-native"
-      ],
-      "artifact": {
-        "file": "Zygisk-Next-1.5.2-864-a4a72ce-release.zip",
-        "size_bytes": 6714344,
-        "sha256": "ce50b13fecb9e4456db69ef17b715f7cfbc094004dd9f30f7d6348dfab619a96",
-        "url": "https://github.com/Dr-TSNG/ZygiskNext/releases/download/v1.5.2/Zygisk-Next-1.5.2-864-a4a72ce-release.zip"
-      },
-      "source": "https://github.com/Dr-TSNG/ZygiskNext (README) + https://github.com/snake-4/Zygisk-Assistant (APatch exige ZygiskNext)",
-      "status": "supported_by_upstream",
-      "note": "README do Zygisk Next não cita APatch; quem declara o suporte a APatch é o Zygisk Assistant (camada acima). Prova no aparelho é obrigatória.",
-      "verified_on_device": false
-    },
-    {
-      "id": "zygisk-assistant",
-      "name": "Zygisk Assistant v2.1.4 (2025-02-23)",
-      "role": "esconde existência de root e de Zygisk do app alvo (proc, su, mounts)",
-      "requires": [
-        "zygisk-next",
-        "apatch-native"
-      ],
-      "artifact": {
-        "file": "Zygisk-Assistant-v2.1.4-1013f8a-release.zip",
-        "size_bytes": 392961,
-        "sha256": "",
-        "url": "https://github.com/snake-4/Zygisk-Assistant/releases/download/v2.1.4/Zygisk-Assistant-v2.1.4-1013f8a-release.zip"
-      },
-      "source": "https://github.com/snake-4/Zygisk-Assistant (README: 'KernelSU & APatch users')",
-      "status": "stale_but_supported",
-      "stale_days_since_release": 616,
-      "risk": "último release em 2025-02-23; sem digest publicado na API — hash tem de ser calculado no download e registrado antes do uso",
-      "verified_on_device": false
-    }
-  ],
-  "configuration_rules": [
-    "No APatch Manager: habilitar 'Exclude modifications' (umount) para CADA app que precisa não ver root",
-    "No Zygisk Next: desligar 'Enforce DenyList' quando houver a opção",
-    "Um único dono da escrita de identidade (R04): Tricky Store + PIFork, nunca dois spoofers",
-    "Shamiko e Mountify continuam PROIBIDOS (conflito declarado no config-map do aparelho)"
-  ],
-  "what_is_not_possible": [
-    "Ocultação 'perfeita' não é demonstrável: existe sempre uma superfície de detecção (syscalls, timing, attestation). O que é demonstrável é o conjunto de apps testados com resultado PASS.",
-    "SUSFS (hiding em kernel) está fora por decisão; sem ele, apps que detectam root por linha de kernel/KPM podem continuar detectando — isso é limite da Decisão A, não bug de configuração."
-  ],
-  "sources": [
-    "https://github.com/bmax121/APatch (README: requer CONFIG_KALLSYMS=y + CONFIG_KALLSYMS_ALL=y)",
-    "https://github.com/Dr-TSNG/ZygiskNext (README v1.5.2)",
-    "https://github.com/snake-4/Zygisk-Assistant (README, APatch)"
-  ],
-  "required_layers": [
-    "susfs",
-    "zygisk-next"
-  ],
-  "optional_layers": [
-    "zygisk-assistant"
-  ]
+ "schema": "evox-hiding-stack/1",
+ "purpose": "Camadas de ocultação com a capacidade que cada uma exige do PAR (motor × kernel). Nenhuma camada nomeia 'a decisão vigente': o solver conta como utilizável só a camada cujas `needs` o par entrega; `engine_only` restringe a camada a um motor específico.",
+ "layers": [
+  {
+   "id": "susfs",
+   "name": "SUSFS4KSU (simonpunk) compilado no kernel",
+   "role": "ocultação em nível de kernel: mounts, ksu, procfs, uptime (a camada mais forte disponível)",
+   "requires": [
+    "kernelsu"
+   ],
+   "source": "https://gitlab.com/simonpunk/susfs4ksu",
+   "status": "supported_by_upstream",
+   "verified_on_device": false,
+   "note": "entra no build do kernel; se colidir com os patches kABI do DroidSpaces, é desligado na mesma build (fallback declarado na decisão)",
+   "needs": [
+    "root",
+    "susfs"
+   ],
+   "engine_only": null
+  },
+  {
+   "id": "apatch-native",
+   "name": "APatch — 'Exclude modifications' por app (umount de módulos)",
+   "role": "esconde os módulos montados do app alvo, sem tocar o kernel",
+   "requires": [],
+   "source": "https://github.com/snake-4/Zygisk-Assistant (seção 'KernelSU & APatch users': habilitar 'Umount modules/Exclude modifications' no APatch Manager)",
+   "status": "supported_by_upstream",
+   "verified_on_device": false,
+   "needs": [
+    "root"
+   ],
+   "engine_only": "apatch"
+  },
+  {
+   "id": "zygisk-next",
+   "name": "Zygisk Next v1.5.2 (2026-10-15)",
+   "role": "fornece a API Zygisk que o APatch não tem embutida",
+   "requires": [
+    "apatch-native"
+   ],
+   "artifact": {
+    "file": "Zygisk-Next-1.5.2-864-a4a72ce-release.zip",
+    "size_bytes": 6714344,
+    "sha256": "ce50b13fecb9e4456db69ef17b715f7cfbc094004dd9f30f7d6348dfab619a96",
+    "url": "https://github.com/Dr-TSNG/ZygiskNext/releases/download/v1.5.2/Zygisk-Next-1.5.2-864-a4a72ce-release.zip"
+   },
+   "source": "https://github.com/Dr-TSNG/ZygiskNext (README) + https://github.com/snake-4/Zygisk-Assistant (APatch exige ZygiskNext)",
+   "status": "supported_by_upstream",
+   "note": "README do Zygisk Next não cita APatch; quem declara o suporte a APatch é o Zygisk Assistant (camada acima). Prova no aparelho é obrigatória.",
+   "verified_on_device": false,
+   "needs": [
+    "root",
+    "zygisk"
+   ],
+   "engine_only": null
+  },
+  {
+   "id": "zygisk-assistant",
+   "name": "Zygisk Assistant v2.1.4 (2025-02-23)",
+   "role": "esconde existência de root e de Zygisk do app alvo (proc, su, mounts)",
+   "requires": [
+    "zygisk-next",
+    "apatch-native"
+   ],
+   "artifact": {
+    "file": "Zygisk-Assistant-v2.1.4-1013f8a-release.zip",
+    "size_bytes": 392961,
+    "sha256": "",
+    "url": "https://github.com/snake-4/Zygisk-Assistant/releases/download/v2.1.4/Zygisk-Assistant-v2.1.4-1013f8a-release.zip"
+   },
+   "source": "https://github.com/snake-4/Zygisk-Assistant (README: 'KernelSU & APatch users')",
+   "status": "stale_but_supported",
+   "stale_days_since_release": 616,
+   "risk": "último release em 2025-02-23; sem digest publicado na API — hash tem de ser calculado no download e registrado antes do uso",
+   "verified_on_device": false,
+   "needs": [
+    "root",
+    "zygisk"
+   ],
+   "engine_only": null
+  }
+ ],
+ "configuration_rules": [
+  "No APatch Manager: habilitar 'Exclude modifications' (umount) para CADA app que precisa não ver root",
+  "No Zygisk Next: desligar 'Enforce DenyList' quando houver a opção",
+  "Um único dono da escrita de identidade (R04): Tricky Store + PIFork, nunca dois spoofers",
+  "Shamiko e Mountify continuam PROIBIDOS (conflito declarado no config-map do aparelho)"
+ ],
+ "what_is_not_possible": [
+  "Ocultação 'perfeita' não é demonstrável: existe sempre uma superfície de detecção (syscalls, timing, attestation). O que é demonstrável é o conjunto de apps testados com resultado PASS.",
+  "SUSFS (hiding em kernel) está fora por decisão; sem ele, apps que detectam root por linha de kernel/KPM podem continuar detectando — isso é limite da Decisão A, não bug de configuração."
+ ],
+ "sources": [
+  "https://github.com/bmax121/APatch (README: requer CONFIG_KALLSYMS=y + CONFIG_KALLSYMS_ALL=y)",
+  "https://github.com/Dr-TSNG/ZygiskNext (README v1.5.2)",
+  "https://github.com/snake-4/Zygisk-Assistant (README, APatch)"
+ ],
+ "optional_layers": [
+  "zygisk-assistant"
+ ],
+ "selection_rule": "utilizável = todas as `needs` presentes em capabilities(engine) ∪ ({'susfs'} se o kernel suportar SUSFS) E (engine_only vazio ou == engine.id); o pack exige >= min_hiding_layers (pack-objective.json)"
 }

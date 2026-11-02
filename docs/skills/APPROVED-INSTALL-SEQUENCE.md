@@ -1,10 +1,11 @@
 # Sequência aprovada de instalação e módulos — Decisão C (ratificada 2026-11-01)
 
 > **Escopo:** `pong` (Nothing Phone 2) · build pinada `EvolutionX-16.0-20260915-Pong-11.11` (A16/API 36)
-> **Travas vigentes:** motor único `kernelsu` (KernelSU-Next v3.4.2) · kernel `custom-build`
-> (compilado por nós, com KSU + SUSFS + patches DroidSpaces) · `custom_kernel_allowed: true` ·
-> `third_party_kernel_allowed: false` · `susfs_allowed: true`
-> (`skills/evox-rom-ci-optimizer/references/root-decision.json`).
+> **Como o par é decidido:** `make pack` avalia **todos** os pares (motor × kernel) contra as
+> **10 condições** (`references/pack-conditions.json`) e devolve `PAR_GARANTIDO`/`FALTA_PROVA`/
+> `IMPOSSIVEL`/`AMBIGUO`. Não há motor nem kernel fixado no código nem lista de proibidos; o arquivo
+> `references/root-decision.json` é **gerado** pelo solver. Hoje: nenhum par fecha as 10 — a única
+> condição aberta dos três melhores pares é **C06** (CONFIG_* provadas no kernel compilado).
 > **Regra de execução:** um módulo por vez, reiniciar, provar (`boot.ok`, `crashes=0`, 10 min de
 > uptime), só então o próximo — `rollout_gate.sh` bloqueia o contrário.
 
