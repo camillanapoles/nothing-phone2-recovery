@@ -3,7 +3,7 @@
 **Branch de origem:** `arena/863582fd-nothing-phone2-recovery` · **Skill:** `evox-rom-ci-optimizer` v3.1
 **Base:** PR #7 mergeado em `cdd5885` · **Alvo:** root e kernel perfeitos para DroidSpaces, integridade,
 root oculto, performance e estabilidade no Nothing Phone (2) `pong` / SM8475 / EvolutionX 11.11 (A16).
-**Provas da base:** `make -s prove` **706 casos / 33 suítes** · mutação **160/160 mortos por asserção** ·
+**Provas da base:** `make -s prove` **725 casos / 34 suítes** · mutação **165/165 mortos por asserção** ·
 `audit-loop` limpo · `escopo` limpo.
 
 Este documento é a primeira leitura de qualquer sessão nova. Ele carrega **continuidade, método,
@@ -50,12 +50,21 @@ Consequências que **nunca** podem ser violadas num refactor:
 
 | Prova | Número | Comando |
 |---|---|---|
-| Suítes | 706 casos / 33 suítes | `make -s prove` |
-| Mutações mortas por asserção | 160/160 | `make -s mutation` |
+| Suítes | 725 casos / 34 suítes | `make -s prove` |
+| Mutações mortas por asserção | 165/165 | `make -s mutation` |
 | Condições do pack com contra-exemplo | 10/10 | `make -s pack-selftest` |
 | Plano do kernel | 20/20 (`P01`–`P20`) | `make -s kernel` |
 | Pré-build do kernel | 22/26 (4 PEND nomeados) | `make -s kernel` |
 | Escopo e arquitetura | limpos (AG1–AG21) | `make -s escopo` · `make -s arch` |
+
+**Fechado nesta rodada (com prova)**
+
+- **`B01`** pin do source: `4ec5491f6b5fd8776207a2a453d6b98b1928de7a` em `lineage-23.2` (2026-01-24),
+  conferido na API (branch head), com `gki_defconfig`/`vendor/*` presentes, `Makefile` = **5.10.246** e o
+  SHA coincidindo com o tag de KMI `gki-g4ec5491f6b5f`.
+- **`B08`** material da árvore: `kernel/patches/` (kABI `001` ×3 + `002`, `SHA256SUMS`, fonte
+  `Droidspaces-OSS@58e3f4e`) e `kernel/fragments/evox_pong_pack.config` **gerado** do contrato por
+  `scripts/kernel-fragment.py` (`make -s fragmento`).
 
 **Pendente (exit 3 — nunca "pronto")**
 
@@ -352,7 +361,7 @@ débito, o passo que o fecha, o comando e o critério. O plano executável está
 `docs/skills/EXECUTION-PLAN.md` e é validado por `make -s closure` (DAG acíclico, gate com exit e
 critério, staging antes do físico). Hoje: **7 abertos de 7**.
 
-1. Pinar o commit (40 hex) do source → `B01`.
+1. ~~Pinar o commit (40 hex) do source → `B01`~~ **feito**: `4ec5491f6b5f…` (5.10.246, KMI `gki-g4ec5491f6b5f`).
 2. Decidir o box (§11): **validar × fork × descartar**, com justificativa e rollback.
 3. Buildar `custom-build-pong-ksu-susfs-droidspaces` no Actions (draft + `SHA256SUMS` + attestation) → `B06`.
 4. Provar as 12 CONFIG_* a partir do `.config` → `B05` → **`C06`**.
@@ -366,11 +375,12 @@ critério, staging antes do físico). Hoje: **7 abertos de 7**.
 ## 19. Comandos de retomada
 
 ```bash
-make -s prove                 # 706 casos / 33 suítes
-make -s mutation              # 160 mutantes, todos mortos por asserção
+make -s prove                 # 725 casos / 34 suítes
+make -s mutation              # 165 mutantes, todos mortos por asserção
 make -s continuidade          # esta instrução: cláusulas obrigatórias + verdade absoluta
 make -s debitos               # débitos derivados dos gates + passo que fecha cada um (exit 3)
 make -s closure               # o plano de fechamento é executável (K01–K16)
+make -s fragmento             # o fragmento do pack bate com o contrato do DroidSpaces
 make -s pack                  # solver: estado do par (motor × kernel) por dado
 make -s pack-selftest         # as 10 condições caem uma por vez
 make -s kernel                # plano P01–P20 + pré-build B01–B07 (exit 0/3)

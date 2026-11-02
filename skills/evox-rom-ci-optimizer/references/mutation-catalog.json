@@ -1480,6 +1480,51 @@
    "test": "skills/evox-rom-ci-optimizer/tests/test_debt_ledger.sh",
    "strength": "semantic",
    "rationale": "ledger: decisão da usuária ausente é débito de produto, não detalhe"
+  },
+  {
+   "id": "M181",
+   "file": "skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py",
+   "find": "    add(\"B08_material_da_arvore\", OK if patches_repo and not faltas else PEND,",
+   "replace": "    add(\"B08_material_da_arvore\", OK,",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_build_gate.sh",
+   "strength": "semantic",
+   "rationale": "B08: material ausente/adulterado não pode entrar no build como se estivesse íntegro"
+  },
+  {
+   "id": "M182",
+   "file": "skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py",
+   "find": "        elif real != esperado:",
+   "replace": "        elif False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_build_gate.sh",
+   "strength": "semantic",
+   "rationale": "B08: sha256 divergente é o sinal de que o patch não é o que o plano declara"
+  },
+  {
+   "id": "M183",
+   "file": "skills/evox-rom-ci-optimizer/scripts/kernel_build_gate.py",
+   "find": "        if rc_frag.returncode != 0:",
+   "replace": "        if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_build_gate.sh",
+   "strength": "semantic",
+   "rationale": "B08: fragmento divergente do contrato é config sem prova entrando no defconfig"
+  },
+  {
+   "id": "M184",
+   "file": "scripts/kernel-fragment.py",
+   "find": "    cfgs = sorted(set(kernel) | set(isolation) | set(EXTRA))",
+   "replace": "    cfgs = sorted(set(kernel))",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_fragment.sh",
+   "strength": "semantic",
+   "rationale": "fragmento: dropa os namespaces do contrato de isolamento e o devtmpfs — M05 quebraria no device"
+  },
+  {
+   "id": "M185",
+   "file": "scripts/kernel-fragment.py",
+   "find": "        igual = atual == conteudo",
+   "replace": "        igual = True",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_kernel_fragment.sh",
+   "strength": "semantic",
+   "rationale": "fragmento: --check que sempre diz 'em sincronia' é a definição de prova maquiada"
   }
  ],
  "retired": [

@@ -19,7 +19,22 @@
 Consequência: **débito que fecha some sozinho**; débito novo aparece sem editar lista; e débito sem
 passo de fechamento no plano faz `make -s debitos` sair com **1** (inconsistência), não com **3**.
 
-Estado em 2026-11-01: **7 débitos abertos de 7** — `B01`, `B03`, `B05`, `B06`, `C06`, `P1`, `M-ROLLOUT`.
+Estado em 2026-11-01 (depois do **E01**): **6 abertos de 7** — `B01` **fechado** (pin real), restam
+`B03`, `B05`, `B06`, `C06`, `P1`, `M-ROLLOUT`.
+
+**E01 executado.** Pin = `4ec5491f6b5fd8776207a2a453d6b98b1928de7a` em `lineage-23.2`
+(commit de 2026-01-24, `treewide: Update changes to Pong-B4.0-251119-1654`). Evidências colhidas na API:
+`arch/arm64/configs/gki_defconfig`, `vendor/waipio_GKI.config`, `vendor/nothing/waipio_GKI.config` e
+`vendor/debugfs.config` existem; `Makefile` do pin diz **5.10.246**; e o próprio SHA começa com
+`4ec5491f6b5f` — exatamente o tag de KMI `gki-g4ec5491f6b5f` que o box declarava. O pin **é** o KMI.
+
+**E02 (metade verificável agora) executado.** O material da árvore está no repositório e pinado:
+`kernel/patches/` (kABI `001` nas três variantes + `002`, com `SHA256SUMS` e fonte fixada em
+`ravindu644/Droidspaces-OSS@58e3f4e`) e `kernel/fragments/evox_pong_pack.config`, **gerado** de
+`droidspaces-requirements.json` por `scripts/kernel-fragment.py`. O gate ganhou `B08_material_da_arvore`:
+patch adulterado, sha256 divergente (mesmo com o plano trocado junto) ou fragmento fora de sincronia
+deixam o pré-build **PENDENTE**. Falta a outra metade do E02 (`B03`): a árvore em si, que só existe no
+runner do CI.
 
 ## 2. Como o plano é validado (`make -s closure`)
 
@@ -46,7 +61,7 @@ B01 ─► E01 pin ─► E02 árvore ─► E03 build ─► E04 configs ─►
 | Passo | Faz | Fecha | Gate assertivo (exit) |
 |---|---|---|---|
 | **E01** | pinar o source (commit de 40 hex) | `B01` | `kernel_build_gate --prebuild` → `B01` OK (exit 3 enquanto houver outra pendência) |
-| **E02** | materializar árvore: fragmento do pack + patches `001`/`002` | `B03` | `--kernel-tree <árvore>` → `B03`/`B04` OK |
+| **E02** | materializar árvore: fragmento do pack + patches `001`/`002` | `B03` | `B08` OK (material pinado no repo) → `--kernel-tree <árvore>` → `B03`/`B04` OK |
 | **E03** | build no GitHub Actions (draft + hash + attestation) | `B06` | `--build-dir <artefatos>` → `B06` OK |
 | **E04** | provar as CONFIG_* do `.config` | `B05` | `--config-json <evidência>` → pré-build inteiro OK (exit **0**) |
 | **E05** | fechar `C06` e resolver o empate por dado | `C06` | `make -s pack` (exit 0, sem `C06` faltando) |

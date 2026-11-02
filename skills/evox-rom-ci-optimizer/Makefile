@@ -15,7 +15,7 @@ LAYER ?= wave1
 TAG ?= v11.11-w1-clean
 SNAPSHOT_SRC ?= ./workspace/out
 
-.PHONY: help check test test-preflight test-rom test-gates test-kernel test-continuity test-closure test-debitos test-stage test-ci scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
+.PHONY: help check test test-preflight test-rom test-gates test-kernel test-fragment test-continuity test-closure test-debitos test-stage test-ci scan audit forge extract patch-boot bundle snapshot runtime-test run-act clean
 
 help:
 	@echo "======================================================================="
@@ -26,7 +26,8 @@ help:
 	@echo " make test-preflight -> dependencias externas (8 cenarios, PATH controlado)"
 	@echo " make test-rom     -> extracao da ROM + L4 (15 cenarios, stub, sem device)"
 	@echo " make test-gates   -> kernel x ROM x device (10) + rollout (13) + cache/guard4 (13)"
-	@echo " make test-kernel  -> plano do kernel: 20 regras de plano + 7 de pre-build (35 casos)"
+	@echo " make test-kernel  -> plano do kernel: 20 de plano + 8 de pré-build (40 casos)"
+	@echo " make test-fragment -> fragmento do pack derivado do contrato (11 casos)"
 	@echo " make test-continuity -> instrução de continuidade íntegra (cláusulas Q01-Q20)"
 	@echo " make test-closure -> plano de fechamento executável (K01-K16, 25 casos)"
 	@echo " make test-debitos -> ledger de débitos derivado dos gates (29 casos)"
@@ -84,6 +85,9 @@ test-debitos:
 test-continuity:
 	@./tests/test_continuity_gate.sh
 
+test-fragment:
+	@./tests/test_kernel_fragment.sh
+
 test-kernel:
 	@./tests/test_kernel_build_gate.sh
 
@@ -123,6 +127,7 @@ test-gates:
 	@./tests/test_mutation_check.sh
 	@./tests/test_vacuity_scan.sh
 	@./tests/test_kernel_build_gate.sh
+	@./tests/test_kernel_fragment.sh
 	@./tests/test_continuity_gate.sh
 	@./tests/test_closure_gate.sh
 	@./tests/test_debt_ledger.sh

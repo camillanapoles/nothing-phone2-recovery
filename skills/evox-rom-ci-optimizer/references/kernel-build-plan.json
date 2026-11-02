@@ -8,7 +8,7 @@
   "android": "16 (API 36)",
   "rom_build": "EvolutionX-16.0-20260915-Pong-11.11",
   "kmi": "android13-5.10",
-  "kernel_base": "5.10",
+  "kernel_base": "5.10.246 (Makefile do pin)",
   "gki": true,
   "partition": "boot.img (GKI, sem init_boot confirmado — checar payload.bin na L4)"
  },
@@ -16,7 +16,7 @@
   "id": "lineageos-sm8475",
   "url": "https://github.com/LineageOS/android_kernel_nothing_sm8475",
   "branch": "lineage-23.2",
-  "pin": "a-fixar-no-primeiro-build",
+  "pin": "4ec5491f6b5fd8776207a2a453d6b98b1928de7a",
   "why": "fonte do device usada pelos kernels ativos do pong (NP² declara lineage-23.2 + gki_defconfig)",
   "alternatives": [
    {
@@ -36,7 +36,18 @@
     "why": "EOL (2025-06) e sem suporte declarado à build"
    }
   ],
-  "license_check": "GPL-2.0 — obrigatório manter e publicar as fontes modificadas"
+  "license_check": "GPL-2.0 (o GitHub reporta NOASSERTION; o SPDX do source e o COPYING é que valem) — manter e publicar as fontes modificadas",
+  "pin_date": "2026-01-24T02:47:16Z",
+  "pin_message": "treewide: Update changes to Pong-B4.0-251119-1654",
+  "pin_verified_by": [
+   "gh api repos/LineageOS/android_kernel_nothing_sm8475/branches/lineage-23.2 → commit.sha",
+   "arch/arm64/configs/gki_defconfig presente",
+   "arch/arm64/configs/vendor/waipio_GKI.config presente",
+   "arch/arm64/configs/vendor/nothing/waipio_GKI.config presente",
+   "arch/arm64/configs/vendor/debugfs.config presente",
+   "Makefile: VERSION=5 PATCHLEVEL=10 SUBLEVEL=246 → 5.10.246"
+  ],
+  "kmi_evidence": "o próprio pin é o tag de KMI: gki-g4ec5491f6b5f (12 primeiros hex do commit) — confere com o box e com `uname -r` esperado 5.10.246-gki-g4ec5491f6b5f"
  },
  "toolchain": {
   "image": "ghcr.io/ylarod/ddk-min:android13-5.10-2025-04",
@@ -62,7 +73,13 @@
     "applies_to": ">=5.4 e <6.12",
     "on_reject": "fail_build",
     "on_reject_note": "build falha; proibido aplicar com force/fuzz",
-    "kind": "patch"
+    "kind": "patch",
+    "sha256": "47fc945b2d73d9737d56c0f1c3a74cda0a95c30f9dc1b1abe546fa48940c4460",
+    "fallbacks": [
+     "001.GKI-below-6.12-fix_sysvipc_kabi_3_4_5.patch",
+     "001.GKI-below-6.12-fix_sysvipc_kabi_1_2_3.patch"
+    ],
+    "fallback_policy": "só em bootloop, um por vez, com registro do tentado; nunca aplicar dois 001 juntos"
    },
    {
     "id": "002-mqueue-padding",
@@ -71,7 +88,8 @@
     "applies_to": "<=5.10",
     "on_reject": "fail_build",
     "on_reject_note": "build falha; proibido aplicar com force/fuzz",
-    "kind": "patch"
+    "kind": "patch",
+    "sha256": "31982c85f4a65ca3ec71d27903626fb0234a39c4d3e99667bc849918e42693b7"
    },
    {
     "id": "003-kernelsu-embedded",
@@ -98,7 +116,19 @@
    "SOURCE_DATE_EPOCH fixo",
    "sem -j aleatório no registro",
    "sha256 de Image, .config e zip AK3"
-  ]
+  ],
+  "repo_fragment": "kernel/fragments/evox_pong_pack.config",
+  "material": {
+   "repo_dir": "kernel/",
+   "fragment_generator": "scripts/kernel-fragment.py",
+   "fragment_source": "skills/evox-rom-ci-optimizer/references/droidspaces-requirements.json",
+   "patches_dir": "kernel/patches/",
+   "patches_manifest": "kernel/patches/SHA256SUMS",
+   "patches_source": "https://github.com/ravindu644/Droidspaces-OSS (Documentation/resources/kernel-patches/GKI/below-kernel-6.12)",
+   "patches_source_pin": "58e3f4e2c909adc3d8bb2a5c9ac914591bb16725",
+   "patches_source_date": "2026-11-01T19:07:31Z",
+   "why": "o material entra no build por cópia (CI) e é conferido por sha256; o fragmento é gerado do contrato para não existirem duas verdades"
+  }
  },
  "configs": {
   "contract": [
