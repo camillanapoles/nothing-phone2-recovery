@@ -22,7 +22,8 @@ ck "ledger real: há débito aberto (exit 3)" "exit 3" "$rc" "3"
 out=$(python3 "$K" --root "$ROOT" --json)
 ck "schema do ledger" "evox-debt-ledger/1" "$(printf '%s' "$out" | j 'd["schema"]')" "evox-debt-ledger/1"
 ck "7 débitos declarados" "7" "$(printf '%s' "$out" | j 'len(d["debts"])')" "7"
-ck "todos abertos hoje" "7" "$(printf '%s' "$out" | j 'len([x for x in d["debts"] if x["estado"]=="aberto"])')" "7"
+ck "todo débito tem estado válido" "sim" \
+   "$(printf '%s' "$out" | j '"sim" if all(x["estado"] in ("aberto","fechado") for x in d["debts"]) else "nao"')"
 ck "plano de fechamento completo" "0" "$(printf '%s' "$out" | j 'len(d["problems"])')" "0"
 ck "todo débito sabe em que passo fecha" "sim" \
    "$(printf '%s' "$out" | j '"sim" if all(x["fecha_com"] for x in d["debts"]) else "nao"')"
@@ -34,9 +35,11 @@ ck "--help sai 0" "exit 0" "$(python3 "$K" --help >/dev/null 2>&1; echo $?)" "0"
 ck "raiz inexistente é entrada inválida" "exit 4" "$(python3 "$K" --root "$T/nao-existe" >/dev/null 2>&1; echo $?)" "4"
 
 # 2. derivação por gate: cada débito vem do gate que o mede --------------------------
-for d in B01 B03 B05 B06 C06 P1 M-ROLLOUT; do
-  ck "débito $d presente no ledger" "aberto" "$(estado "$ROOT" "$d")" "aberto"
+# fatos do workspace, não contagem: o ledger se move conforme a cadeia avança
+for d in B03 B05 B06 C06 P1 M-ROLLOUT; do
+  ck "débito $d aberto (sem prova no workspace)" "aberto" "$(estado "$ROOT" "$d")" "aberto"
 done
+ck "B01 fechado (pin real gravado)" "fechado" "$(estado "$ROOT" "B01")" "fechado"
 
 D=$(novo "$T/pin")
 python3 - "$D/skills/evox-rom-ci-optimizer/references/kernel-build-plan.json" <<'PY'

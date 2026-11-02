@@ -26,9 +26,11 @@ from __future__ import annotations
 
 import glob
 import importlib.util
+import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 
 SK = "skills/evox-rom-ci-optimizer"
@@ -253,6 +255,49 @@ def prebuild_checks(plan: dict, root: str, argv: list[str]) -> list[dict]:
     add("B07_paridade_com_pack", OK,
         f"o plano e o pack usam o mesmo conjunto de {len(exigidas)} CONFIG_* (fonte única: "
         "droidspaces-requirements.json)")
+
+    # B08: o "material da árvore" que entra no build existe, está pinado por sha256 e não divergiu
+    faltas: list[str] = []
+    patches_repo = [p for p in ((plan.get("build") or {}).get("patch_set") or [])
+                    if p.get("kind") == "patch"]
+    manifesto = os.path.join(root, "kernel/patches/SHA256SUMS")
+    hashes: dict[str, str] = {}
+    if not os.path.exists(manifesto):
+        faltas.append("kernel/patches/SHA256SUMS ausente")
+    else:
+        for linha in open(manifesto, encoding="utf-8"):
+            partes = linha.split()
+            if len(partes) == 2:
+                hashes[partes[1]] = partes[0]
+    for p in patches_repo:
+        nome = os.path.basename(p.get("file") or "")
+        caminho = os.path.join(root, "kernel/patches", nome)
+        if not nome or not os.path.exists(caminho):
+            faltas.append(f"patch não materializado: {nome or '?'}")
+            continue
+        real = hashlib.sha256(open(caminho, "rb").read()).hexdigest()
+        esperado = hashes.get(nome)
+        if not esperado:
+            faltas.append(f"patch fora do SHA256SUMS: {nome}")
+        elif real != esperado:
+            faltas.append(f"sha256 divergente: {nome}")
+        elif p.get("sha256") and p["sha256"] != real:
+            faltas.append(f"plano diverge do arquivo: {nome}")
+    gerador = os.path.join(root, "scripts/kernel-fragment.py")
+    fragmento = os.path.join(root, plan.get("build", {}).get("repo_fragment") or
+                             "kernel/fragments/evox_pong_pack.config")
+    if not os.path.exists(gerador):
+        faltas.append("gerador do fragmento ausente: scripts/kernel-fragment.py")
+    elif not os.path.exists(fragmento):
+        faltas.append(f"fragmento não materializado: {fragmento}")
+    else:
+        rc_frag = subprocess.run([sys.executable, gerador, "--root", root, "--check"],
+                                 capture_output=True, text=True)
+        if rc_frag.returncode != 0:
+            faltas.append("fragmento divergente do contrato (rode scripts/kernel-fragment.py --out)")
+    add("B08_material_da_arvore", OK if patches_repo and not faltas else PEND,
+        f"{len(patches_repo)} patches + fragmento do pack, pinados por sha256"
+        if not faltas else f"material incompleto: {faltas}")
     return checks
 
 

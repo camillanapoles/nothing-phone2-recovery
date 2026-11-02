@@ -41,6 +41,7 @@ SCRIPTS=(
   "$ROOT/scripts/patch-manager.sh"
   "$ROOT/scripts/resolve-kernel-source.sh"
   "$ROOT/scripts/validate-cuttlefish.sh"
+  "$ROOT/scripts/kernel-fragment.py"
 )
 
 for s in "${SCRIPTS[@]}"; do

@@ -11,9 +11,12 @@ bad(){ F=$((F+1)); printf 'FAIL  %-58s %s\n' "$1" "$2"; }
 ck(){ [ "$2" = "$3" ] && ok "$1" "$3" || bad "$1" "${3:-vazio} (esperado '$2', obtido '${3:-}')"; }
 j(){ python3 -c "import json,sys;d=json.load(sys.stdin);print($1)"; }
 # raiz de fixture com plano + contratos
-novo_root(){ local d="$1"; mkdir -p "$d/skills/evox-rom-ci-optimizer/references"
+novo_root(){ local d="$1"; mkdir -p "$d/skills/evox-rom-ci-optimizer/references" "$d/kernel" "$d/scripts"
   cp "$REF"/{kernel-build-plan,droidspaces-requirements,module-requirements}.json \
-     "$d/skills/evox-rom-ci-optimizer/references/"; echo "$d/skills/evox-rom-ci-optimizer/references"; }
+     "$d/skills/evox-rom-ci-optimizer/references/"
+  cp -a "$ROOT/kernel/patches" "$ROOT/kernel/fragments" "$d/kernel/"
+  cp "$ROOT/scripts/kernel-fragment.py" "$d/scripts/"
+  echo "$d/skills/evox-rom-ci-optimizer/references"; }
 falhas(){ python3 "$K" --root "$1" --json | j | true; }
 
 # 1. o plano real passa inteiro ------------------------------------------------------
@@ -25,7 +28,7 @@ ck "todos ok" "20" "$(printf '%s' "$out" | j 'len([c for c in d["checks"] if c["
 ck "schema do gate" "evox-kernel-build-gate/1" "$(printf '%s' "$out" | j 'd["schema"]')"
 ck "--help sai 0" "0" "$(python3 "$K" --help >/dev/null 2>&1; echo $?)"
 ck "prebuild sem insumos = PENDENTE (3)" "3" "$(python3 "$K" --root "$ROOT" --prebuild >/dev/null 2>&1; echo $?)"
-ck "prebuild nomeia as 4 lacunas" "4" \
+ck "prebuild nomeia as lacunas restantes" "3" \
    "$(python3 "$K" --root "$ROOT" --prebuild --json | j 'len([c for c in d["checks"] if c["state"]=="pendente"])')"
 
 # 2. cada regra de plano é load-bearing (um contra-exemplo por regra) ---------------
@@ -74,6 +77,50 @@ json.dump(d, open(p, "w"))
 PY
 ck "config nova no contrato quebra o plano (paridade)" "sim" \
    "$(python3 "$K" --root "$D" --json | j '"sim" if any(c["check"]=="P06_configs_contrato" and c["state"]=="falha" for c in d["checks"]) else "nao"')"
+
+# 3a. pin do source: só 40 hex fecha B01 ---------------------------------------------------
+PD="$T/pinsem"; RPD=$(novo_root "$PD"); PR="$(cd "$RPD/../../.." && pwd)"
+python3 - "$PR/skills/evox-rom-ci-optimizer/references/kernel-build-plan.json" <<'PY2'
+import json, sys
+p = sys.argv[1]; d = json.load(open(p, encoding="utf-8"))
+d["source"]["pin"] = "a-fixar-no-primeiro-build"
+json.dump(d, open(p, "w", encoding="utf-8"))
+PY2
+ck "pin fora do padrão de 40 hex deixa B01 PENDENTE" "pendente" \
+   "$(python3 "$K" --root "$PR" --prebuild --json | j 'next(c["state"] for c in d["checks"] if c["check"]=="B01_fonte_pinada")')" "pendente"
+
+# 3b. material da árvore (B08): patches pinados + fragmento gerado do contrato --------------
+ck "B08 ok com material íntegro" "ok" \
+   "$(python3 "$K" --root "$ROOT" --prebuild --json | j 'next(c["state"] for c in d["checks"] if c["check"]=="B08_material_da_arvore")')" "ok"
+MD="$T/material"; RM=$(novo_root "$MD"); MR="$(cd "$RM/../../.." && pwd)"
+printf '\n# adulterado\n' >> "$MR/kernel/patches/002.5.10_or_lower_use_android_abi_padding_for_posix_mqueue.patch"
+ck "patch adulterado deixa B08 PENDENTE" "pendente" \
+   "$(python3 "$K" --root "$MR" --prebuild --json | j 'next(c["state"] for c in d["checks"] if c["check"]=="B08_material_da_arvore")')" "pendente"
+FD="$T/fragmento"; RF=$(novo_root "$FD"); FR="$(cd "$RF/../../.." && pwd)"
+printf 'CONFIG_EXTRA=y\n' >> "$FR/kernel/fragments/evox_pong_pack.config"
+T2="$T/material2"; RT2=$(novo_root "$T2"); TR2="$(cd "$RT2/../../.." && pwd)"
+python3 - "$TR2" <<'PY2'
+import hashlib, json, os, sys
+root = sys.argv[1]
+patch = os.path.join(root, "kernel/patches/002.5.10_or_lower_use_android_abi_padding_for_posix_mqueue.patch")
+open(patch, "a").write("\n# trocado junto com o plano\n")
+novo = hashlib.sha256(open(patch, "rb").read()).hexdigest()
+plano = os.path.join(root, "skills/evox-rom-ci-optimizer/references/kernel-build-plan.json")
+d = json.load(open(plano, encoding="utf-8"))
+for p in d["build"]["patch_set"]:
+    if p.get("id") == "002-mqueue-padding":
+        p["sha256"] = novo
+json.dump(d, open(plano, "w", encoding="utf-8"))
+PY2
+ck "patch trocado junto com o plano ainda é pego pelo manifesto" "pendente" \
+   "$(python3 "$K" --root "$TR2" --prebuild --json | j 'next(c["state"] for c in d["checks"] if c["check"]=="B08_material_da_arvore")')" "pendente"
+
+ck "fragmento divergente do contrato deixa B08 PENDENTE" "pendente" \
+   "$(python3 "$K" --root "$FR" --prebuild --json | j 'next(c["state"] for c in d["checks"] if c["check"]=="B08_material_da_arvore")')" "pendente"
+ND="$T/semmanifesto"; RN=$(novo_root "$ND"); NR="$(cd "$RN/../../.." && pwd)"
+rm -f "$NR/kernel/patches/SHA256SUMS"
+ck "sem SHA256SUMS deixa B08 PENDENTE" "pendente" \
+   "$(python3 "$K" --root "$NR" --prebuild --json | j 'next(c["state"] for c in d["checks"] if c["check"]=="B08_material_da_arvore")')" "pendente"
 
 # 4. vacuidade e entrada inválida ---------------------------------------------------
 V="$T/vazio"; RV=$(novo_root "$V")
