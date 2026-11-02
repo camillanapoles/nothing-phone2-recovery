@@ -202,6 +202,9 @@ Regras práticas:
   `git add` + `commit` + `push` + PR aberto; o merge é decisão dela, sempre.
 - ❌ `permissive`, remoção de módulo de sistema sem snapshot, edição de `persist`.
 - ❌ Declarar `PASS` sem saída de comando. "Deve funcionar" não é evidência.
+- ❌ **Rodar parte da validação e chamar de verde.** `--only`/`--range` é subconjunto declarado
+  (`--shard`) e a cobertura é cobrada no relatório: `M[id]` do catálogo sem execução = falha.
+  Id pedido que não existe no catálogo = exit 4 (nunca "0 de 0 executados" com exit 0).
 - ❌ Instalar binário silenciosamente para "fazer o teste passar".
 - ❌ Copiar instrução de `docs/`, `state/`, `archive/` ou de sessão anterior para dentro de `skills/`.
 
@@ -264,17 +267,27 @@ state/                 runtime local (quarentena, relatórios) — fora do Git
 bash tests/test_state_reset.sh          # 13 PASS / 0 FAIL (sem device, sem rede)
 make -C skills check-all                # validate + core + 13/8/8 PASS + eval APROVADO
 make -s stack                           # 16/16 invariantes do contrato (install-stack.json)
-make -s refactor                        # 9/9 coerências contrato × consumidores
+make -s refactor                        # 10/10 coerências contrato × consumidores
 make -s prove                           # suíte inteira inclui stack + refactor
+make -s mutation                        # 175/175 mutantes mortos · cobertura COMPLETA
+make -s mutacao-verifica                # catálogo fechado (ids únicos, sem lacuna)
+make -s mutacao-ids                     # grava ids automáticos de mutantes novos
 scripts/state_reset.sh --json           # estado atual: clean | plan | applied
 ```
 
 > **Refatoração não se declara: se prova.** `scripts/refactor_gate.py` (alvo `make -s refactor`)
 > cobra que todo consumidor — módulos, ocultação, sessão, garantia, plano, fila e CI — fique
-> coerente com `references/install-stack.json`. Cada checagem `RC1…RC9` tem caso de quebra em
-> `tests/test_refactor_gate.sh` (16 PASS) e mutante próprio (M190–M192) em `mutation-catalog.json`:
-> se a lógica apodrecer, o mutante sobrevive e `make -s mutation` reprova. O CI `.github/workflows/proof.yml`
-> roda contrato → `make -s prove` → mutação em 8 shards → relatório único por PR.
+> coerente com `references/install-stack.json`, e que **todo script tenha mutante** (`RC10`).
+> Cada checagem `RC1…RC10` tem caso de quebra em `tests/test_refactor_gate.sh` (18 PASS).
+
+> **Validação não tem escape por padrão.** O escopo da mutação é o catálogo **inteiro**. Rodar
+> parte exige `--shard` (subconjunto declarado) e a cobertura do catálogo é cobrada no relatório:
+> `M[id]` sem execução, id fora do catálogo, id duplicado ou sobrevivente = vermelho. O ledger
+> `workspace/audit/mutation-latest.json` guarda **1 (morto) / 0 (não executado)** por `M[id]`,
+> com o produto — zerado a cada execução, para que "rodei em parte" nunca pareça "passei".
+> Ids são auto-incrementais (`--next-id`, `--write-ids`, `make -s mutacao-ids`).
+> O CI `.github/workflows/proof.yml` roda contrato → `make -s prove` → mutação em 8 fatias
+> (`granularity=item` faz 1 job por mutante) → relatório **item a item** no summary e no PR.
 
 Saída esperada de um workspace saudável:
 

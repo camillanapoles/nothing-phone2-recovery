@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # refactor_gate.py — "refatoração completa" só é verdade se o gate REPROVAR quando um consumidor
-# fica para trás. 16 casos: 4 de sanidade/CLI + 10 falsificações (RC1…RC9 + variante de RC2) + 2 de contrato.
+# fica para trás. 19 casos: 4 de sanidade/CLI + 12 falsificações (RC1…RC10) + CLI de execução parcial.
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
@@ -21,10 +21,10 @@ copiar(){
 
 # ---------------------------------------------------------------- 0. sanidade
 out="$(cd "$ROOT" && python3 "$K" --root . 2>&1)"; rc=$?
-ck "repo real: gate passa 9/9" "0" "$rc"
+ck "repo real: gate passa 10/10" "0" "$rc"
 case "$out" in
-  *"9/9"*) ok "repo real imprime 9/9" "9/9" ;;
-  *) bad "repo real imprime 9/9" "$(printf '%s' "$out" | tail -1)" ;;
+  *"10/10"*) ok "repo real imprime 10/10" "10/10" ;;
+  *) bad "repo real imprime 10/10" "$(printf '%s' "$out" | tail -1)" ;;
 esac
 
 # ---------------------------------------------------------------- 1. CLI
@@ -131,6 +131,25 @@ falsificar RC7_ci_de_prova "RC7: CI de prova desaparece" 'rm -f .github/workflow
 falsificar RC8_merge_com_aprovacao "RC8: regra de merge com aprovação removida" '
 sed -i "/gh pr merge/d; /Merge de PR só com aprovação/d; /aprovação explícita da usuária/d" AGENTS.md
 sed -i "s/aprovação explícita//g; s/aprovacao explicita//g" AGENTS.md'
+
+falsificar RC10_mutacao_completa "RC10: script fica sem mutante (nunca é validado)" '
+python3 - <<"PY"
+import json
+p="skills/evox-rom-ci-optimizer/references/mutation-catalog.json"
+d=json.load(open(p,encoding="utf-8"))
+alvo="scripts/stack_gate.py"
+d["mutants"]=[m for m in d["mutants"] if m["file"]!=alvo]
+json.dump(d,open(p,"w",encoding="utf-8"),indent=1,ensure_ascii=False)
+PY'
+
+falsificar RC10_mutacao_completa "RC10: id duplicado/lacuna no catálogo" '
+python3 - <<"PY"
+import json
+p="skills/evox-rom-ci-optimizer/references/mutation-catalog.json"
+d=json.load(open(p,encoding="utf-8"))
+d["mutants"][1]["id"]=d["mutants"][0]["id"]
+json.dump(d,open(p,"w",encoding="utf-8"),indent=1,ensure_ascii=False)
+PY'
 
 falsificar RC9_ledger_duravel "RC9: ledger aponta decisão para arquivo não versionado" '
 sed -i "s#references/decisions.json#workspace/decision.json#g" skills/evox-rom-ci-optimizer/scripts/debt_ledger.py'

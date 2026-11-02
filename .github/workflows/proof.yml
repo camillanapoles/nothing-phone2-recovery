@@ -1,12 +1,20 @@
 name: Proof
 
-# A prova não depende de alguém lembrar: contrato primeiro (falha em 1 s), prova determinística
-# depois (make -s prove), mutação fatiada em 8 shards e um relatório único por PR.
+# Prova sem escape: contrato primeiro (falha em segundos), suíte inteira depois, mutação em
+# fatias e um relatório que REPROVA se algum M[id] do catálogo não tiver sido executado.
+# Por padrão valida TUDO (todos os mutantes). granularity=item roda um job por mutante
+# (175 jobs ≈ 55 runner-min); o padrão (shard) faz o mesmo em ~12 runner-min.
 on:
   pull_request:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      granularity:
+        description: "shard = 8 jobs (~12 runner-min) · item = 1 job por M[id] (~55 runner-min)"
+        type: choice
+        options: [shard, item]
+        default: shard
 
 permissions:
   contents: read
@@ -31,8 +39,10 @@ jobs:
           python-version: "3.11"
       - name: Gate do contrato (install-stack × consumidores)
         run: make -s stack
-      - name: Coerência da refatoração (9/9)
+      - name: Coerência da refatoração (10/10)
         run: make -s refactor
+      - name: Catálogo de mutação fechado (ids únicos, sem lacuna)
+        run: make -s mutacao-verifica
       - name: Escopo, plano e continuidade
         run: |
           make -s escopo
@@ -53,51 +63,60 @@ jobs:
         run: make -s prove
 
   plano:
-    name: Plano da mutação (shards)
+    name: Plano da mutação (todos os M[id])
     needs: contrato
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      shards: ${{ steps.split.outputs.shards }}
+      slots: ${{ steps.split.outputs.slots }}
+      total: ${{ steps.split.outputs.total }}
     steps:
       - uses: actions/checkout@v4
       - id: split
-        name: Fatiar o catálogo em SHARDS fatias
+        name: Fatiar o catálogo (nenhum id pode ficar de fora)
+        env:
+          SHARDS: "8"
+          GRANULARITY: ${{ github.event.inputs.granularity || 'shard' }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os, sys
-          cat = json.load(open("skills/evox-rom-ci-optimizer/references/mutation-catalog.json",
-                              encoding="utf-8"))
+          SK = "skills/evox-rom-ci-optimizer"
+          cat = json.load(open(f"{SK}/references/mutation-catalog.json", encoding="utf-8"))
           ids = [m["id"] for m in cat["mutants"]]
-          n = int(os.environ.get("SHARDS", "8"))
-          fatias = [ids[i::n] for i in range(n)]
-          fatias = [f for f in fatias if f]
-          print("shards=" + json.dumps([{"shard": i, "ids": ",".join(f)}
-                                        for i, f in enumerate(fatias)]))
-          # só a linha shards vai para $GITHUB_OUTPUT: comentário aqui quebra o parser
-          print(f"{len(ids)} mutantes em {len(fatias)} shards", file=sys.stderr)
+          if len(ids) != len(set(ids)):
+              print("::error::catálogo com ids duplicados", file=sys.stderr)
+              sys.exit(1)
+          if os.environ.get("GRANULARITY") == "item":
+              slots = [{"slot": i, "label": i, "ids": i} for i in ids]
+          else:
+              n = int(os.environ.get("SHARDS", "8"))
+              fatias = [f for f in (ids[i::n] for i in range(n)) if f]
+              slots = [{"slot": f"s{k}", "label": f"shard {k}", "ids": ",".join(f)}
+                       for k, f in enumerate(fatias)]
+          # só a linha slots vai para $GITHUB_OUTPUT: comentário aqui quebra o parser
+          print("slots=" + json.dumps(slots))
+          print("total=" + str(len(ids)))
+          print(f"{len(ids)} mutantes em {len(slots)} slot(s)", file=sys.stderr)
           PY
-        env:
-          SHARDS: "8"
 
   mutacao:
-    name: Mutação (shard ${{ matrix.shard.shard }})
+    name: Mutação (${{ matrix.slot.label }})
     needs: plano
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
-        shard: ${{ fromJSON(needs.plano.outputs.shards) }}
+        slot: ${{ fromJSON(needs.plano.outputs.slots) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Rodar o shard
+      - name: Rodar o slot (id pedido fora do catálogo reprova aqui)
         run: |
           python3 skills/evox-rom-ci-optimizer/scripts/mutation_check.py --root . \
-            --only "${{ matrix.shard.ids }}" || true
+            --only "${{ matrix.slot.ids }}" --shard || true
       - name: Anotar sobrevivente/inválido/timeout (o log não é a prova)
         if: always()
         run: |
@@ -105,26 +124,26 @@ jobs:
           import json, os, sys
           p = "workspace/audit/mutation.json"
           if not os.path.exists(p):
-              print("::error::shard sem relatório de mutação")
+              print("::error::slot sem relatório de mutação")
               sys.exit(1)
           d = json.load(open(p, encoding="utf-8"))
           ruins = [r for r in d.get("results") or []
                    if r.get("status") in ("survived", "invalid", "timeout")]
           for r in ruins:
               print(f"::error file={r.get('file')}::" + r.get("id") + " " + r.get("status"))
-          print(f"{d.get('killed')}/{d.get('total')} mortos neste shard")
+          print(f"{d.get('killed')}/{d.get('total')} mortos neste slot")
           sys.exit(1 if ruins else 0)
           PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: mutation-${{ matrix.shard.shard }}
+          name: mutation-${{ matrix.slot.slot }}
           path: workspace/audit/mutation.json
           if-no-files-found: warn
 
   relatorio:
-    name: Relatório de mutação
-    needs: mutacao
+    name: Relatório item a item (reprova cobertura incompleta)
+    needs: [plano, mutacao]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -133,28 +152,96 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           pattern: mutation-*
-          path: shards
-      - name: Consolidar e reprovar sobrevivente
+          path: slots
+      - name: Consolidar, exigir TODOS os M[id] e publicar tabela
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 - <<'PY'
-          import glob, json, os, sys
-          arqs = sorted(glob.glob("shards/*/mutation.json"))
+          import glob, json, os, sys, urllib.request
+
+          SK = "skills/evox-rom-ci-optimizer"
+          cat = json.load(open(f"{SK}/references/mutation-catalog.json", encoding="utf-8"))
+          catalogo = [m["id"] for m in cat["mutants"]]
+          arquivo = {m["id"]: m["file"] for m in cat["mutants"]}
+
+          arqs = sorted(glob.glob("slots/*/mutation.json"))
           if not arqs:
-              print("::error file=skills/evox-rom-ci-optimizer/references/mutation-catalog.json::"
-                    "nenhum shard produziu relatório")
+              print("::error::nenhum slot produziu relatório de mutação")
               sys.exit(1)
-          res, ruins = [], []
+
+          resultados, ruins, vistos = [], [], {}
           for a in arqs:
               d = json.load(open(a, encoding="utf-8"))
-              res += d.get("results") or []
-              ruins += [r for r in d.get("results") or []
-                        if r.get("status") in ("survived", "invalid", "timeout")]
-          os.makedirs("workspace", exist_ok=True)
-          json.dump({"schema": "evox-mutation-report/2", "shards": len(arqs),
-                     "total": len(res), "results": res},
-                    open("workspace/mutation-merged.json", "w", encoding="utf-8"), indent=1)
+              for r in d.get("results") or []:
+                  resultados.append(r)
+                  vistos[r["id"]] = vistos.get(r["id"], 0) + 1
+                  if r.get("status") in ("survived", "invalid", "timeout"):
+                      ruins.append(r)
+
+          faltando = [i for i in catalogo if i not in vistos]
+          duplicados = sorted(i for i, n in vistos.items() if n > 1)
+          estranhos = sorted(i for i in vistos if i not in catalogo)
+
+          tabela = ["| M[id] | arquivo | status |", "|---|---|---|"]
+          for r in sorted(resultados, key=lambda r: r["id"]):
+              icone = {"killed": "✅", "survived": "❌", "invalid": "⚠️", "timeout": "⏱️"}
+              tabela.append(f"| `{r['id']}` | `{r.get('file', '')}` | "
+                            f"{icone.get(r.get('status'), '?')} {r.get('status')} |")
+          corpo = ("### Prova de mutação\n\n"
+                   f"- catálogo: **{len(catalogo)}** mutantes\n"
+                   f"- executados: **{len(resultados)}**\n"
+                   f"- mortos por asserção: **{sum(1 for r in resultados if r['status'] == 'killed')}**\n"
+                   f"- cobertura: **{'COMPLETA' if not faltando and not duplicados else 'INCOMPLETA'}**\n\n"
+                   + "\n".join(tabela) + "\n")
+
+          resumo = os.environ.get("GITHUB_STEP_SUMMARY")
+          if resumo:
+              open(resumo, "a", encoding="utf-8").write(corpo)
+
+          # comentário idempotente no PR (marcador fixo)
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+          pr = os.environ.get("PR_NUMBER", "")
+          token = os.environ.get("GITHUB_TOKEN", "")
+          if repo and pr and token:
+              api = f"https://api.github.com/repos/{repo}/issues/{pr}/comments"
+              pedido = urllib.request.Request(
+                  api, headers={"Authorization": f"Bearer {token}",
+                                "Accept": "application/vnd.github+json"})
+              marca = "<!-- proof-report -->"
+              existente = None
+              try:
+                  for c in json.load(urllib.request.urlopen(pedido, timeout=20)):
+                      if marca in (c.get("body") or ""):
+                          existente = c["id"]
+                          break
+              except Exception as exc:  # rede/API não pode mascarar a prova
+                  print(f"::warning::não foi possível ler comentários: {exc}")
+              dado = json.dumps({"body": marca + "\n" + corpo}).encode()
+              alvo = f"{api}/{existente}" if existente else api
+              metodo = "PATCH" if existente else "POST"
+              try:
+                  urllib.request.urlopen(urllib.request.Request(
+                      alvo, data=dado, method=metodo,
+                      headers={"Authorization": f"Bearer {token}",
+                               "Accept": "application/vnd.github+json",
+                               "Content-Type": "application/json"}), timeout=20)
+              except Exception as exc:
+                  print(f"::warning::comentário não atualizado: {exc}")
+
           for r in ruins:
               print(f"::error file={r.get('file')}::" + r.get("id") + " " + r.get("status"))
-          print(f"{len(res) - len(ruins)}/{len(res)} mortos em {len(arqs)} shards")
-          sys.exit(1 if ruins else 0)
+          if faltando:
+              print("::error file=" + f"{SK}/references/mutation-catalog.json::"
+                    + "mutantes NÃO executados (fuga de validação): " + ", ".join(faltando))
+          if duplicados:
+              print("::error::mutantes executados mais de uma vez: " + ", ".join(duplicados))
+          if estranhos:
+              print("::error::ids fora do catálogo: " + ", ".join(estranhos))
+
+          print(f"{len(resultados)} executados · {len(faltando)} faltando · "
+                f"{len(ruins)} com defeito · catálogo {len(catalogo)}")
+          ok = not faltando and not duplicados and not estranhos and not ruins
+          sys.exit(0 if ok else 1)
           PY
