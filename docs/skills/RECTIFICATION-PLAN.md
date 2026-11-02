@@ -121,6 +121,25 @@ virou topologia KSU-Next (`susfs`, `ksu-app-profile`, `zygisk-next`, `nohello`) 
 `apatch-native`/`zygisk-assistant`; o template de sessão emite os 20 ids do contrato em vez de
 `M01…M15`; o plano ganhou `E13`; e o CI de prova existe.
 
+## 6. Escopo fechado — "não rodei" nunca vira "passei" (2026-11-02)
+
+O harness tinha uma fuga silenciosa: `--only` com id **inexistente** devolvia `exit 0`
+("0 de 0 executados"). Foi o que mascarou `M186–M188` ficarem de fora de uma rodada.
+
+| Regra | Como é cobrada |
+|---|---|
+| id pedido fora do catálogo | `exit 4` + lista dos ids inválidos |
+| seleção vazia | `exit 4` |
+| rodar parte sem `--shard` | `exit 3` (incompleto) |
+| cobertura por `M[id]` | `workspace/audit/mutation-latest.json`: `value` 1 (morto) / 0 (não executado), reescrito do zero a cada execução |
+| produto da cobertura | `product = 1` só com todos mortos; `missing` lista os ausentes |
+| relatório do CI | reprova se faltar id, sobrar id, duplicar id ou houver sobrevivente |
+| numeração | fechada (`ativo ∪ retired` = `M01..M195`, sem lacuna) — `M158` foi registrado como aposentado ao fechar a lacuna |
+| ids novos | auto-incremento: entrada sem `id` recebe o próximo livre; `--write-ids` grava; `--next-id` mostra |
+
+`RC10_mutacao_completa` (gate de refatoração) cobra que **todo script** de `scripts/` e
+`skills/*/scripts/` tenha mutante com teste existente — script novo sem mutante = falha.
+
 **Falseabilidade (o teste viável):** `tests/test_refactor_gate.sh` — 16 PASS, sendo 10 falsificações
 (uma por checagem + a variante "módulo perde o token"), mais 3 mutantes `M190–M192` que só morrem se
 esses casos continuarem reprovando. Rodar: `make -s refactor` (9/9) e `make -s mutation`.

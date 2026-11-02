@@ -83,6 +83,12 @@ audit-loop:
 mutation:
 	@python3 skills/evox-rom-ci-optimizer/scripts/mutation_check.py --root .
 
+mutacao-verifica:
+	@python3 skills/evox-rom-ci-optimizer/scripts/mutation_check.py --root . --verify
+
+mutacao-ids:
+	@python3 skills/evox-rom-ci-optimizer/scripts/mutation_check.py --root . --write-ids
+
 vacuity:
 	@python3 skills/evox-rom-ci-optimizer/scripts/test_vacuity_scan.py --root .
 

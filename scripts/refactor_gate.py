@@ -15,6 +15,7 @@ Exit: 0 tudo coerente · 1 consumidor divergente · 3 contrato ausente (PENDENTE
 from __future__ import annotations
 
 import argparse
+import glob
 import json
 import os
 import re
@@ -193,6 +194,42 @@ def g9_ledger_duravel(root, stack, ctx):
     return []
 
 
+def rc10_mutacao_completa(root, stack, ctx):
+    """Por padrão TUDO é validado: catálogo fechado, todo script com mutante e teste existente."""
+    rel_cat = f"{SK}/references/mutation-catalog.json"
+    try:
+        cat = json.load(open(os.path.join(root, rel_cat), encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return [f"{rel_cat}: ausente ou inválido ({exc})"]
+    p = []
+    ids = [m.get("id") or "" for m in cat.get("mutants") or []]
+    dif = sorted({i for i in ids if ids.count(i) > 1})
+    if dif:
+        p.append("ids duplicados: " + ", ".join(dif[:5]))
+    fora = [i for i in ids if not re.match(r"^M\d{2,4}$", i)]
+    if fora:
+        p.append("ids fora do padrão M###: " + ", ".join(fora[:5]))
+    todos = ids + list(cat.get("retired") or [])
+    nums = sorted({int(i[1:]) for i in todos if re.match(r"^M\d+$", i)})
+    lacunas = [n for n in range(1, (nums[-1] if nums else 0) + 1) if n not in nums]
+    if lacunas:
+        p.append("numeração com lacuna (buraco não registrado): "
+                 + ", ".join(f"M{n}" for n in lacunas[:5]))
+    cobertos = {m.get("file") for m in cat.get("mutants") or []}
+    for d in ("scripts", f"{SK}/scripts"):
+        for f in sorted(glob.glob(os.path.join(root, d, "*"))):
+            if not os.path.isfile(f) or f.endswith((".md", ".json", ".yml", ".yaml")):
+                continue
+            rel = os.path.relpath(f, root)
+            if rel not in cobertos:
+                p.append(f"{rel}: nenhum mutante — o script nunca é validado por mutação")
+    for m in cat.get("mutants") or []:
+        t = m.get("test") or ""
+        if not t or not os.path.isfile(os.path.join(root, t)):
+            p.append(f"{m.get('id')}: teste ausente ({t or 'sem test'})")
+    return p
+
+
 CHECKS = [
     ("RC1_vetados_em_consumidores", g1_vetados_em_consumidores),
     ("RC2_integridade_provada", g2_integridade_provada),
@@ -203,6 +240,7 @@ CHECKS = [
     ("RC7_ci_de_prova", g7_ci_de_prova),
     ("RC8_merge_com_aprovacao", g8_merge_com_aprovacao),
     ("RC9_ledger_duravel", g9_ledger_duravel),
+    ("RC10_mutacao_completa", rc10_mutacao_completa),
 ]
 
 

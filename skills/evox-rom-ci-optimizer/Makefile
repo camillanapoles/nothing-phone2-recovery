@@ -144,6 +144,12 @@ test-gates:
 mutation:
 	@python3 scripts/mutation_check.py --root ../..
 
+mutacao-verifica:
+	@python3 scripts/mutation_check.py --root ../.. --verify
+
+mutacao-ids:
+	@python3 scripts/mutation_check.py --root ../.. --write-ids
+
 vacuity:
 	@python3 scripts/test_vacuity_scan.py --root ../..
 

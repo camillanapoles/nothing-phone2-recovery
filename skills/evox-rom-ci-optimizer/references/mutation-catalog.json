@@ -1561,8 +1561,7 @@
    "test": "skills/evox-rom-ci-optimizer/tests/test_stack_gate.sh",
    "strength": "semantic",
    "rationale": "registro de decisão deixa de ser conferido: o contrato e a decisão podem divergir e o gate diz OK"
-  }
-,
+  },
   {
    "id": "M190",
    "file": "scripts/refactor_gate.py",
@@ -1589,6 +1588,33 @@
    "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
    "strength": "semantic",
    "rationale": "plano de fechamento deixa de cobrar o gate do contrato"
+  },
+  {
+   "file": "skills/evox-rom-ci-optimizer/scripts/mutation_check.py",
+   "find": "    if fora:",
+   "replace": "    if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_mutation_check.sh",
+   "strength": "semantic",
+   "rationale": "id pedido que não existe no catálogo voltaria a sair 0 — foi o que mascarou M186-M188",
+   "id": "M193"
+  },
+  {
+   "file": "skills/evox-rom-ci-optimizer/scripts/mutation_check.py",
+   "find": "    if not cov[\"executed_all\"] and not parcial_ok:",
+   "replace": "    if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_mutation_check.sh",
+   "strength": "semantic",
+   "rationale": "rodar 1 de N sem --shard passaria como sucesso (fuga de validação por padrão)",
+   "id": "M194"
+  },
+  {
+   "file": "skills/evox-rom-ci-optimizer/scripts/mutation_check.py",
+   "find": "                            \"value\": 1 if (r and r[\"status\"] == \"killed\") else 0,",
+   "replace": "                            \"value\": 1,",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_mutation_check.sh",
+   "strength": "semantic",
+   "rationale": "ledger diria 100% de cobertura mesmo com mutante não executado",
+   "id": "M195"
   }
  ],
  "retired": [
@@ -1610,6 +1636,8 @@
   "M131",
   "M132",
   "M133",
-  "M134"
- ]
+  "M134",
+  "M158"
+ ],
+ "retired_note": "IDs aposentados (mutante removido/reescrito). A numeração é FECHADA: ativo ∪ aposentado cobre M01..M<max> sem lacuna — lacuna = buraco de validação não registrado. M158 entrou aqui em 2026-11-02: nunca constava como ativo nem como aposentado."
 }
