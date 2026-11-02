@@ -81,7 +81,7 @@ jobs:
           SHARDS: "8"
 
   mutacao:
-    name: Mutação (shard ${{ matrix.shard }})
+    name: Mutação (shard ${{ matrix.shard.shard }})
     needs: plano
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -97,7 +97,24 @@ jobs:
       - name: Rodar o shard
         run: |
           python3 skills/evox-rom-ci-optimizer/scripts/mutation_check.py --root . \
-            --only "${{ matrix.shard.ids }}" || echo "shard com sobrevivente (relatório decide)"
+            --only "${{ matrix.shard.ids }}" || true
+      - name: Anotar sobrevivente/inválido/timeout (o log não é a prova)
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, os, sys
+          p = "workspace/audit/mutation.json"
+          if not os.path.exists(p):
+              print("::error::shard sem relatório de mutação")
+              sys.exit(1)
+          d = json.load(open(p, encoding="utf-8"))
+          ruins = [r for r in d.get("results") or []
+                   if r.get("status") in ("survived", "invalid", "timeout")]
+          for r in ruins:
+              print(f"::error file={r.get('file')}::" + r.get("id") + " " + r.get("status"))
+          print(f"{d.get('killed')}/{d.get('total')} mortos neste shard")
+          sys.exit(1 if ruins else 0)
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -137,7 +154,7 @@ jobs:
                      "total": len(res), "results": res},
                     open("workspace/mutation-merged.json", "w", encoding="utf-8"), indent=1)
           for r in ruins:
-              print(f"::error file={r.get('file')}::{r.get('id')} {r.get('status')}")
+              print(f"::error file={r.get('file')}::" + r.get("id") + " " + r.get("status"))
           print(f"{len(res) - len(ruins)}/{len(res)} mortos em {len(arqs)} shards")
           sys.exit(1 if ruins else 0)
           PY
