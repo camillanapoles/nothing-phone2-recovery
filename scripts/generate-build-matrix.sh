@@ -87,7 +87,9 @@ EOF
 
 # Output
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
-  echo "matrix=${ENTRY}" >> "${GITHUB_OUTPUT}"
+  # file command do runner aceita UMA linha por saída: JSON compacto, sem quebras
+  # (JSON multilinha aqui vira "Invalid format" e o step falha)
+  echo "matrix=$(printf '%s' "${ENTRY}" | tr -d '\n')" >> "${GITHUB_OUTPUT}"
 else
   echo "${ENTRY}"
 fi

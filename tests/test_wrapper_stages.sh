@@ -59,7 +59,7 @@ ck "Cuttlefish sem boot.img recusa" "exit" "$rc" "1"
 has "recusa cita boot image" "No boot image" "$(cat "$T/c2")" "No boot image"
 
 # ---- wrappers de build: recusas puras (sem toolchain) ------------------------
-( TOOLCHAIN=nao-existe bash "$ROOT/scripts/generate-build-matrix.sh" >"$T/g1" 2>&1 ); rc=$?
+( GITHUB_OUTPUT="" TOOLCHAIN=nao-existe bash "$ROOT/scripts/generate-build-matrix.sh" >"$T/g1" 2>&1 ); rc=$?
 ck "matriz recusa toolchain desconhecida" "exit" "$rc" "1"
 has "matriz aponta o toolchain inválido" "Unsupported toolchain" "$(cat "$T/g1")" "Unsupported toolchain"
 mkdir -p "$T/kdir"
@@ -132,6 +132,9 @@ ck "label da matriz identifica manager/kernel/toolchain/lto" \
   "$(python3 -c 'import json,re,sys;t=open(sys.argv[1]).read();print(json.loads(re.search(r"matrix=(\{.*\})",t,re.S).group(1))["label"])' "$T/matrix.out")" \
   "apatch-prebuilt-evolutionx-llvm-22.1.8-ltofull"
 ck "matriz registra o LTO escolhido" "ltofull" "$(grep -o 'lto[a-z]*' "$T/matrix.out" | head -1)" "ltofull"
+( GITHUB_OUTPUT="$T/matrix.1l" TOOLCHAIN=llvm-22.1.8 LTO=full bash "$ROOT/scripts/generate-build-matrix.sh" >/dev/null 2>&1 )
+ck "file command do runner recebe UMA linha (JSON compacto)" "uma linha" \
+  "$(wc -l < "$T/matrix.1l" | tr -d ' ')" "1"
 ( GITHUB_ENV="$T/env.out" KERNEL_SOURCE=lineage-pong bash "$ROOT/scripts/resolve-kernel-source.sh" >/dev/null 2>&1 )
 ck "resolução exporta a ref do kernel" "lineage-23.2" \
   "$(grep -m1 '^SOURCE_REF=' "$T/env.out" | cut -d= -f2)" "lineage-23.2"
