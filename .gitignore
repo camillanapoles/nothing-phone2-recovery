@@ -102,3 +102,6 @@ workspace/evox.env.tmp
 # ---- Artefatos de auditoria gerados (não versionar) ----
 work/
 workspace/
+
+# rascunho de execução (nunca versionado: não é código, não é artefato)
+/.tmp_*
