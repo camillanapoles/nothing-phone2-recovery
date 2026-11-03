@@ -284,6 +284,38 @@ def rc11_nada_duravel_no_workspace(root, stack, ctx):
     return p
 
 
+def rc13_residuo_vetado(root, stack, ctx):
+    """Artefato antigo que manda instalar módulo VETADO tem de estar carimbado como histórico.
+
+    O contrato diz o que não entra (`forbidden`). Um pacote de build de 31/10 continuava, vivo e sem
+    carimbo, mandando instalar dois deles. Sem este gate, o resíduo volta a competir com a fila.
+    """
+    p = []
+    aliases = {
+        "shamiko": ("shamiko",), "zygisk-assistant": ("zygisk assistant", "zygisk-assistant"),
+        "yurikey": ("yurikey", "yuri key"), "integrity-box": ("integrity box", "integrity-box"),
+        "tricky-store": ("trickystore", "tricky store", "tricky-store"),
+        "mindthegapps": ("mindthegapps", "mind the gapps"), "microg": ("microg",),
+        "chrome": ("chrome",), "velvet": ("velvet",), "wellbeing": ("wellbeing",),
+    }
+    vetados = ids_vetados(stack)
+    for f in sorted(glob.glob(os.path.join(root, "ci-build-full", "**", "*"), recursive=True)):
+        if not os.path.isfile(f) or os.path.splitext(f)[1] not in (".md", ".txt", ".json", ".yml", ".yaml", ".sh"):
+            continue
+        rel = os.path.relpath(f, root)
+        txt = ler(root, rel).lower()
+        if not txt:
+            continue
+        if "histórico" in txt[:800] or "historico" in txt[:800]:
+            continue
+        for v in sorted(vetados):
+            for forma in aliases.get(v, (v,)):
+                if forma in txt:
+                    p.append(f"{rel}: cita módulo vetado {v!r} sem carimbo de histórico")
+                    break
+    return p
+
+
 CHECKS = [
     ("RC1_vetados_em_consumidores", g1_vetados_em_consumidores),
     ("RC2_integridade_provada", g2_integridade_provada),
@@ -296,6 +328,7 @@ CHECKS = [
     ("RC9_ledger_duravel", g9_ledger_duravel),
     ("RC10_mutacao_completa", rc10_mutacao_completa),
     ("RC11_nada_duravel_no_workspace", rc11_nada_duravel_no_workspace),
+    ("RC12_residuo_vetado", rc13_residuo_vetado),
 ]
 
 

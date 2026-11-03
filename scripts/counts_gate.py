@@ -39,6 +39,9 @@ WORKFLOWS = ".github/workflows/*.yml"
 RAIZ_MD = ["AGENTS.md", "README.md", "agente.md"]
 DOCS = "docs/**/*.md"
 MARCA_HISTORICO = "contagens: histórico"
+# Doc congelado tem de dizer A QUE ESTADO ele se refere: commit + data. Sem isso, "histórico" vira
+# porta de saída silenciosa e o número velho continua lendo como verdade atual.
+CONGELADO_RX = re.compile(r"congelado em:\s*([0-9a-f]{7,40})\s*\((\d{4}-\d{2}-\d{2})\)")
 
 
 def ler(root: str, rel: str) -> str:
@@ -134,11 +137,19 @@ def arquivos(root: str) -> list[str]:
 
 def confere_arquivo(root: str, rel: str, t: dict) -> list[str]:
     txt = ler(root, rel)
-    if not txt or MARCA_HISTORICO in txt[:400]:
+    if not txt:
+        return []
+    if MARCA_HISTORICO in txt[:400]:
+        if not CONGELADO_RX.search(txt[:600]):
+            return [f"{rel}: declara histórico sem carimbo — falta "
+                    f"'<!-- congelado em: <commit> (AAAA-MM-DD) -->' no topo"]
         return []
     probs = []
     for linha_n, linha in enumerate(txt.splitlines(), 1):
         if MARCA_HISTORICO in linha:  # afirmação histórica declarada na própria linha
+            if not CONGELADO_RX.search(linha):
+                probs.append(f"{rel}:{linha_n} histórico sem carimbo na linha — falta "
+                             f"'congelado em: <commit> (AAAA-MM-DD)'")
             continue
         for nome, rx, grupos, esperado_de in PADROES:
             for m in rx.finditer(linha):

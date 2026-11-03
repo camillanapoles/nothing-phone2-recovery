@@ -70,7 +70,7 @@ bash skills/evox-rom-ci-optimizer/tests/test_droidspaces_preflight.sh   # 26/26
 
 ## 5. Falsificação (o teste prova que sabe reprovar)
 
-9 mutantes novos, todos mortos por asserção <!-- contagens: histórico -->:
+9 mutantes novos, todos mortos por asserção <!-- contagens: histórico · congelado em: 78fb0a5 (2026-11-02) -->:
 
 | Mutante | Mutação | Quem mata |
 |---|---|---|

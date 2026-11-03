@@ -47,6 +47,12 @@ garantia:
 fragmento:
 	@python3 scripts/kernel-fragment.py --root . --check
 
+base:
+	@python3 scripts/base_gate.py --root .
+
+test-base:
+	@tests/test_base_gate.sh
+
 stack:
 	@python3 scripts/stack_gate.py --root .
 
@@ -100,5 +106,5 @@ skills:
 
 test: test-state
 
-prove: test-state test-wrappers arch skills refactor contagens
+prove: base test-base test-state test-wrappers arch skills refactor contagens
 	@echo "[workspace] tudo verde"

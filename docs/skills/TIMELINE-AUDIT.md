@@ -1,4 +1,4 @@
-<!-- contagens: histórico -->
+<!-- contagens: histórico · congelado em: d9dc14c (2026-11-02) — números deste documento valem para aquele commit -->
 # Auditoria de timeline: a conversa anexa × o repositório
 
 **Data da auditoria:** 2026-11-02

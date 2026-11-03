@@ -1,5 +1,7 @@
 # Sequência de execução ampla — do gate verde ao aparelho provado
 
+<!-- contagens: histórico · congelado em: 7df226e (2026-11-02) — números deste documento valem para aquele commit -->
+
 **Premissa:** cada passo abaixo é **mudança + gate falseável + teste que quebra de propósito + mutante
 no catálogo**. Passo sem os três não entra. Nada é mesclado sem o seu ok.
 
@@ -90,9 +92,9 @@ F1 pode rodar em paralelo a qualquer coisa. **F10 é a única fase cara** (CI de
 | | |
 |---|---|
 | **Problema** | `ci-build-full/build-package/modules/install-list.txt` (último commit `4de39d5`, 31/10) manda instalar **TrickyStore** e **LSPosed**, os dois vetados no contrato. |
-| **Mudança** | (1) cabeçalho **HISTÓRICO — não executar**, com data e ponteiro para `install-stack.json`; (2) **RC13**: artefato não histórico que cite módulo vetado → FALHA. |
+| **Mudança** | (1) cabeçalho **HISTÓRICO — não executar**, com data e ponteiro para `install-stack.json`; (2) **RC12**: artefato não histórico que cite módulo vetado → FALHA. |
 | **Prova** | falsificação: remover o carimbo → **FALHA**; falsificação: citar `TrickyStore` num artefato vivo → **FALHA**; mutantes **M204**/**M205**. |
-| **Aceite** | todas as checagens de coerência verdes, **incluindo o RC13 novo**; mutantes mortos. |
+| **Aceite** | todas as checagens de coerência verdes, **incluindo o RC12 novo**; mutantes mortos. |
 | **Custo / risco** | baixo. |
 
 ## F7 — PR **#17** (ledger de prova durável no FSM)  *— precisa do seu ok*

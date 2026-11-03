@@ -1651,6 +1651,60 @@
    "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
    "strength": "semantic",
    "rationale": "caminho novo do workspace entra sem classificacao no artifact-paths.json"
+  },
+  {
+   "id": "M200",
+   "file": "scripts/base_gate.py",
+   "find": "    if not contem:",
+   "replace": "    if False:",
+   "test": "tests/test_base_gate.sh",
+   "strength": "semantic",
+   "rationale": "branch atras de main deixa de reprovar: o PR-reversao (ja 4x) passa a ser invisivel"
+  },
+  {
+   "id": "M201",
+   "file": "scripts/counts_gate.py",
+   "find": "        if not CONGELADO_RX.search(txt[:600]):",
+   "replace": "        if False:",
+   "test": "tests/test_counts_gate.sh",
+   "strength": "semantic",
+   "rationale": "doc congela sem dizer a que commit se refere: numero velho volta a passar por verdade atual"
+  },
+  {
+   "id": "M202",
+   "file": "scripts/base_gate.py",
+   "find": "    if rc == 0 and raso == \"true\":",
+   "replace": "    if False:",
+   "test": "tests/test_base_gate.sh",
+   "strength": "semantic",
+   "rationale": "clone raso deixa de ser PENDENTE e o git enxertado 'prova' ancestralidade mentindo"
+  },
+  {
+   "id": "M203",
+   "file": "scripts/counts_gate.py",
+   "find": "            if not CONGELADO_RX.search(linha):",
+   "replace": "            if False:",
+   "test": "tests/test_counts_gate.sh",
+   "strength": "semantic",
+   "rationale": "afirmacao historica na propria linha escapa sem dizer a que commit se refere"
+  },
+  {
+   "id": "M204",
+   "file": "scripts/refactor_gate.py",
+   "find": "        if \"histórico\" in txt[:800] or \"historico\" in txt[:800]:",
+   "replace": "        if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
+   "strength": "semantic",
+   "rationale": "carimbo de artefato historico deixa de valer: residuo vetado passa por fila viva"
+  },
+  {
+   "id": "M205",
+   "file": "scripts/refactor_gate.py",
+   "find": "                if forma in txt:",
+   "replace": "                if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
+   "strength": "semantic",
+   "rationale": "varredura de modulo vetado em artefato antigo nao acha nada"
   }
  ],
  "retired": [
