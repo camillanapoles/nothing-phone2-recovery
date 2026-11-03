@@ -1,5 +1,7 @@
 # Auditoria das afirmações — uma a uma, com evidência
 
+<!-- contagens: histórico — relatório datado (árvore `7df226e`): números medidos naquele commit, não no de hoje -->
+
 **Data:** 2026-11-02 · **Árvore de referência:** `7df226e` (= `main`, merge do PR #18) · **Branch:** `arena/18ca102d-nothing-phone2-recovery`
 
 Este documento não opina: ele pega **cada afirmação feita nas mensagens anteriores**, roda o comando

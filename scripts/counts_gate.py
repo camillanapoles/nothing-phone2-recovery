@@ -121,6 +121,62 @@ PADROES = [
 ]
 
 
+# ── Famílias: quando a LINHA fala de X, todo par N/N dela tem de ser o X derivado ──
+#
+# Motivo (achado na auditoria do merge): os padrões acima exigem o número COLADO na palavra
+# ("177/177 mortos"). Uma célula de tabela ("| Mutações mortas | 177/177 |") ou uma frase
+# ("cobriu 179/179") passava verde com o catálogo já em outro tamanho. Aqui a palavra-chave
+# vale para a linha inteira, então a forma não escapa.
+FAMILIAS = [
+    ("mutação", re.compile(r"(?i)mu[dt]a[çc]|mutantes?\b|mortos?\b"),
+     lambda t: f"{t['mutantes']}/{t['mutantes']}"),
+    ("refatoração", re.compile(r"(?i)coer[êe]ncias?\b|refactor\b"),
+     lambda t: f"{t['coer']}/{t['coer']}"),
+    ("contrato", re.compile(r"(?i)invariantes?\b"), lambda t: f"{t['invariantes']}/{t['invariantes']}"),
+]
+PAR_NA_LINHA = re.compile(r"(?<![\d/])(\d{1,4})\s*/\s*(\d{1,4})(?![\d/])")
+
+
+# Distância máxima (em caracteres) entre a palavra-chave e o par N/N para eles se relacionarem.
+# Sem janela, uma linha que cita duas coisas ("stack 16/16, refactor 11/11") faria o par de uma
+# família ser cobrado contra o valor da outra — falso positivo.
+JANELA = 60
+
+
+def confere_familia(rel: str, linha_n: int, linha: str, t: dict) -> list[str]:
+    """Par N/N perto de uma palavra de família tem de ser o N derivado DAQUELA família.
+
+    Associação por proximidade: cada par é cobrado contra a palavra-chave mais próxima dele
+    (até `JANELA` caracteres). Assim "mutação 179/179 · refactor 11/11" julga cada par contra
+    a sua própria família, em vez de aplicar a primeira que casar na linha.
+    """
+    marcas = []
+    for nome, gatilho, esperado_de in FAMILIAS:
+        for m in gatilho.finditer(linha):
+            marcas.append((m.start(), m.end(), nome, esperado_de(t)))
+    probs = []
+    for m in PAR_NA_LINHA.finditer(linha):
+        inicio = m.start()
+        candidatas = [
+            x for x in marcas
+            if (x[0] <= inicio <= x[1] + JANELA) or (x[1] <= inicio and inicio - x[1] <= JANELA)
+            or (0 <= x[0] - m.end() <= JANELA)
+        ]
+        if not candidatas:
+            continue
+        # a mais próxima do par decide (empate: a que vem antes, prosa natural)
+        _, _, nome, esperado = min(
+            candidatas, key=lambda x: (min(abs(inicio - x[1]), abs(x[0] - m.end())), x[0] > inicio)
+        )
+        escrito = f"{m.group(1)}/{m.group(2)}"
+        if escrito != esperado:
+            probs.append(
+                f"{rel}:{linha_n} par de {nome}: escrito {escrito!r}, derivado {esperado!r} "
+                f"(linha {linha.strip()[:70]!r})"
+            )
+    return probs
+
+
 def arquivos(root: str) -> list[str]:
     out = []
     for rel in RAIZ_MD:
@@ -169,10 +225,25 @@ def confere_escopo_do_ci(root: str) -> list[str]:
     return probs
 
 
+def confere_familias(root: str, t: dict) -> list[str]:
+    """CT3: aplica as famílias linha a linha (mesmas isenções do CT1)."""
+    probs = []
+    for rel in arquivos(root):
+        txt = ler(root, rel)
+        if not txt or MARCA_HISTORICO in txt[:400]:
+            continue
+        for linha_n, linha in enumerate(txt.splitlines(), 1):
+            if MARCA_HISTORICO in linha:
+                continue
+            probs += confere_familia(rel, linha_n, linha, t)
+    return probs
+
+
 CHECKS = [
     ("CT1_numeros_derivados", lambda root, t: [p for a in arquivos(root)
                                                for p in confere_arquivo(root, a, t)]),
     ("CT2_ci_sem_lista_de_ids", lambda root, t: confere_escopo_do_ci(root)),
+    ("CT3_par_na_linha_da_familia", lambda root, t: confere_familias(root, t)),
 ]
 
 

@@ -128,6 +128,6 @@ fastboot reboot
 ```
 
 ## Sources
-- Knowledge Base: zeroharcoderd/knowledge/
+- Knowledge Base: archive/zeroharcoderd/knowledge/
 - Configuration Map: config-map/apatch-evolutionx-droidspaces.md
 - Quick Reference: quick-reference.md

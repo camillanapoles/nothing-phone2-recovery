@@ -4,7 +4,8 @@
  "roots": {
   "durable": "skills/evox-rom-ci-optimizer/references",
   "cache": "${EVOX_CACHE:-$HOME/.cache/evox}",
-  "work": "workspace"
+  "work": "workspace",
+  "proof": "state/proof"
  },
  "durable": {
   "decision": "skills/evox-rom-ci-optimizer/references/decisions.json",
@@ -121,5 +122,11 @@
    "docs/skills/EXECUTION-SEQUENCE.md"
   ],
   "self": "skills/evox-rom-ci-optimizer/references/artifact-paths.json"
+ },
+ "note_paths": {},
+ "ledger_paths": {
+  "proof_db": "state/proof/fsm.db",
+  "why": "cobertura de mutação (S9): sobrevive à máquina, mas NÃO é workspace — workspace/ é efêmero por contrato (RC11) e o banco da sessão é apagado pelo state_reset; a prova tem caminho próprio, ignorado pelo git",
+  "class": "durable_per_machine"
  }
 }

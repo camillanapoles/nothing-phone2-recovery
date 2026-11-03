@@ -67,7 +67,8 @@ está **anterior**. É exatamente a confusão que a usuária pediu para evitar.
 | #15 | 11-02 16:21 → 16:45 | 2 | escopo fechado (`--only` inválido = exit 4), ledger por `M[id]`, **RC10**, auto-id, M193–M195 |
 | #16 | 11-02 16:59 → 17:23 | 1 | **`counts_gate.py`** (`make -s contagens`), M196–M197, CI com `shards` como input |
 | #17 | 11-02 18:25 → **aberto** | — | ledger de prova durável no FSM (`proof_run`/`proof_item`, `run_id`) — **não mesclado** |
-| #18 | 11-02 19:23 → **aberto** | 1 | esta auditoria (timeline) |
+| #18 | 11-02 19:23 → 20:05 | 1 | esta auditoria (timeline) — **mesclado em `7df226e`** |
+| #19 | 11-02 20:1x → 20:35 | 0 | `CLAIMS-AUDIT.md` + `EXECUTION-SEQUENCE.md` (relatórios datados) — **mesclado em `6481ff3`** |
 
 *(#1–#6 são de 2026-10-30, correções de CI/docs por Copilot — não tocam a arquitetura.)*
 
@@ -340,6 +341,6 @@ gh pr list --state all --json number,title,state,createdAt,mergedAt
 | **N6** — `install-list.txt` congelado em 10-31 | aberto | recomendação 5 |
 | **N4** — banner SUPERSEDIDO | registrado | nasceu no #12 (`4720006`); é história, não defeito |
 
-Efeito colateral positivo: `make -s mutation` com o catálogo inteiro passou a cobrir **179/179**
-mutantes (eram 177 antes do RC11) e as coerências do `refactor_gate` são **11/11** — os números
-acima são derivados do catálogo, não escritos à mão.
+Efeito colateral positivo: `make -s mutation` com o catálogo inteiro passou a cobrir **todo o
+catálogo** (qualquer sobrevivente reprova) e o `refactor_gate` passou a ter uma coerência a mais
+(RC11). Nenhum desses números é escrito à mão: `make -s contagens` deriva-os do catálogo e do gate.

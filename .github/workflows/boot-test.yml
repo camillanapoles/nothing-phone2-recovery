@@ -17,7 +17,7 @@ on:
       - '**/boot/**'
       - '**/*.img'
       - '**/modules/**'
-      - 'zeroharcoderd/knowledge/**'
+      - 'archive/zeroharcoderd/knowledge/**'
       - '.github/workflows/boot-test.yml'
   pull_request:
     branches: [main]
@@ -25,7 +25,7 @@ on:
       - '**/boot/**'
       - '**/*.img'
       - '**/modules/**'
-      - 'zeroharcoderd/knowledge/**'
+      - 'archive/zeroharcoderd/knowledge/**'
 
 env:
   ANDROID_VERSION: 16
@@ -128,7 +128,7 @@ jobs:
           from pathlib import Path
           import hashlib
 
-          kb = Path("zeroharcoderd/knowledge")
+          kb = Path("archive/zeroharcoderd/knowledge")
           check = Path("${{ env.WORK_DIR }}/checksums/modules.sha256")
 
           versions = {
@@ -163,7 +163,7 @@ jobs:
           python3 << 'PYEOF'
           from pathlib import Path
 
-          kb = Path("zeroharcoderd/knowledge")
+          kb = Path("archive/zeroharcoderd/knowledge")
           modules_file = Path("${{ env.WORK_DIR }}/modules/install-list.txt")
 
           modules = [
@@ -197,7 +197,7 @@ jobs:
           python3 << 'PYEOF'
           from pathlib import Path
 
-          kb = Path("zeroharcoderd/knowledge")
+          kb = Path("archive/zeroharcoderd/knowledge")
           readme = kb / "README.md"
           quickref = kb / "quick-reference.md"
           config_map = kb / "config-map" / "apatch-evolutionx-droidspaces.md"
@@ -341,7 +341,7 @@ jobs:
               "```",
               "",
               "## Sources",
-              "- Knowledge Base: zeroharcoderd/knowledge/",
+              "- Knowledge Base: archive/zeroharcoderd/knowledge/",
               "- Configuration Map: config-map/apatch-evolutionx-droidspaces.md",
               "- Quick Reference: quick-reference.md",
           ]
@@ -430,7 +430,7 @@ jobs:
           }
 
           # Validate each check against knowledge base
-          kb = Path("zeroharcoderd/knowledge")
+          kb = Path("archive/zeroharcoderd/knowledge")
 
           checks = [
               ("boot.img exists", "pass", "boot.img validated (not init_boot.img)"),
@@ -538,7 +538,7 @@ jobs:
           from pathlib import Path
           import sys
 
-          kb = Path("zeroharcoderd/knowledge")
+          kb = Path("archive/zeroharcoderd/knowledge")
           errors = []
 
           readme = (kb / "README.md").read_text()
@@ -636,7 +636,7 @@ jobs:
               "checks": []
           }
 
-          kb = Path("zeroharcoderd/knowledge")
+          kb = Path("archive/zeroharcoderd/knowledge")
 
           checks = [
               ("boot.img_exists", "pass", "boot.img validated (not init_boot.img)"),

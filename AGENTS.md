@@ -154,10 +154,10 @@ INIT → PROBE_DEVICE → CHECK_BOOTLOADER → CHECK_ROOT → CHECK_PARTITIONS
 
 | Item | Valor |
 |---|---|
-| Persistência | SQLite via SQLAlchemy async (`runs`, `probes`, `transitions`, `objectives`, `risks`) |
+| Persistência | SQLite via SQLAlchemy async (`runs`, `probes`, `transitions`, `objectives`, `risks`, `proof_runs`, `proof_items`) |
 | URL | `AUDIT_FSM_DB_URL` (default `sqlite+aiosqlite:///./audit-fsm.db`) |
 | API | `audit-fsm serve` (CRUD, objetivo → Run → Probe/Transition) |
-| CLI | `audit-fsm run` (auditoria) · `audit-fsm consult "…"` (consulta sobre dados gravados) |
+| CLI | `audit-fsm run` (auditoria) · `audit-fsm consult "…"` (consulta sobre dados gravados) · `audit-fsm proof-*` (ledger de prova, §4.5) |
 | Modelo | `AUDIT_MODEL_PROVIDER` / `AUDIT_MODEL` (default `test`, sem LLM) |
 
 ### 4.4 Regra do banco: **dado de sessão antiga não sobrevive**
@@ -175,6 +175,30 @@ scripts/state_reset.sh --apply    # limpa banco do FSM + quarentena de estado an
 - Prova: `bash tests/test_state_reset.sh` → **13 PASS / 0 FAIL**.
 
 ---
+### 4.5 Ledger de prova (S9): cobertura sobrevive à máquina
+
+A cobertura de mutação **não** é mais um JSON da máquina que rodou: ela é tabela do FSM
+(`proof_runs` + `proof_items`), criada pelo mesmo padrão do resto (metaclass → `FieldSpec` →
+`DomainFactory` → repository → rota → CLI), auditável por **`run_id`**.
+
+```bash
+make -s fsm-prova     # start → import → finalize sobre workspace/audit/mutation-latest.json
+make -s fsm-ledger    # histórico: execuções guardadas, com run_id
+```
+
+Ciclo por comando (o que o CI roda por shard): `proof-start` (inicial) → `proof-import --run-id`
+(shards em paralelo, idempotente) → `proof-finalize` (final) → `proof-verify` (auditoria).
+
+- Exit **0** = cobertura completa e coerente · **3** = incompleta (fuga de validação) ·
+  **1** = divergência (a run declara mais do que as linhas sustentam).
+- Ids são `uuid5` de `source_hash:target` / `run_id:item_id`: reimportar não duplica e uma origem
+  editada muda a identidade da execução.
+- O banco da prova é **separado do banco de sessão**: fica em `state/proof/fsm.db` — fora de
+  `workspace/` (que é efêmero por contrato, RC11) e fora do banco que o `state_reset` (§4.4) apaga.
+  Apagar cobertura é ato explícito, não efeito colateral.
+- No CI (`.github/workflows/proof.yml`), o job `relatorio` grava o banco e publica `proof-ledger`
+  com `if: always()` — inclusive quando a cobertura está incompleta, que é o caso que importa.
+
 
 ## 5. Higiene de estado — o que é contrato e o que é memória
 
@@ -184,7 +208,7 @@ scripts/state_reset.sh --apply    # limpa banco do FSM + quarentena de estado an
 | Gerência | `scripts/`, `config/` | como ferramenta, não como regra |
 | Evidência viva | `docs/skills/` | não (descreve, não decide) |
 | Memória | `state/quarantine/<UTC>/`, `archive/` | **não** — só auditoria |
-| Código antigo | `ci/`, `ci-build*/`, `zeroharcoderd/`, `ak3/` | não — não executar como pipeline atual |
+| Código antigo | `ci/`, `ci-build*/`, `archive/zeroharcoderd/`, `ak3/` | não — não executar como pipeline atual |
 
 Regras práticas:
 
@@ -280,7 +304,7 @@ make -C skills check-all                # validate + core + 13/8/8 PASS + eval A
 make -s stack                           # 16/16 invariantes do contrato (install-stack.json)
 make -s refactor                        # 11/11 coerências contrato × consumidores
 make -s prove                           # suíte inteira inclui stack + refactor
-make -s mutation                        # 179/179 mutantes mortos · cobertura COMPLETA
+make -s mutation                        # todos os mutantes mortos · cobertura COMPLETA
 make -s mutacao-verifica                # catálogo fechado (ids únicos, sem lacuna)
 make -s mutacao-ids                     # grava ids automáticos de mutantes novos
 make -s contagens                       # nenhum número escrito à mão: tudo derivado do catálogo

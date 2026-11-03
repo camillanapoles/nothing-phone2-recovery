@@ -22,5 +22,5 @@ scripts/state_reset.sh              # dry-run: o que ainda é resíduo de sessã
 
 ## Leitura proibida como contrato
 
-`state/`, `docs/plans/`, `docs/ssot/`, `.pi/`, `.atl/`, `ci*/`, `zeroharcoderd/`, `ak3/` —
+`state/`, `docs/plans/`, `docs/ssot/`, `.pi/`, `.atl/`, `ci*/`, `archive/zeroharcoderd/`, `ak3/` —
 memória e código antigo. Explicam o passado, não decidem o presente.

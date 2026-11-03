@@ -130,8 +130,8 @@
   },
   "sources": [
     "https://github.com/ravindu644/Droidspaces-OSS/releases/tag/v7.1.0",
-    "zeroharcoderd/knowledge/modules/droidspaces.md",
-    "zeroharcoderd/knowledge/config-map/apatch-evolutionx-droidspaces.md",
+    "archive/zeroharcoderd/knowledge/modules/droidspaces.md",
+    "archive/zeroharcoderd/knowledge/config-map/apatch-evolutionx-droidspaces.md",
     "skills/evox-rom-ci-optimizer/references/module-rollout-order.md"
   ],
   "isolation": {

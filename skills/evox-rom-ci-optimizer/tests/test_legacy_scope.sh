@@ -12,8 +12,12 @@ rc=$(python3 "$S" --root /nao/existe >/dev/null 2>&1; echo $?); ck "root sem reg
 rc=$(python3 "$S" --root "$ROOT" >/dev/null 2>&1; echo $?); ck "escopo do repo está limpo" "exit" "$rc" "0"
 verdict=$(python3 "$S" --root "$ROOT" --json | python3 -c 'import json,sys;print(json.load(sys.stdin)["verdict"])')
 ck "veredito ESCOPO_LIMPO" "ESCOPO_LIMPO" "$verdict" "ESCOPO_LIMPO"
+# o número de legados é DERIVADO do registro — escrever "3" aqui faz o teste envelhecer sozinho
 n=$(python3 "$S" --root "$ROOT" --list | grep -c "^LEGADO")
-ck "registro lista os legados" "3" "$n" "3"
+esperado=$(python3 -c 'import json,sys;print(len(json.load(open(sys.argv[1]))["legacy"]))' \
+  "$ROOT/skills/evox-rom-ci-optimizer/references/legacy-sources.json")
+ck "registro lista exatamente os legados declarados" "coerente" \
+  "$([ "$n" = "$esperado" ] && echo coerente || echo "listou $n, registro tem $esperado")" "coerente"
 hasbanner=$(python3 "$S" --root "$ROOT" --json | python3 -c 'import json,sys;d=json.load(sys.stdin);print("sim" if any("carimbo" in c["detail"] for c in d["checks"]) else "nao")')
 ck "carimbo histórico é verificado" "sim" "$hasbanner" "sim"
 
@@ -43,6 +47,12 @@ ck "motivo é legado_sem_carimbo" "legado_sem_carimbo" "$why" "legado_sem_carimb
 printf '# HISTÓRICO — NÃO EXECUTAR\nreceita antiga\n' > "$T/legacy/antigo.md"
 rc=$(python3 "$S" --root "$T" >/dev/null 2>&1; echo $?)
 ck "legado com carimbo passa" "exit" "$rc" "0"
+
+# legado registrado apontando para NADA: ausência é o estado bom — não há o que alguém siga
+rm "$T/legacy/antigo.md"
+rc=$(python3 "$S" --root "$T" >/dev/null 2>&1; echo $?)
+ck "legado ausente do repo não reprova (ausência é o estado bom)" "exit" "$rc" "0"
+printf '# HISTÓRICO — NÃO EXECUTAR\nreceita antiga\n' > "$T/legacy/antigo.md"
 
 printf '# plano\n' > "$T/init_plan.md"
 rc=$(python3 "$S" --root "$T" >/dev/null 2>&1; echo $?)

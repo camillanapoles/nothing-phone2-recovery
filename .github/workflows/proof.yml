@@ -43,12 +43,18 @@ jobs:
           python-version: "3.11"
       - name: Gate do contrato (install-stack × consumidores)
         run: make -s stack
-      - name: Coerência da refatoração (10/10)
+      - name: Coerência da refatoração (contrato × consumidores)
         run: make -s refactor
       - name: Catálogo de mutação fechado (ids únicos, sem lacuna)
         run: make -s mutacao-verifica
-      - name: Nenhum número escrito à mão (175→176 não pode passar despercebido)
+      - name: Nenhum número escrito à mão (crescer o catálogo não pode passar despercebido)
         run: make -s contagens
+      - name: Camada de prova verde na base (sem mutação, antes de qualquer "morto")
+        # Sem isto, um mutante poderia "morrer" só porque pytest/sqlalchemy não existem.
+        run: |
+          pip install -q -e "./audit-fsm[dev]"  # dependências vêm do pyproject (fonte única)
+          make -s fsm-test
+
       - name: Escopo, plano e continuidade
         run: |
           make -s escopo
@@ -119,6 +125,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Dependências do FSM (sem elas, "MORTO" seria mentira)
+        run: pip install -q -e "./audit-fsm[dev]"  # dependências vêm do pyproject (fonte única)
+
       - name: Rodar o slot (id pedido fora do catálogo reprova aqui)
         run: |
           python3 skills/evox-rom-ci-optimizer/scripts/mutation_check.py --root . \
@@ -202,6 +211,25 @@ jobs:
                    f"- cobertura: **{'COMPLETA' if not faltando and not duplicados else 'INCOMPLETA'}**\n\n"
                    + "\n".join(tabela) + "\n")
 
+          # O consolidado também vira LEDGER do FSM: a cobertura passa a viver no banco,
+          # auditável por run_id, em vez de morrer com o runner.
+          inicio = next((d.get("started_at") for d in
+                         (json.load(open(a, encoding="utf-8")) for a in arqs)
+                         if d.get("started_at")), None)
+          ledger = {
+              "schema": "evox-proof-ledger/1",
+              "started_at": inicio or "1970-01-01T00:00:00",
+              "entries": {
+                  r["id"]: {"status": r.get("status"), "value": 1 if r.get("status") == "killed" else 0,
+                            "file": r.get("file"), "test": r.get("test"),
+                            "seconds": r.get("seconds") or 0}
+                  for r in sorted(resultados, key=lambda r: r["id"])
+              },
+          }
+          os.makedirs("workspace/audit", exist_ok=True)
+          with open("workspace/audit/mutation-consolidado.json", "w", encoding="utf-8") as fh:
+              json.dump(ledger, fh, indent=2, sort_keys=True, ensure_ascii=False)
+
           resumo = os.environ.get("GITHUB_STEP_SUMMARY")
           if resumo:
               open(resumo, "a", encoding="utf-8").write(corpo)
@@ -251,3 +279,37 @@ jobs:
           ok = not faltando and not duplicados and not estranhos and not ruins
           sys.exit(0 if ok else 1)
           PY
+
+      - name: Dependências do FSM (do pyproject — fonte única)
+        # always(): cobertura INCOMPLETA também tem de ser registrada (é a que mais importa)
+        if: always()
+        run: pip install -q -e "./audit-fsm[dev]"  # dependências vêm do pyproject (fonte única)
+
+      - name: Ledger no FSM (inicial → shards → final → auditoria)
+        id: fsm
+        if: always()
+        # Exit 3 = cobertura incompleta: o passo reprova de propósito (fuga de validação).
+        run: make -s fsm-prova FSM_LEDGER=workspace/audit/mutation-consolidado.json FSM_DB="sqlite+aiosqlite:///state/proof/fsm.db"
+
+      - name: Auditoria do banco (declarado × linhas) + run_id no resumo
+        if: always()
+        run: |
+          PYTHONPATH=audit-fsm/src python3 -m audit_fsm proof-runs --db "sqlite+aiosqlite:///state/proof/fsm.db" || true
+          RUN_ID=$(PYTHONPATH=audit-fsm/src python3 -m audit_fsm proof-runs --db "sqlite+aiosqlite:///state/proof/fsm.db" --json \
+            | python3 -c 'import json,sys; runs=json.load(sys.stdin); print(runs[0]["id"] if runs else "")')
+          if [ -n "$RUN_ID" ]; then
+            echo "run_id: \`$RUN_ID\`" >> "$GITHUB_STEP_SUMMARY"
+            PYTHONPATH=audit-fsm/src python3 -m audit_fsm proof-verify "$RUN_ID" \
+              --db "sqlite+aiosqlite:///state/proof/fsm.db" || true
+          else
+            echo "::warning::nenhuma execução de prova foi gravada no banco"
+          fi
+
+      - name: Publicar o banco da prova (cobertura sobrevive ao runner)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-ledger
+          path: state/proof/fsm.db
+          if-no-files-found: warn
+          retention-days: 90

@@ -69,8 +69,12 @@ def main(argv: list[str]) -> int:
         p = os.path.join(root, l["path"])
         kind = l.get("kind", "file")
         if not os.path.exists(p):
-            add("legado_voltou" if False else "legado_ausente", l["path"],
-                "legado ausente do repo (aceitável, registro mantido)")
+            # Ausência de instrução legada é o estado BOM: não há o que alguém siga por engano.
+            # Antes daqui saía `legado_ausente` e o gate reprovava dizendo "aceitável" — mensagem
+            # e veredito se contradiziam (o registro virou vermelho só por mover o arquivo).
+            # Travar a ausência é papel de `removed`, que reprova se o caminho VOLTAR.
+            add("ok", l["path"],
+                "legado ausente do repo (registro mantido; use `removed` para travar a ausência)")
             continue
         if kind == "dir":
             add("ok", l["path"], "diretório de arquivo histórico, substituído por " + l.get("replaced_by", "?"))

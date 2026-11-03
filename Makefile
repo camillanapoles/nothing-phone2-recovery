@@ -1,7 +1,7 @@
 # Raiz do workspace — atalhos de prova. A verdade está em AGENTS.md.
 SHELL := /usr/bin/env bash
 
-.PHONY: help escopo garantia pack pack-selftest kernel continuidade debitos closure fragmento m05 stack state state-reset test-state test-wrappers arch skills test prove
+.PHONY: help escopo garantia pack pack-selftest kernel continuidade debitos closure fragmento m05 stack state state-reset test-state test-wrappers arch skills test prove fsm-prova fsm-ledger fsm-test
 
 help:
 	@echo "make state        -> dry-run da higiene de estado (nada é alterado)"
@@ -24,6 +24,9 @@ help:
 	@echo "make stack         -> combo + sequência: 15 invariantes, pin estrangeiro e PASS de cada passo"
 	@echo "make garantia     -> garantia prévia: 5 requisitos, com prova ou PENDENTE (exit 3)"
 	@echo "make escopo       -> o que é deste workspace × legado que manda NÃO usar""
+	@echo "make fsm-prova    -> ledger de mutação no banco do FSM: importa, finaliza e AUDITA (exit 0/3/1)"
+	@echo "make fsm-ledger   -> imprime a cobertura guardada, item a item, com o run_id"
+	@echo "make fsm-test     -> suíte da camada de prova no FSM (ledger, CLI, auditoria)"
 	@echo "make prove        -> tudo: test-state + wrappers + arch + skills"
 
 state:
@@ -100,5 +103,25 @@ skills:
 
 test: test-state
 
-prove: test-state test-wrappers arch skills refactor contagens
+# Ledger de prova no audit-fsm: a cobertura sai do JSON da máquina e passa a viver no banco,
+# auditável por run_id. Exit: 0 completa e coerente · 3 incompleta · 1 divergente.
+FSM_LEDGER ?= workspace/audit/mutation-latest.json
+FSM_DB ?= sqlite+aiosqlite:///state/proof/fsm.db
+FSM := PYTHONPATH=audit-fsm/src python3 -m audit_fsm
+
+fsm-prova:
+	@test -f "$(FSM_LEDGER)" || { echo "[fsm] PENDENTE: $(FSM_LEDGER) ausente (rode make mutation)"; exit 3; }
+	@mkdir -p state/proof
+	@run_id=$$($(FSM) proof-start "$(FSM_LEDGER)" --db "$(FSM_DB)" --json | python3 -c 'import json,sys;print(json.load(sys.stdin)["run_id"])') && \
+	 $(FSM) proof-import "$(FSM_LEDGER)" --run-id "$$run_id" --db "$(FSM_DB)" && \
+	 $(FSM) proof-finalize "$$run_id" --db "$(FSM_DB)"
+
+fsm-ledger:
+	@$(FSM) proof-runs --db "$(FSM_DB)"
+
+fsm-test:
+	@bash audit-fsm/tests/test_proof_layer.sh
+
+prove: test-state test-wrappers arch skills refactor contagens mutacao-verifica
+	@# mutacao-verifica: ~1 s, determinístico. Pega mutante órfão (find que sumiu depois de uma\n	@# refatoração) antes de qualquer execução de mutação de 15 min — foi assim que o CI reprovou.\n	@:
 	@echo "[workspace] tudo verde"

@@ -134,7 +134,7 @@ O harness tinha uma fuga silenciosa: `--only` com id **inexistente** devolvia `e
 | cobertura por `M[id]` | `workspace/audit/mutation-latest.json`: `value` 1 (morto) / 0 (não executado), reescrito do zero a cada execução |
 | produto da cobertura | `product = 1` só com todos mortos; `missing` lista os ausentes |
 | relatório do CI | reprova se faltar id, sobrar id, duplicar id ou houver sobrevivente |
-| numeração | fechada (`ativo ∪ retired` = `M01..M199`, sem lacuna) — `M158` foi registrado como aposentado ao fechar a lacuna |
+| numeração | fechada (`ativo ∪ retired` = `M01..último`, sem lacuna) — aposentadorias ficam registradas em `retired` |
 | ids novos | auto-incremento: entrada sem `id` recebe o próximo livre; `--write-ids` grava; `--next-id` mostra |
 
 `RC10_mutacao_completa` (gate de refatoração) cobra que **todo script** de `scripts/` e
@@ -155,15 +155,70 @@ Todo número que aparece em doc, workflow ou comentário é conferido contra a f
 | passos do plano | `len(steps)` do `closure-plan.json` |
 | fatias do CI | input `shards` (padrão 8), limitado a `len(ids)` — cobertura continua total |
 
-Prova do crescimento: `tests/test_counts_gate.sh` adiciona um mutante (175→176) num workspace
-temporário e exige **reprovação**; corrigindo o texto, o mesmo fixture volta a passar. Ou seja:
-o gate não é "sempre vermelho", é derivado.
+Formas cobertas por três checagens (a terceira nasceu na auditoria do merge com o #18):
 
-O que **não** está coberto por esse ledger: o `audit-fsm` não persiste cobertura de mutação
-(as tabelas são `runs`, `probes`, `transitions`, `objectives`, `risks` — estado de aparelho,
-não prova de validação). A cobertura vive em `workspace/audit/mutation-latest.json`, artefato de
-execução. Isso está registrado como lacuna conhecida, não como promessa.
+| check | o que pega |
+|---|---|
+| `CT1_numeros_derivados` | número **colado** na palavra (`<n>/<n> mortos`, `<n> camadas`, `até M<id>`) |
+| `CT2_ci_sem_lista_de_ids` | workflow com `--only "M01,M02"` na mão (escopo tem de vir do plano) |
+| `CT3_par_na_linha_da_familia` | par `<n>/<n>` em **qualquer** posição da linha que fale de mutação/refatoração/contrato — pega célula de tabela (`\| Mutações mortas \| <n>/<n> \|`) e frase (`cobriu <n>/<n>`) |
+
+O CT3 existe porque o CT1 exigia o número colado: `main` chegou a ter **três** ocorrências velhas
+passando verde (tabela do `CONTINUITY-INSTRUCTION`, `EVOLUTION-LEDGER`, `ARCHITECTURE-DECISION`).
+Agora a palavra-chave vale para a linha inteira.
+
+Prova do crescimento: `tests/test_counts_gate.sh` acrescenta um mutante ao catálogo (N→N+1) num
+workspace temporário e exige **reprovação**; corrigindo o texto, o mesmo fixture volta a passar.
+Ou seja: o gate não é "sempre vermelho", é derivado.
+
+### 7.1 A cobertura agora vive no banco do FSM (lacuna fechada)
+
+Antes: a cobertura de mutação era `workspace/audit/mutation-latest.json` — artefato da máquina
+que rodou. Quem não rodou, não auditava; o runner morria e a cobertura morria com ele.
+
+Agora o `audit-fsm` tem dois domínios de prova, criados pelo **mesmo** padrão (metaclass →
+`FieldSpec` → `DomainFactory` → repository → rota gerada → CLI), sem `register()` manual:
+
+| Kind | Papel | Fonte |
+|---|---|---|
+| `proof_run` | uma execução: alvo, início, catálogo declarado, mortos, produto, `source_hash` | ledger de origem |
+| `proof_item` | uma linha por `M[id]`: status, valor `1`/`0`, arquivo, teste, hash da evidência | ledger de origem |
+
+Regras que tornam isso auditável, e não decorativo:
+
+- **id determinístico** (`uuid5` de `source_hash:target` e de `run_id:item_id`): reimportar não duplica;
+- **`source_hash`** = sha256 do ledger: origem editada muda a identidade, a prova deixa de bater;
+- **veredito recalculado das LINHAS** (`proof-verify`): a run não pode declarar cobertura que as linhas
+  não sustentam — divergência é erro explícito, não aviso;
+- **relatório cru do slot** (`results`) é aceito direto: o FSM come o artefato que o CI já produz;
+- **formatos/tamanhos derivados**: `catalog_total` cresce com as linhas, nunca com um literal.
+
+Comandos (todos via FSM, ciclo completo):
+
+| Comando | Papel | Exit |
+|---|---|---|
+| `proof-start LEDGER` | execução **inicial**: abre a run e imprime o `run_id` | 0 |
+| `proof-import LEDGER [--run-id]` | grava os itens — **shards em paralelo na mesma run** | 0 |
+| `proof-finalize RUN_ID` | execução **final**: recalcula das linhas e grava o veredito | 0/3/1 |
+| `proof-verify RUN_ID` | **auditoria** read-only: declarado × linhas | 0/3/1 |
+| `proof-show` / `proof-runs` | cobertura item a item / histórico por `run_id` | 0/1 |
+
+Atalhos: `make -s fsm-prova` (start → import → finalize sobre `workspace/audit/mutation-latest.json`)
+e `make -s fsm-ledger` (histórico). No CI, o job `relatorio` grava o banco e publica o artefato
+`proof-ledger` com `if: always()` — **cobertura incompleta também é registrada**, que é justamente
+o caso que não pode passar despercebido.
+
+Prova de que os comandos funcionam (não só existem): `audit-fsm/tests/integration/test_cli_proof.py`
+roda o ciclo real e exige os códigos de saída `0` (completa), `3` (incompleta) e `1` (run adulterada
+no banco), além de provar que dois shards convergem para a **mesma** run.
+
+**Falseabilidade da camada de prova:** o catálogo de mutação ganhou mutantes dedicados a ela
+(`proof/ledger.py` e o CLI de prova), e cada um tem de morrer no wrapper
+`audit-fsm/tests/test_proof_layer.sh` (`make -s fsm-test`). No CI, a base é rodada **verde antes**
+de qualquer mutante (`contrato`) e as dependências são instaladas em cada runner (`mutacao`) — sem
+isso, "morto" poderia significar apenas "faltou pytest", que é o tipo de prova falsa que este repo
+não aceita. Importação é em lote (`upsert_many`): uma transação por execução de prova.
 
 **Falseabilidade (o teste viável):** `tests/test_refactor_gate.sh` — 16 PASS, sendo 10 falsificações
 (uma por checagem + a variante "módulo perde o token"), mais 6 mutantes (`M190`–`M195`) que só morrem se
-esses casos continuarem reprovando. Rodar: `make -s refactor` (9/9) e `make -s mutation`.
+esses casos continuarem reprovando. Rodar: `make -s refactor` (todas as coerências) e `make -s mutation`.

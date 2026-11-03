@@ -18,11 +18,14 @@ Helper routes:
   GET /api/runs/{run_id}/transitions     — list transitions for a run
   GET /api/runs/{run_id}/objectives      — list objectives for a run
   GET /api/runs/{run_id}/risks           — list risks for a run
+  GET /api/runs/{run_id}/proof_items     — list proof items for a run (cobertura)
 """
 
 from __future__ import annotations
 
 from fastapi import APIRouter, FastAPI, HTTPException
+
+from audit_fsm import __version__
 
 # Import models FIRST so the metaclass registry is populated before
 # DomainFactory.registered_kinds() is called in _register_routes().
@@ -124,7 +127,7 @@ def _register_routes() -> None:
 
 
 # Pre-register list-by-run helpers (independent of domain kinds)
-for _ck in ("probe", "transition", "objective", "risk"):
+for _ck in ("probe", "transition", "objective", "risk", "proof_item"):
 
     async def _list_run(kind=_ck, run_id: str = "") -> list[dict]:
         return await list_by_run(kind, run_id)
@@ -156,7 +159,7 @@ app = FastAPI(
         "CRUD API for a safety-first FSM that audits Android device recovery "
         "states. All writes validate through a zero-hardcode metaclass registry."
     ),
-    version="0.1.0",
+    version=__version__,
 )
 
 _register_routes()

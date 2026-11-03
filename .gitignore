@@ -23,7 +23,6 @@ session-log.md
 
 # Audit & analysis scratch
 audit-20260925/
-audit-fsm/
 graphify-out/
 logs/
 
@@ -56,7 +55,6 @@ CLAUDE.md
 docs/ssot/session-log/
 docs/wiki/.pending/
 
-zeroharcoderd/knowledge/quick-reference.md
   
 docs/plans/
   
@@ -85,6 +83,14 @@ google_drive/
 # Estado runtime local (quarentena de sessões, relatórios) — nunca versionado
 state/
 
+# Metadados de instalação (`pip install -e`) — nunca versionar
+*.egg-info/
+
+# Banco do audit-fsm: artefato de execução (a cobertura vive no banco, não no git)
+audit-fsm/*.db
+audit-fsm/*.db-journal
+audit-fsm/*.db-wal
+
 # ROM artifacts & env gerado (determinístico, grande, local)
 workspace/artifacts/
 workspace/evox.env
@@ -95,3 +101,6 @@ workspace/evox.env.tmp
 # ---- Artefatos de auditoria gerados (não versionar) ----
 work/
 workspace/
+
+# rascunho de execução (nunca versionado: não é código, não é artefato)
+/.tmp_*

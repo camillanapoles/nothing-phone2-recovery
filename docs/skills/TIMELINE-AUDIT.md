@@ -120,7 +120,7 @@ virava "passei".
 |---|---|
 | `78fb0a5` | `scripts/counts_gate.py` (`make -s contagens`): **nenhum número digitado**; todo limite derivado de catálogo/contrato/plano/gates. Crescer o catálogo **reprova** até o texto ser corrigido |
 | resposta honesta | o FSM **não** guardava cobertura: tabelas eram `runs`, `probes`, `transitions`, `objectives`, `risks`. Registrado como **lacuna conhecida**, não como promessa |
-| PR **#16** (16:59, merge `d9dc14c` 17:23) | prova: contagens OK · prove exit 0 · 177/177 · CI 16/16 |
+| PR **#16** (16:59, merge `d9dc14c` 17:23) | prova: contagens OK · prove exit 0 · 177/177 · CI 16/16 <!-- contagens: histórico --> |
 
 ### T7 — "Please merge" → #16 mergeado (= `main` hoje)
 

@@ -1651,6 +1651,96 @@
    "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
    "strength": "semantic",
    "rationale": "caminho novo do workspace entra sem classificacao no artifact-paths.json"
+  },
+  {
+   "id": "M200",
+   "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
+   "find": "    if status == ProofStatus.KILLED.value or status == ProofStatus.KILLED.name:\n        return 1",
+   "replace": "    if True:\n        return 1",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "qualquer status viraria 'provado': cobertura sem mutante morto viraria 100%",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M201",
+   "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
+   "find": "    achados: list[str] = []",
+   "replace": "    achados: list[str] = []\n    return achados",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "auditoria silenciosa: run adulterada passaria como coerente",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M202",
+   "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
+   "find": "    product = 1 if total and killed == total else 0",
+   "replace": "    product = 1 if killed else 0",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "produto viraria 'matou algum' em vez de 'matou todos' — cobertura parcial passaria",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M203",
+   "file": "audit-fsm/src/audit_fsm/proof/ledger.py",
+   "find": "    return str(uuid.uuid5(PROOF_NAMESPACE, f\"{source_hash}:{target}\"))",
+   "replace": "    return str(uuid.uuid4())",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "id aleatório: reimportar duplicaria a execução e a auditoria por run_id quebraria",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M204",
+   "file": "audit-fsm/src/audit_fsm/cli/__init__.py",
+   "find": "    sys.exit(0 if rec[\"complete\"] else 3)",
+   "replace": "    sys.exit(0)",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "cobertura incompleta sairia 0 — a 'fuga de validação por padrão' que o ledger existe para impedir",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M205",
+   "file": "audit-fsm/src/audit_fsm/cli/__init__.py",
+   "find": "        if existente is None:\n            raise click.ClickException(f\"run não encontrada: {run_id} (rode proof-start)\")",
+   "replace": "        if False:\n            raise click.ClickException(f\"run não encontrada: {run_id} (rode proof-start)\")",
+   "test": "audit-fsm/tests/test_proof_layer.sh",
+   "rationale": "importar num run_id inexistente viraria item órfão em silêncio",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M206",
+   "file": "scripts/counts_gate.py",
+   "find": "        if escrito != esperado:\n            probs.append(\n",
+   "replace": "        if False:\n            probs.append(\n",
+   "test": "tests/test_counts_gate.sh",
+   "rationale": "CT3 aceitaria qualquer par N/N numa linha de mutação — a forma que escapava do CT1 voltaria a passar",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M207",
+   "file": "skills/evox-rom-ci-optimizer/scripts/mutation_check.py",
+   "find": "        if n != 1:\n            probs.append(f\"{m['id']}: find aparece {n}x em {rel} (precisa 1x)\")",
+   "replace": "        if False:\n            probs.append(f\"{m['id']}: find aparece {n}x em {rel} (precisa 1x)\")",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_mutation_check.sh",
+   "rationale": "o --verify aceitaria mutante órfão: refatorar o código deixaria o `find` sem alvo e a 'prova' sem provar nada",
+   "note": null,
+   "strength": "semantic"
+  },
+  {
+   "id": "M208",
+   "file": "skills/evox-rom-ci-optimizer/scripts/legacy_scope.py",
+   "find": "            add(\"ok\", l[\"path\"],\n                \"legado ausente do repo (registro mantido; use `removed` para travar a ausência)\")",
+   "replace": "            add(\"legado_ausente\", l[\"path\"],\n                \"legado ausente do repo (registro mantido; use `removed` para travar a ausência)\")",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_legacy_scope.sh",
+   "rationale": "o gate voltaria a reprovar dizendo 'aceitável' — mensagem e veredito se contradizem e arquivar um legado vira vermelho",
+   "note": null,
+   "strength": "contract"
   }
  ],
  "retired": [

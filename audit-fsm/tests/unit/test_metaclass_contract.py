@@ -1,7 +1,7 @@
 """
 Four-case metaclass test contract (T0c, S7).
 
-For EVERY domain model (Run, Probe, Transition, Objective, Risk), we assert
+For EVERY domain model (Run, Probe, Transition, Objective, Risk, ProofRun, ProofItem), we assert
 the same four cases:
 
   a) construct with valid data     → succeeds, to_dict() reflects all fields
@@ -30,6 +30,7 @@ from audit_fsm.domain.metaclass import (
 )
 from audit_fsm.domain.models import (
     ObjectiveStatus,
+    ProofRunStatus,
     RunStatus,
 )
 from audit_fsm.fsm.core import FSMState
@@ -91,6 +92,32 @@ VALID_RISK = {
     "evidence_hash": HASH1,
 }
 
+VALID_PROOF_RUN = {
+    "id": UUID1,
+    "target": "mutation",
+    "started_at": TIMESTAMP,
+    "finished_at": None,
+    "status": ProofRunStatus.INCOMPLETE,
+    "catalog_total": 177,
+    "killed": 1,
+    "product": 0,
+    "complete": False,
+    "source_hash": HASH1,
+}
+
+VALID_PROOF_ITEM = {
+    "id": UUID1,
+    "run_id": UUID2,
+    "item_id": "M1",
+    "proof_kind": "mutation",
+    "status": "survived",
+    "value": 0,
+    "file": "scripts/counts_gate.py",
+    "test": "tests/test_counts_gate.sh",
+    "seconds": 3,
+    "evidence_hash": HASH2,
+}
+
 # Map kind → (valid kwargs, valid update kwargs, invalid construct kwargs, invalid update kwargs)
 DOMAIN_CASES = [
     ("run", VALID_RUN, {"status": RunStatus.COMPLETED}, {"id": "not-a-uuid"}, {"status": "bogus"}),
@@ -110,6 +137,20 @@ DOMAIN_CASES = [
         {"status": "wrong"},
     ),
     ("risk", VALID_RISK, {"verdict": "unsafe"}, {"verdict": ""}, {"verdict": "  "}),
+    (
+        "proof_run",
+        VALID_PROOF_RUN,
+        {"killed": 0},
+        {"product": 2},
+        {"status": "bogus"},
+    ),
+    (
+        "proof_item",
+        VALID_PROOF_ITEM,
+        {"value": 1},
+        {"item_id": "m1"},
+        {"value": 2},
+    ),
 ]
 
 
@@ -214,9 +255,17 @@ def test_zero_hardcode_literal_default_allowed():
 
 
 def test_factory_registry_has_all_domains():
-    """All 5 domain kinds are auto-registered by the metaclass."""
+    """All domain kinds are auto-registered by the metaclass (nenhum register() manual)."""
     kinds = DomainFactory.registered_kinds()
-    for expected in ("run", "probe", "transition", "objective", "risk"):
+    for expected in (
+        "run",
+        "probe",
+        "transition",
+        "objective",
+        "risk",
+        "proof_run",
+        "proof_item",
+    ):
         assert expected in kinds, f"'{expected}' not in registry: {kinds}"
 
 

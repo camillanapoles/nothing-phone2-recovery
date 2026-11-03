@@ -29,3 +29,6 @@ __all__ = [
     "assert_safe",
     "check_command",
 ]
+
+# Fonte única da versão: o pyproject e a API leem daqui (nada de dois "0.1.0" divergindo).
+__version__ = "0.2.0"

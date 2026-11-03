@@ -9,7 +9,7 @@
 CONTRATO VIGENTE              -> AGENTS.md · agente.md · skills/*/SKILL.md + references/
 CONTRATO EXECUTÁVEL           -> audit-fsm/src (FSM determinístico, read-only)
 EVIDÊNCIA (não decide)        -> docs/skills/
-MEMÓRIA (proibida como regra) -> state/quarantine/<UTC>/ · archive/ · ci*/ · zeroharcoderd/
+MEMÓRIA (proibida como regra) -> state/quarantine/<UTC>/ · archive/ · ci*/
 ```
 
 Precedência completa em `AGENTS.md` §0. Em caso de contradição: **vale `skills/`**.
@@ -36,7 +36,7 @@ Tudo abaixo foi movido para `state/quarantine/<UTC>/` (gitignored) com `MANIFEST
 
 | Caminho | Natureza | Uso permitido |
 |---|---|---|
-| `zeroharcoderd/knowledge/**` | base de conhecimento de módulos/frameworks | consulta; nunca substitui `SKILL.md` |
+| `archive/zeroharcoderd/knowledge/**` | base de conhecimento de módulos/frameworks | consulta; nunca substitui `SKILL.md` |
 | `ci/`, `ci-build/`, `ci-build-full/`, `ak3/` | experimentos de pipeline anteriores | não executar como pipeline atual |
 | `config/managers.json` | catálogo de root managers/toolchains | dado de gerência (não é regra) |
 | `docs/skills/*` | inventário, handoff, este índice | descreve o estado; não decide |

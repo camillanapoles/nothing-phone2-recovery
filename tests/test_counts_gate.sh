@@ -42,6 +42,11 @@ BASE="$(python3 -c 'import json,sys;print(len(json.load(open(sys.argv[1]))["muta
 NOVO=$((BASE+1))
 A="$T/cresce"
 copiar "$A"
+# O repo real NÃO tem contagem escrita à mão (é o que o gate exige). Para provar que o gate
+# detecta drift, o fixture ESCREVE uma contagem com o valor atual — e depois faz o catálogo crescer.
+printf '\nmutação: %s mutantes no catálogo\n' "$BASE" >> "$A/AGENTS.md"
+python3 "$K" --root "$A" >/dev/null 2>&1; rc_antes=$?
+ck "texto com $BASE (valor atual) ainda passa" "exit" "$rc_antes" "0"
 python3 - "$A" <<'PYCRESCE'
 import json, sys
 p = sys.argv[1] + "/skills/evox-rom-ci-optimizer/references/mutation-catalog.json"
@@ -70,16 +75,39 @@ alvos = (glob.glob(sys.argv[1] + "/docs/**/*.md", recursive=True)
 for f in alvos:
     s = open(f, encoding="utf-8").read()
     if base in s:
-        open(f, "w", encoding="utf-8").write(s.replace(f"{base}/{base}", f"{novo}/{novo}"))
+        s = s.replace(f"{base}/{base}", f"{novo}/{novo}")
+        s = s.replace(f"{base} mutantes no catálogo", f"{novo} mutantes no catálogo")
+        open(f, "w", encoding="utf-8").write(s)
 PYFIX
 python3 "$K" --root "$A" >/dev/null 2>&1; rc=$?
 ck "$NOVO com texto $NOVO passa (deriva, não decoreba)" "exit" "$rc" "0"
 
 # ---------------------------------------------------------------- 2. número velho
 B="$T/velho"; copiar "$B"
-printf '\n| mutação | 169/169 mortos por asserção | `make -s mutation` |\n' >> "$B/AGENTS.md"
-python3 "$K" --root "$B" >/dev/null 2>&1; rc_b=$?
-ck "169/169 escrito à mão reprova" "exit" "$rc_b" "1"
+# forma exclusiva do CT1 (número sozinho, sem par): se só o CT3 funcionasse, este caso passaria
+printf '\n| camadas do contrato | 999 camadas | `make -s stack` |\n' >> "$B/AGENTS.md"
+outb="$(python3 "$K" --root "$B" 2>&1)"; rc_b=$?
+ck "999 camadas escrito à mão reprova" "exit" "$rc_b" "1"
+case "$outb" in
+  *"FALHA CT1_numeros_derivados"*) ok "reprova pela checagem de número colado (CT1)" "CT1" ;;
+  *) bad "reprova pela checagem de número colado (CT1)" "$(printf '%s' "$outb" | tail -1 | cut -c1-60)" ;;
+esac
+
+# 2b. par N/N em célula de tabela (a forma que escapava do padrão "colado na palavra")
+C2="$T/tabela"; copiar "$C2"
+printf '\n| Mutações mortas por asserção | 1/1 | `make -s mutation` |\n' >> "$C2/AGENTS.md"
+out2="$(python3 "$K" --root "$C2" 2>&1)"; rc2=$?
+ck "par N/N em tabela com número velho reprova" "exit" "$rc2" "1"
+case "$out2" in
+  *"FALHA CT3_par_na_linha_da_familia"*) ok "reprova pela família certa (CT3)" "CT3" ;;
+  *) bad "reprova pela família certa (CT3)" "$(printf '%s' "$out2" | tail -1 | cut -c1-60)" ;;
+esac
+
+# 2c. o mesmo par, com o valor derivado, passa (não é "sempre falha")
+C3="$T/tabela-ok"; copiar "$C3"
+printf '\n| Mutações mortas por asserção | %s/%s | `make -s mutation` |\n' "$BASE" "$BASE" >> "$C3/AGENTS.md"
+python3 "$K" --root "$C3" >/dev/null 2>&1; rc3=$?
+ck "tabela com o par derivado passa" "exit" "$rc3" "0"
 
 # ---------------------------------------------------------------- 3. CI sem lista de ids
 C="$T/ci"; copiar "$C"

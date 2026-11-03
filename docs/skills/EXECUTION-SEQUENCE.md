@@ -3,7 +3,7 @@
 **Premissa:** cada passo abaixo é **mudança + gate falseável + teste que quebra de propósito + mutante
 no catálogo**. Passo sem os três não entra. Nada é mesclado sem o seu ok.
 
-**Ponto de partida medido (2026-11-02, `7df226e`):** 179/179 mutantes · 11/11 coerências ·
+**Ponto de partida medido (2026-11-02, `7df226e`):** 179/179 mutantes · 11/11 coerências · <!-- contagens: histórico — medição no commit `7df226e` -->
 16/16 invariantes · 21 camadas · 47 passos de instalação · 13 passos de fechamento ·
 débitos 6 abertos de 7 · garantia **0/5 provados** · 0 sessões com base atualizada por padrão.
 

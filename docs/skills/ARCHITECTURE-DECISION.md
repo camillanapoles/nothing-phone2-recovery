@@ -38,7 +38,7 @@ com o objetivo `G10`. A varredura (`contradiction_scan.py`, regras C8–C10) rep
 | 8 | Nenhum workflow do GitHub executa `fastboot` | AG13 |
 | 9 | Emulador prova a **camada de módulos**, nunca o boot do pong | AG8 |
 | 10 | Decisão registrada antes de executar (`decision.json`) | `session_open.py check` |
-| 11 | Teste só vale se puder reprovar (mutação) | `make mutation` 129/129 · AG19/AG21 |
+| 11 | Teste só vale se puder reprovar (mutação) | `make mutation` (catálogo inteiro) · AG19/AG21 |
 | 12 | Asserção não pode ser impossível nem engolir falha | `make vacuity` · AG20 |
 | 13 | **Um único motor de root (APatch) e um único kernel (o da ROM)** | `root_engine_gate.py` + `tests/test_root_decision.sh` |
 

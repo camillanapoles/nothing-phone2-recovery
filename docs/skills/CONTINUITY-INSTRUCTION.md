@@ -3,7 +3,7 @@
 **Branch de origem:** `arena/863582fd-nothing-phone2-recovery` · **Skill:** `evox-rom-ci-optimizer` v3.1
 **Base:** PR #7 mergeado em `cdd5885` · **Alvo:** root e kernel perfeitos para DroidSpaces, integridade,
 root oculto, performance e estabilidade no Nothing Phone (2) `pong` / SM8475 / EvolutionX 11.11 (A16).
-**Provas da base:** `make -s prove` verde · mutação **179/179 mortos por asserção** (saída do comando, não do texto) ·
+**Provas da base:** `make -s prove` verde · mutação **completa, todos mortos por asserção** (saída do comando, não do texto) ·
 `audit-loop` limpo · `escopo` limpo.
 
 Este documento é a primeira leitura de qualquer sessão nova. Ele carrega **continuidade, método,
@@ -51,7 +51,7 @@ Consequências que **nunca** podem ser violadas num refactor:
 | Prova | Número | Comando |
 |---|---|---|
 | Suítes | saída de `make -s prove` | `make -s prove` |
-| Mutações mortas por asserção | 177/177 | `make -s mutation` |
+| Mutações mortas por asserção | todas — qualquer sobrevivente reprova | `make -s mutation` |
 | Condições do pack com contra-exemplo | 10/10 | `make -s pack-selftest` |
 | Plano do kernel | 20/20 (`P01`–`P20`) | `make -s kernel` |
 | Pré-build do kernel | 22/26 (4 PEND nomeados) | `make -s kernel` |
@@ -229,7 +229,7 @@ release com `Image`, `boot.img`, `dtbo.img`, config, `kernel-config.json`, zip A
 
 ---
 
-## 11. Box de kernel recebido via GitHub (`kernel-source/`, `zeroharcoderd/knowledge/`)
+## 11. Box de kernel recebido via GitHub (`kernel-source/`, `archive/zeroharcoderd/knowledge/`)
 
 Box é **fonte de hipótese**, não autoridade. Três portas, com critério objetivo e rollback:
 
