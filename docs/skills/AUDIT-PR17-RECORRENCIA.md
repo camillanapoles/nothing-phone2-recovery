@@ -128,6 +128,28 @@ Nenhum número acima é digitado à mão: `make -s contagens` reprova se algum f
 
 ---
 
+## 6.1 Arquivamento de `zeroharcoderd/` (pedido posterior, mesma auditoria)
+
+Movido para `archive/zeroharcoderd/` — memória congelada, com carimbo `HISTÓRICO — NÃO EXECUTAR`,
+`archive/README.md` e registro em `legacy-sources.json` (`legacy: dir` + `removed: zeroharcoderd`).
+Motivo: era **anti-pattern de nascença** — chamava-se "zero hardcoded" e guardava `v1.4.5`, `v17`,
+`TrickyStore v1.4.1`, `Shamiko` e a receita de kernel próprio do DroidSpaces, tudo escrito à mão e
+contra as decisões vigentes.
+
+Arquivar expôs três defeitos que ninguém via enquanto o diretório estava na raiz:
+
+| # | defeito | correção |
+|---|---|---|
+| 10 | `legacy_scope.py` **reprovava dizendo "aceitável"**: legado ausente ia para `problems` (exit 3) com a mensagem afirmando o contrário — mover um arquivo legado virava vermelho | ausência de instrução legada é o estado **bom**; travar ausência é papel de `removed`. Caso novo no harness + `M208` |
+| 11 | contagem de legados **escrita à mão** no teste (esperava 3; o registro passou a ter 4) | derivada do próprio `legacy-sources.json`; a primeira versão comparava a variável com ela mesma e a varredura de vacuidade (V4) pegou |
+| 12 | o fragmento do kernel é derivado do sha256 do contrato **inteiro**: editar a lista de citações invalidou `evox_pong_pack.config` e o **B08** reprovou | fragmento regenerado pelo gerador (nunca à mão). Acoplamento registrado: bibliografia não deveria invalidar artefato de kernel |
+
+Referências vivas atualizadas para não ficarem penduradas: `boot-test.yml` (9 pontos, incluindo os
+filtros de caminho), `pong-build.yml` (4), `droidspaces-requirements.json` + fixture do pack (4),
+`AGENTS.md`, `README.md`, `LEGACY-INDEX.md`, `KERNEL-BUILD-TEST-PLAN.md`, `CONTINUITY-INSTRUCTION.md`,
+`APPROVED-INSTALL-SEQUENCE.md` e o guia legado do `ci-build-full`. O `.gitignore` ignorava um arquivo
+**versionado** (`quick-reference.md`) — a linha saiu: arquivo congelado e visível, não escondido.
+
 ## 7. O que **não** foi feito
 
 - **Nenhum merge em `main`.** O PR #17 continua aberto e a decisão é da usuária.
