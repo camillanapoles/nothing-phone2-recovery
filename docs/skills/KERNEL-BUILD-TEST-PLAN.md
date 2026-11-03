@@ -96,7 +96,7 @@ subir no físico.
 
 ---
 
-## 3. Box de kernel recebido via GitHub (`kernel-source/`, `zeroharcoderd/knowledge/`)
+## 3. Box de kernel recebido via GitHub (`kernel-source/`, `archive/zeroharcoderd/knowledge/`)
 
 O box é **fonte de hipótese**, não autoridade. "O passado era erro" vale para ele como para tudo.
 Decisão em três portas, com critério objetivo:

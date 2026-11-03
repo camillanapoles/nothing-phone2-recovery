@@ -229,7 +229,7 @@ release com `Image`, `boot.img`, `dtbo.img`, config, `kernel-config.json`, zip A
 
 ---
 
-## 11. Box de kernel recebido via GitHub (`kernel-source/`, `zeroharcoderd/knowledge/`)
+## 11. Box de kernel recebido via GitHub (`kernel-source/`, `archive/zeroharcoderd/knowledge/`)
 
 Box é **fonte de hipótese**, não autoridade. Três portas, com critério objetivo e rollback:
 

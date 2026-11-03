@@ -168,7 +168,7 @@ Tudo isso continua **sem prova no seu aparelho** até rodarmos a fila.
    Regra adotada: **módulo kernel-level primeiro**, porque ele depende do kernel e não da pilha
    Zygisk — e o M05 é incompatível com Shamiko/Mountify/Riru. Se você preferir seguir literalmente a
    ordem do guia, é uma linha no contrato (`install.position` + `before`) e o gate acompanha.
-2. **Kernel próprio do DroidSpaces.** `zeroharcoderd/knowledge/modules/droidspaces.md` descreve
+2. **Kernel próprio do DroidSpaces.** `archive/zeroharcoderd/knowledge/modules/droidspaces.md` descreve
    compilar kernel `droidspaces-android14-5.10` com patches `sysvipc` — era **proibido** pela
    Decisão A e hoje é **exigido** pela C. O contrato marca
    `custom_kernel_path: required_under_decision_C` e `droidspaces_preflight.py` compara o `source`

@@ -2,7 +2,7 @@ name: Build Pong Kernel — Production
 
 # CI/CD for Nothing Phone 2 (Pong) kernel builds
 # Patterns: KernelSU-Next-marble × AOSP Kernel Building × Cuttlefish validation
-# Knowledge base: zeroharcoderd/knowledge/ (zero hardcoded variables)
+# Knowledge base: archive/zeroharcoderd/knowledge/ (zero hardcoded variables)
 
 on:
   workflow_dispatch:
@@ -79,7 +79,7 @@ on:
       - 'config/**'
       - 'scripts/**'
       - 'ak3/**'
-      - 'zeroharcoderd/knowledge/**'
+      - 'archive/zeroharcoderd/knowledge/**'
 
 permissions:
   contents: read
@@ -447,7 +447,7 @@ jobs:
           from pathlib import Path
           import sys
 
-          kb = Path("zeroharcoderd/knowledge")
+          kb = Path("archive/zeroharcoderd/knowledge")
           readme = kb / "README.md"
           errors = []
 
@@ -665,7 +665,7 @@ jobs:
           echo "" >> release-notes.md
           echo "### Installation" >> release-notes.md
           echo "Flash via APatch Manager, Magisk, or custom recovery." >> release-notes.md
-          echo "See [Knowledge Base](../../tree/main/zeroharcoderd/knowledge) for details." >> release-notes.md
+          echo "See [Knowledge Base](../../tree/main/archive/zeroharcoderd/knowledge) for details." >> release-notes.md
 
           gh release create "v${BUILD_DATE}" \
             --draft \

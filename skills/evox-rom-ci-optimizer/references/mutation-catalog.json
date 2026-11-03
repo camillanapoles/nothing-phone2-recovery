@@ -1731,6 +1731,16 @@
    "rationale": "o --verify aceitaria mutante órfão: refatorar o código deixaria o `find` sem alvo e a 'prova' sem provar nada",
    "note": null,
    "strength": "semantic"
+  },
+  {
+   "id": "M208",
+   "file": "skills/evox-rom-ci-optimizer/scripts/legacy_scope.py",
+   "find": "            add(\"ok\", l[\"path\"],\n                \"legado ausente do repo (registro mantido; use `removed` para travar a ausência)\")",
+   "replace": "            add(\"legado_ausente\", l[\"path\"],\n                \"legado ausente do repo (registro mantido; use `removed` para travar a ausência)\")",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_legacy_scope.sh",
+   "rationale": "o gate voltaria a reprovar dizendo 'aceitável' — mensagem e veredito se contradizem e arquivar um legado vira vermelho",
+   "note": null,
+   "strength": "contract"
   }
  ],
  "retired": [

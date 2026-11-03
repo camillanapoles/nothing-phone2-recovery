@@ -208,7 +208,7 @@ Ciclo por comando (o que o CI roda por shard): `proof-start` (inicial) → `proo
 | Gerência | `scripts/`, `config/` | como ferramenta, não como regra |
 | Evidência viva | `docs/skills/` | não (descreve, não decide) |
 | Memória | `state/quarantine/<UTC>/`, `archive/` | **não** — só auditoria |
-| Código antigo | `ci/`, `ci-build*/`, `zeroharcoderd/`, `ak3/` | não — não executar como pipeline atual |
+| Código antigo | `ci/`, `ci-build*/`, `archive/zeroharcoderd/`, `ak3/` | não — não executar como pipeline atual |
 
 Regras práticas:
 

@@ -13,7 +13,7 @@
   ],
   "legacy": [
     {
-      "path": "zeroharcoderd/knowledge/modules/droidspaces.md",
+      "path": "archive/zeroharcoderd/knowledge/modules/droidspaces.md",
       "kind": "file",
       "banner": "HISTÓRICO — NÃO EXECUTAR",
       "reason": "receita de kernel próprio (droidspaces-android14-5.10 + patches sysvipc) proibida pela Decisão A",
@@ -32,16 +32,48 @@
       "banner": "",
       "reason": "pipeline CI v2.0 e skill antigos, substituídos pela arquitetura atual",
       "replaced_by": "skills/evox-rom-ci-optimizer/SKILL.md"
+    },
+    {
+      "path": "archive/zeroharcoderd",
+      "kind": "dir",
+      "banner": "",
+      "reason": "base de conhecimento do modo 'zero hardcoded' (versões coladas à mão: v1.4.5, v17, TrickyStore v1.4.1, Shamiko). Não é fonte de regra e não é insumo de pipeline — memória",
+      "replaced_by": "skills/evox-rom-ci-optimizer/SKILL.md"
     }
   ],
   "removed": [
-    {"path": "init_plan.md", "reason": "plano inicial, substituído pela árvore de decisões"},
-    {"path": "modules.md", "reason": "lista antiga de módulos, substituída por module-requirements.json"},
-    {"path": "docs/plans", "reason": "planos de recuperação de versões anteriores das build"},
-    {"path": "docs/GOVERNANCE.md", "reason": "governança antiga, substituída por AGENTS.md"},
-    {"path": ".pi/tasks", "reason": "evidências de harness de outra sessão"},
-    {"path": ".atl", "reason": "registro de skills de outra sessão"},
-    {"path": "docs/ssot", "reason": "estado consolidado de sessões anteriores"}
+    {
+      "path": "init_plan.md",
+      "reason": "plano inicial, substituído pela árvore de decisões"
+    },
+    {
+      "path": "modules.md",
+      "reason": "lista antiga de módulos, substituída por module-requirements.json"
+    },
+    {
+      "path": "docs/plans",
+      "reason": "planos de recuperação de versões anteriores das build"
+    },
+    {
+      "path": "docs/GOVERNANCE.md",
+      "reason": "governança antiga, substituída por AGENTS.md"
+    },
+    {
+      "path": ".pi/tasks",
+      "reason": "evidências de harness de outra sessão"
+    },
+    {
+      "path": ".atl",
+      "reason": "registro de skills de outra sessão"
+    },
+    {
+      "path": "docs/ssot",
+      "reason": "estado consolidado de sessões anteriores"
+    },
+    {
+      "path": "zeroharcoderd",
+      "reason": "diretório antigo na raiz; arquivado em archive/zeroharcoderd — voltar para a raiz é regressão"
+    }
   ],
   "documented_conflicts": [
     {

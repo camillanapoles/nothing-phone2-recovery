@@ -1,3 +1,9 @@
+> **⚠️ HISTÓRICO — NÃO EXECUTAR.** Base de conhecimento da arquitetura anterior, congelada em
+> `archive/zeroharcoderd/`. As versões estão **escritas à mão** aqui (`v1.4.5`, `v17`,
+> `TrickyStore v1.4.1`, `Shamiko`) e **não** são as vigentes: a fonte é
+> `skills/evox-rom-ci-optimizer/references/*.json`. Nada desta base é regra, fila ou insumo
+> de pipeline — ver `archive/README.md`.
+
 # Knowledge Base — Android Root on Nothing Phone 2 (Pong)
 
 > Zero-hardcoded-variable agentic reference for rooting Nothing Phone 2 with Evolution X. All values (paths, SHAs, versions) are stored in-file — `cat` or `source` what you need. Built incrementally.
