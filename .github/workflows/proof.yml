@@ -66,6 +66,8 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # `prove` inclui o S-BASE: sem histórico completo ele é PENDENTE (e PENDENTE reprova)
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
