@@ -90,7 +90,7 @@ A frente de retificação está encerrada quando, ao mesmo tempo:
 2. `make -s garantia` cita apenas camadas que existem no `install-stack.json`;
 3. `make -s pack` continua `FALTA_PROVA` **sem** mencionar APatch como única topologia;
 4. `make -s closure` e `make -s debitos` conhecem `E13…` e `S02`/`S03`;
-5. `prove` e `mutation` seguem verdes (hoje: 752+ casos / 35 suítes e 177 mutantes).
+5. `prove` e `mutation` seguem verdes (hoje: 752+ casos / 35 suítes e 183 mutantes).
 
 Nada disso promete `DEVICE` no aparelho: isso é `R11`, e depende de keybox não revogada.
 
@@ -98,7 +98,7 @@ Nada disso promete `DEVICE` no aparelho: isso é `R11`, e depende de keybox não
 
 ## 5. Estado em 2026-11-02 — refatoração provada, não prometida
 
-`scripts/refactor_gate.py` transforma "refatoração completa" em **gate**: 9 checagens
+`scripts/refactor_gate.py` transforma "refatoração completa" em **gate**: 11 checagens
 `RC1…RC11` que comparam o contrato (`references/install-stack.json`) com TODOS os consumidores.
 Sem ele, refatorar era um passo manual que ficava pela metade.
 
@@ -134,7 +134,7 @@ O harness tinha uma fuga silenciosa: `--only` com id **inexistente** devolvia `e
 | cobertura por `M[id]` | `workspace/audit/mutation-latest.json`: `value` 1 (morto) / 0 (não executado), reescrito do zero a cada execução |
 | produto da cobertura | `product = 1` só com todos mortos; `missing` lista os ausentes |
 | relatório do CI | reprova se faltar id, sobrar id, duplicar id ou houver sobrevivente |
-| numeração | fechada (`ativo ∪ retired` = `M01..M199`, sem lacuna) — `M158` foi registrado como aposentado ao fechar a lacuna |
+| numeração | fechada (`ativo ∪ retired` = `M01..M203`, sem lacuna) — `M158` foi registrado como aposentado ao fechar a lacuna |
 | ids novos | auto-incremento: entrada sem `id` recebe o próximo livre; `--write-ids` grava; `--next-id` mostra |
 
 `RC10_mutacao_completa` (gate de refatoração) cobra que **todo script** de `scripts/` e

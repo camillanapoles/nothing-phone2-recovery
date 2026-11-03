@@ -274,13 +274,18 @@ state/                 runtime local (quarentena, relatórios) — fora do Git
 > repo. O gate `RC11` reprova caminho não classificado, nome durável dentro do workspace (mesmo em
 > subpasta liberada) e alvo durável ausente — com caso de quebra em `tests/test_refactor_gate.sh`.
 
+> **A branch tem de CONTER a main.** `make -s base` (`scripts/base_gate.py`) reprova branch que
+> está atrás de `origin/main` — é o que impede o "PR que apaga": a branch de sessão nasce de um
+> commit antigo e um PR dali **remove** o que a main ganhou (aconteceu 4×). Em clone raso o gate é
+> **PENDENTE**, não verde: sem histórico o git mente sobre ancestralidade. CI usa `fetch-depth: 0`.
+
 ```bash
 bash tests/test_state_reset.sh          # 13 PASS / 0 FAIL (sem device, sem rede)
 make -C skills check-all                # validate + core + 13/8/8 PASS + eval APROVADO
 make -s stack                           # 16/16 invariantes do contrato (install-stack.json)
 make -s refactor                        # 11/11 coerências contrato × consumidores
 make -s prove                           # suíte inteira inclui stack + refactor
-make -s mutation                        # 179/179 mutantes mortos · cobertura COMPLETA
+make -s mutation                        # 183/183 mutantes mortos · cobertura COMPLETA
 make -s mutacao-verifica                # catálogo fechado (ids únicos, sem lacuna)
 make -s mutacao-ids                     # grava ids automáticos de mutantes novos
 make -s contagens                       # nenhum número escrito à mão: tudo derivado do catálogo
@@ -303,8 +308,10 @@ scripts/state_reset.sh --json           # estado atual: clean | plan | applied
 > verdade viva — mutantes, último/próximo id, camadas, invariantes, coerências, passos — e
 > reprova qualquer doc/workflow que diga outro número. Crescer o catálogo de 175 para 176
 > **quebra o CI em segundos** até o texto ser corrigido: deriva, não decoreba. Afirmação
-> histórica é declarada na própria linha ou no topo do arquivo com
-> `<!-- contagens: histórico -->` — presumir histórico não vale.
+> histórica é declarada num comentário `contagens:` (na própria linha ou no topo do arquivo) que
+> **diga a que commit se refere**, no formato `congelado em: <sha> (AAAA-MM-DD)`. Presumir
+> histórico não vale — e congelar sem dizer o commit é porta de saída silenciosa (o número velho
+> volta a ler como verdade atual).
 > O CI `.github/workflows/proof.yml` roda contrato → `make -s prove` → mutação em 8 fatias
 > (`granularity=item` faz 1 job por mutante) → relatório **item a item** no summary e no PR.
 

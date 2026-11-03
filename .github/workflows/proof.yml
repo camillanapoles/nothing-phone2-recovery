@@ -38,16 +38,20 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # S-BASE precisa do histórico para provar ancestralidade
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Base — a branch contém a main (senão o PR apaga o que a main ganhou)
+        run: make -s base
       - name: Gate do contrato (install-stack × consumidores)
         run: make -s stack
-      - name: Coerência da refatoração (10/10)
+      - name: Coerência da refatoração (contrato × consumidores)
         run: make -s refactor
       - name: Catálogo de mutação fechado (ids únicos, sem lacuna)
         run: make -s mutacao-verifica
-      - name: Nenhum número escrito à mão (175→176 não pode passar despercebido)
+      - name: Nenhum número escrito à mão (o limite vem do catálogo)
         run: make -s contagens
       - name: Escopo, plano e continuidade
         run: |

@@ -1,7 +1,7 @@
 # Handoff — instrução de prosseguimento (próximo agente)
 
 **Estado:** branch `arena/863582fd-nothing-phone2-recovery` · skill `evox-rom-ci-optimizer` v3.1
-**Data:** 2026-11-01 · **Suíte:** `make -s prove` verde · mutação **179/179 mortos por asserção**
+**Data:** 2026-11-01 · **Suíte:** `make -s prove` verde · mutação **183/183 mortos por asserção**
 
 > **Leia antes:** `docs/skills/CONTINUITY-INSTRUCTION.md` (memória, método, mandato, aprendizados,
 > anti-padrões e como resolver dúvida). Para a kernel: `docs/skills/KERNEL-REQUIREMENTS.md`

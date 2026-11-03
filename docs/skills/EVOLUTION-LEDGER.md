@@ -1,4 +1,4 @@
-<!-- contagens: histórico -->
+<!-- contagens: histórico · congelado em: 3a72dd7 (2026-11-02) — números deste documento valem para aquele commit -->
 # Ledger de evolução — cada item, do nascimento ao estado atual
 
 **Data:** 2026-11-02 · **Branch:** `arena/e12a269b-nothing-phone2-recovery` (= `main` `d9dc14c` + esta auditoria)

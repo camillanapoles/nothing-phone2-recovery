@@ -1,5 +1,7 @@
 # Sequência de execução ampla — do gate verde ao aparelho provado
 
+<!-- contagens: histórico · congelado em: 7df226e (2026-11-02) — números deste documento valem para aquele commit -->
+
 **Premissa:** cada passo abaixo é **mudança + gate falseável + teste que quebra de propósito + mutante
 no catálogo**. Passo sem os três não entra. Nada é mesclado sem o seu ok.
 
