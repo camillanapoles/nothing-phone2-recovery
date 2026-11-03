@@ -1,3 +1,9 @@
+# ============================================================================
+# HISTÓRICO — NÃO EXECUTAR. Artefato do pacote de build de 2026-10-31.
+# Esta lista manda instalar módulos que o contrato VETA hoje (TrickyStore, LSPosed).
+# A fila vigente é `references/install-stack.json` (21 camadas) — ver
+# docs/skills/INSTALL-SEQUENCE.md. Mantido só como registro do que foi empacotado.
+# ============================================================================
 # Module Installation List
 # Order is critical — install in sequence
 

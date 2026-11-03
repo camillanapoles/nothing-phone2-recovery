@@ -283,9 +283,9 @@ state/                 runtime local (quarentena, relatórios) — fora do Git
 bash tests/test_state_reset.sh          # 13 PASS / 0 FAIL (sem device, sem rede)
 make -C skills check-all                # validate + core + 13/8/8 PASS + eval APROVADO
 make -s stack                           # 16/16 invariantes do contrato (install-stack.json)
-make -s refactor                        # 11/11 coerências contrato × consumidores
+make -s refactor                        # 12/12 coerências contrato × consumidores
 make -s prove                           # suíte inteira inclui stack + refactor
-make -s mutation                        # 183/183 mutantes mortos · cobertura COMPLETA
+make -s mutation                        # 185/185 mutantes mortos · cobertura COMPLETA
 make -s mutacao-verifica                # catálogo fechado (ids únicos, sem lacuna)
 make -s mutacao-ids                     # grava ids automáticos de mutantes novos
 make -s contagens                       # nenhum número escrito à mão: tudo derivado do catálogo
@@ -295,7 +295,7 @@ scripts/state_reset.sh --json           # estado atual: clean | plan | applied
 > **Refatoração não se declara: se prova.** `scripts/refactor_gate.py` (alvo `make -s refactor`)
 > cobra que todo consumidor — módulos, ocultação, sessão, garantia, plano, fila e CI — fique
 > coerente com `references/install-stack.json`, e que **todo script tenha mutante** (`RC10`).
-> Cada checagem `RC1…RC11` tem caso de quebra em `tests/test_refactor_gate.sh` (21 PASS).
+> Cada checagem `RC1…RC12` tem caso de quebra em `tests/test_refactor_gate.sh` (21 PASS).
 
 > **Validação não tem escape por padrão.** O escopo da mutação é o catálogo **inteiro**. Rodar
 > parte exige `--shard` (subconjunto declarado) e a cobertura do catálogo é cobrada no relatório:

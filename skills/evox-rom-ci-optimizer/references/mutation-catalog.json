@@ -1687,6 +1687,24 @@
    "test": "tests/test_counts_gate.sh",
    "strength": "semantic",
    "rationale": "afirmacao historica na propria linha escapa sem dizer a que commit se refere"
+  },
+  {
+   "id": "M204",
+   "file": "scripts/refactor_gate.py",
+   "find": "        if \"histórico\" in txt[:800] or \"historico\" in txt[:800]:",
+   "replace": "        if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
+   "strength": "semantic",
+   "rationale": "carimbo de artefato historico deixa de valer: residuo vetado passa por fila viva"
+  },
+  {
+   "id": "M205",
+   "file": "scripts/refactor_gate.py",
+   "find": "                if forma in txt:",
+   "replace": "                if False:",
+   "test": "skills/evox-rom-ci-optimizer/tests/test_refactor_gate.sh",
+   "strength": "semantic",
+   "rationale": "varredura de modulo vetado em artefato antigo nao acha nada"
   }
  ],
  "retired": [

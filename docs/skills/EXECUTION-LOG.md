@@ -55,6 +55,37 @@ carimbo). Todos mortos por asserção.
   falsos positivos de prosa controlados por teste.
 - `E02` contador derivado de suítes/casos (hoje os docs afirmam números sem fonte).
 - `E03` `prove` honesto: hoje ele **não** roda mutação nem vacuidade.
-- `E07`/`F6` carimbo do resíduo em `ci-build-full` + `RC13`.
+- `E07`/`F6` carimbo do resíduo em `ci-build-full` + `RC12`.
 - `F5` `S02`/`S03` no ledger de débitos.
 - `F7`/`F8`/`F9` PRs #17 e #13 (dependem do seu ok).
+
+---
+
+## Lote 2 — `RC12` (resíduo vetado) — fecha o N6/E07
+
+**Data:** 2026-11-02
+
+### O que entrou
+
+| item | arquivo | o que faz |
+|---|---|---|
+| **RC12** | `scripts/refactor_gate.py` | artefato em `ci-build-full/` que cite módulo **vetado pelo contrato** e não esteja carimbado como histórico → FALHA |
+| **carimbo** | `install-list.txt` + 3 JSONs de artefato | cabeçalho "HISTÓRICO — NÃO EXECUTAR" e campo `_historico`, com ponteiro para a fila vigente |
+
+O carimbo não apaga o resíduo: ele **rotula**. O gate garante que resíduo novo não nasça sem rótulo.
+
+### Limite honesto desta checagem
+
+`RC12` só conhece os módulos vetados **pelo contrato** (`install-stack.json › forbidden`). O
+`install-list.txt` também cita LSPosed, que **não** está nessa lista — portanto o gate não o pega.
+Se LSPosed deve ser vetado, isso é decisão de contrato (e entra como camada proibida), não de gate.
+
+### Como foi provado
+
+```text
+make -s refactor                    → OK (RC1…RC12)
+test_refactor_gate.sh               → 23/23 (2 falsificações novas de RC12)
+mutation --only M204,M205           → mortos
+make -s prove                       → exit 0
+make -s mutation                    → 100% mortos, cobertura COMPLETA
+```

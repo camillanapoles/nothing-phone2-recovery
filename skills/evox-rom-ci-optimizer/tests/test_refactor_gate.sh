@@ -22,10 +22,10 @@ copiar(){
 
 # ---------------------------------------------------------------- 0. sanidade
 out="$(cd "$ROOT" && python3 "$K" --root . 2>&1)"; rc=$?
-ck "repo real: gate passa 11/11" "0" "$rc"
+ck "repo real: gate passa 12/12" "0" "$rc"
 case "$out" in
-  *"11/11"*) ok "repo real imprime 11/11" "11/11" ;;
-  *) bad "repo real imprime 11/11" "$(printf '%s' "$out" | tail -1)" ;;
+  *"12/12"*) ok "repo real imprime 12/12" "12/12" ;;
+  *) bad "repo real imprime 12/12" "$(printf '%s' "$out" | tail -1)" ;;
 esac
 
 # ---------------------------------------------------------------- 1. CLI
@@ -163,6 +163,16 @@ printf "\nLEDGER=\"\${LEDGER:-./workspace/audit/rollout.json}\"\n" >> skills/evo
 
 falsificar RC11_nada_duravel_no_workspace "RC11: decisão durável volta para o workspace" '
 printf "\n> A decisão fica em \`workspace/decision.json\`.\n" >> AGENTS.md'
+
+falsificar RC12_residuo_vetado "RC12: artefato antigo perde o carimbo e volta a mandar instalar vetado" '
+python3 - <<"PY"
+p="ci-build-full/build-package/modules/install-list.txt"
+linhas=[l for l in open(p,encoding="utf-8").read().splitlines(True) if "HISTÓRICO" not in l and not l.startswith("# Esta lista") and not l.startswith("# A fila") and not l.startswith("# docs/skills") and not l.startswith("# ====")]
+open(p,"w",encoding="utf-8").writelines(linhas)
+PY'
+
+falsificar RC12_residuo_vetado "RC12: artefato novo cita módulo vetado sem carimbo" '
+printf "instalar TrickyStore v1.4.1 e Shamiko\n" > ci-build-full/build-package/modules/fila-nova.txt'
 
 # ---------------------------------------------------------------- veredito
 echo
